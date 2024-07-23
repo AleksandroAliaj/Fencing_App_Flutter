@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "99064000925",
+    "project_id": "scherma-f2d5e",
+    "storage_bucket": "scherma-f2d5e.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:99064000925:android:a1c2965cbac0b792a37f74",
+        "android_client_info": {
+          "package_name": "com.example.scherma"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCIyEWC8hbITzYrsuGxa8tykb87eiPbNhg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
