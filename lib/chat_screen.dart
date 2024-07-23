@@ -102,7 +102,7 @@ class MessagesStream extends StatelessWidget {
       stream: FirebaseFirestore.instance
           .collection('messages')
           .where('facilityCode', isEqualTo: facilityCode)
-          //.orderBy('timestamp', descending: true)
+          .orderBy('timestamp', descending: true)
           .snapshots(), 
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
