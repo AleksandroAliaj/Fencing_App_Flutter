@@ -2,12 +2,11 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
+import 'armeria_screen.dart';
 import 'auth_service.dart';
-import 'chat_screen.dart';
 import 'chat_selection_screen.dart';
 import 'sign_in_screen.dart';
 import 'profile_screen.dart';
-import 'register_screen.dart'; 
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -78,7 +77,7 @@ class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 2;
 
   static const List<Widget> _widgetOptions = <Widget>[
-    Text('Armeria'),
+    ArmeriaScreen(),
     ChatSelectionScreen(),
     Text('Allenamento'),
     Text('Ranking'),
