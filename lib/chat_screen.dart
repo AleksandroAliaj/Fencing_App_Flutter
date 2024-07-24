@@ -5,7 +5,9 @@ import 'package:provider/provider.dart';
 import 'auth_service.dart';
 
 class ChatScreen extends StatefulWidget {
-  const ChatScreen({super.key});
+  final String chatType;
+
+  const ChatScreen({Key? key, required this.chatType}) : super(key: key);
 
   @override
   _ChatScreenState createState() => _ChatScreenState();
@@ -14,20 +16,22 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> {
   final TextEditingController _messageController = TextEditingController();
   String? _facilityCode;
+  String? _userRole;
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    _loadFacilityCode();
+    _loadUserData();
   }
 
-  Future<void> _loadFacilityCode() async {
+  Future<void> _loadUserData() async {
     User? user = Provider.of<AuthService>(context, listen: false).currentUser;
     if (user != null) {
       final DocumentSnapshot userData = await Provider.of<AuthService>(context, listen: false).getUserData(user.uid);
       setState(() {
         _facilityCode = userData['facilityCode'];
+        _userRole = userData['role'];
         _isLoading = false;
       });
     }
@@ -43,8 +47,7 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Chat'),
-        
+        title: Text(_getChatTitle()),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -52,7 +55,7 @@ class _ChatScreenState extends State<ChatScreen> {
               children: <Widget>[
                 Expanded(
                   child: _facilityCode != null
-                      ? MessagesStream(facilityCode: _facilityCode!)
+                      ? MessagesStream(facilityCode: _facilityCode!, chatType: widget.chatType, userRole: _userRole!)
                       : const Center(child: Text('No facility code found')),
                 ),
                 Padding(
@@ -69,18 +72,7 @@ class _ChatScreenState extends State<ChatScreen> {
                       ),
                       IconButton(
                         icon: const Icon(Icons.send),
-                        onPressed: () {
-                          final User? user = FirebaseAuth.instance.currentUser;
-                          if (user != null && _messageController.text.isNotEmpty && _facilityCode != null) {
-                            FirebaseFirestore.instance.collection('messages').add({
-                              'text': _messageController.text,
-                              'sender': user.email,
-                              'timestamp': FieldValue.serverTimestamp(),
-                              'facilityCode': _facilityCode,
-                            });
-                            _messageController.clear();
-                          }
-                        },
+                        onPressed: _sendMessage,
                       ),
                     ],
                   ),
@@ -89,21 +81,47 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
     );
   }
+
+  String _getChatTitle() {
+    switch (widget.chatType) {
+      case 'global':
+        return 'Chat Globale';
+      case 'athletes_coaches':
+        return 'Chat Atleti e Allenatori';
+      case 'athletes':
+        return 'Chat Atleti';
+      default:
+        return 'Chat';
+    }
+  }
+
+  void _sendMessage() {
+    final User? user = FirebaseAuth.instance.currentUser;
+    if (user != null && _messageController.text.isNotEmpty && _facilityCode != null) {
+      FirebaseFirestore.instance.collection('messages').add({
+        'text': _messageController.text,
+        'sender': user.email,
+        'timestamp': FieldValue.serverTimestamp(),
+        'facilityCode': _facilityCode,
+        'chatType': widget.chatType,
+        'senderRole': _userRole,
+      });
+      _messageController.clear();
+    }
+  }
 }
 
 class MessagesStream extends StatelessWidget {
   final String facilityCode;
+  final String chatType;
+  final String userRole;
 
-  const MessagesStream({super.key, required this.facilityCode});
+  const MessagesStream({Key? key, required this.facilityCode, required this.chatType, required this.userRole}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection('messages')
-          .where('facilityCode', isEqualTo: facilityCode)
-          .orderBy('timestamp', descending: true)
-          .snapshots(), 
+      stream: _getMessageStream(),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -137,10 +155,20 @@ class MessagesStream extends StatelessWidget {
       },
     );
   }
+
+  Stream<QuerySnapshot> _getMessageStream() {
+    Query query = FirebaseFirestore.instance
+        .collection('messages')
+        .where('facilityCode', isEqualTo: facilityCode)
+        .where('chatType', isEqualTo: chatType);
+
+    // Aggiungi l'ordinamento per timestamp alla fine
+    return query.orderBy('timestamp', descending: true).snapshots();
+  }
 }
 
 class MessageBubble extends StatelessWidget {
-  const MessageBubble({super.key, required this.sender, required this.text});
+  const MessageBubble({Key? key, required this.sender, required this.text}) : super(key: key);
 
   final String sender;
   final String text;

@@ -4,6 +4,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 import 'auth_service.dart';
 import 'chat_screen.dart';
+import 'chat_selection_screen.dart';
 import 'sign_in_screen.dart';
 import 'profile_screen.dart';
 import 'register_screen.dart'; 
@@ -74,11 +75,11 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  int _selectedIndex = 0;
+  int _selectedIndex = 2;
 
   static const List<Widget> _widgetOptions = <Widget>[
     Text('Armeria'),
-    ChatScreen(),
+    ChatSelectionScreen(),
     Text('Allenamento'),
     Text('Ranking'),
     Text('Calendario'),
