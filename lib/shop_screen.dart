@@ -176,12 +176,182 @@ class ProductCategoryScreen extends StatelessWidget {
                 title: Text(data['title'] ?? 'No title'),
                 subtitle: Text('${data['price'] ?? 'N/A'} €'),
                 onTap: () {
-                  // Implementa la visualizzazione dettagliata del prodotto
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => ProductDetailScreen(
+                        title: data['title'] ?? 'No title',
+                        description: data['description'] ?? 'No description',
+                        price: data['price'] ?? 'N/A',
+                        category: category,
+                      ),
+                    ),
+                  );
                 },
               );
             },
           );
         },
+      ),
+      floatingActionButton: userRole.toLowerCase() == 'staff'
+          ? FloatingActionButton.extended(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => EditProductsScreen(
+                      category: category,
+                      facilityCode: facilityCode,
+                    ),
+                  ),
+                );
+              },
+              label: const Text('Modifica'),
+              icon: const Icon(Icons.edit),
+            )
+          : null,
+    );
+  }
+}
+
+class EditProductsScreen extends StatefulWidget {
+  final String category;
+  final String facilityCode;
+
+  const EditProductsScreen({
+    Key? key,
+    required this.category,
+    required this.facilityCode,
+  }) : super(key: key);
+
+  @override
+  _EditProductsScreenState createState() => _EditProductsScreenState();
+}
+
+class _EditProductsScreenState extends State<EditProductsScreen> {
+  Set<String> selectedProducts = {};
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Modifica ${widget.category}'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.delete),
+            onPressed: selectedProducts.isNotEmpty ? _deleteSelectedProducts : null,
+          ),
+        ],
+      ),
+      body: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance
+            .collection('products')
+            .where('facilityCode', isEqualTo: widget.facilityCode)
+            .where('category', isEqualTo: widget.category)
+            .snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          }
+
+          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            return const Center(child: Text('Non ci sono prodotti disponibili in questa categoria'));
+          }
+
+          return ListView.builder(
+            itemCount: snapshot.data!.docs.length,
+            itemBuilder: (context, index) {
+              DocumentSnapshot document = snapshot.data!.docs[index];
+              Map<String, dynamic> data = document.data() as Map<String, dynamic>;
+              String productId = document.id;
+
+              return CheckboxListTile(
+                title: Text(data['title'] ?? 'No title'),
+                subtitle: Text('${data['price'] ?? 'N/A'} €'),
+                value: selectedProducts.contains(productId),
+                onChanged: (bool? value) {
+                  setState(() {
+                    if (value == true) {
+                      selectedProducts.add(productId);
+                    } else {
+                      selectedProducts.remove(productId);
+                    }
+                  });
+                },
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+
+  void _deleteSelectedProducts() async {
+    try {
+      WriteBatch batch = FirebaseFirestore.instance.batch();
+
+      for (String productId in selectedProducts) {
+        DocumentReference productRef = FirebaseFirestore.instance.collection('products').doc(productId);
+        batch.delete(productRef);
+      }
+
+      await batch.commit();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Prodotti eliminati con successo')),
+      );
+
+      setState(() {
+        selectedProducts.clear();
+      });
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Errore durante l\'eliminazione dei prodotti: $e')),
+      );
+    }
+  }
+}
+class ProductDetailScreen extends StatelessWidget {
+  final String title;
+  final String description;
+  final double price;
+  final String category;
+
+  const ProductDetailScreen({
+    Key? key,
+    required this.title,
+    required this.description,
+    required this.price,
+    required this.category,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Product Detail'),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Category: $category', style: Theme.of(context).textTheme.headline6),
+            const SizedBox(height: 8),
+            Text('Title: $title', style: Theme.of(context).textTheme.headline5),
+            const SizedBox(height: 8),
+            Text('Description: $description', style: Theme.of(context).textTheme.bodyText1),
+            const SizedBox(height: 8),
+            Text('Price: $price €', style: Theme.of(context).textTheme.bodyText1),
+            const SizedBox(height: 16),
+            Text('Prodotto disponibile in struttura', style: Theme.of(context).textTheme.bodyText1),
+
+          ],
+        ),
       ),
     );
   }
