@@ -1,9 +1,10 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'auth_service.dart';
-import 'main.dart'; 
+import 'main.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -16,6 +17,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String? _email;
   String? _role;
   String? _facilityCode;
+  String? _userId;
 
   @override
   void initState() {
@@ -31,8 +33,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _email = userData['email'];
         _role = userData['role'];
         _facilityCode = userData['facilityCode'];
+        _userId = user.uid;
       });
     }
+  }
+
+  void _copyToClipboard(String text) {
+    Clipboard.setData(ClipboardData(text: text));
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('ID copiato negli appunti')),
+    );
   }
 
   @override
@@ -45,8 +55,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
           onPressed: () {
             Navigator.pushAndRemoveUntil(
               context,
-              MaterialPageRoute(builder: (context) => HomeScreen()), // Passa l'indice per la scheda "Allenamento"
-              ModalRoute.withName('/'), // Assicurati di rimuovere tutte le route precedenti
+              MaterialPageRoute(builder: (context) => HomeScreen()),
+              ModalRoute.withName('/'),
             );
           },
         ),
@@ -55,11 +65,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
             if (_email != null) Text('Email: $_email'),
             if (_role != null) Text('Role: $_role'),
             if (_facilityCode != null) Text('Facility Code: $_facilityCode'),
             const SizedBox(height: 20),
+            const Text(
+              'Comunica il tuo ID agli allenatori e ai tuoi amici',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 8),
+            if (_userId != null)
+              Row(
+                children: [
+                  Expanded(child: Text('ID: $_userId')),
+                  IconButton(
+                    icon: const Icon(Icons.copy),
+                    onPressed: () => _copyToClipboard(_userId!),
+                    tooltip: 'Copia ID',
+                  ),
+                ],
+              ),
           ],
         ),
       ),

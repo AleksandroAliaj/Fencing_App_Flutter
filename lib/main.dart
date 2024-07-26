@@ -8,6 +8,8 @@ import 'chat_selection_screen.dart';
 import 'ranking_screen.dart';
 import 'sign_in_screen.dart';
 import 'profile_screen.dart';
+import 'training_screen.dart';
+import 'calendar_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -80,9 +82,9 @@ class _HomeScreenState extends State<HomeScreen> {
   static const List<Widget> _widgetOptions = <Widget>[
     ArmeriaScreen(),
     ChatSelectionScreen(),
-    Text('Allenamento'),
+    TrainingScreen(),
     RankingScreen(),
-    Text('Calendario'),
+    CalendarScreen(),
   ];
 
   void _onItemTapped(int index) {

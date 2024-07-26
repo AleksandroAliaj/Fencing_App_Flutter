@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'auth_service.dart';
 import 'chat_screen.dart';
 
@@ -11,71 +12,166 @@ class ChatSelectionScreen extends StatelessWidget {
     final authService = Provider.of<AuthService>(context, listen: false);
     final user = authService.currentUser;
 
-    return FutureBuilder<String?>(
-      future: authService.getUserRole(user?.uid),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
+    return Scaffold(
+      body: FutureBuilder<String?>(
+        future: authService.getUserRole(user?.uid),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-        if (snapshot.hasError) {
-          return Center(child: Text('Error loading user role: ${snapshot.error}'));
-        }
+          if (snapshot.hasError) {
+            return Center(child: Text('Error loading user role: ${snapshot.error}'));
+          }
 
-        if (!snapshot.hasData || snapshot.data == null) {
-          return const Center(child: Text('User role not found'));
-        }
+          if (!snapshot.hasData || snapshot.data == null) {
+            return const Center(child: Text('User role not found'));
+          }
 
-        final role = snapshot.data!;
-        print('User role: $role'); 
+          final role = snapshot.data!;
+          print('User role: $role');
 
-        List<ChatOption> chatOptions;
+          return StreamBuilder<QuerySnapshot>(
+            stream: FirebaseFirestore.instance
+                .collection('chats')
+                .where('participants', arrayContains: user?.uid)
+                .snapshots(),
+            builder: (context, chatSnapshot) {
+              if (chatSnapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
 
-        switch (role.toLowerCase()) {
-          case 'atleta':
-            chatOptions = [
-              ChatOption('Chat Globale', () => _navigateToChat(context, 'global')),
-              ChatOption('Chat Atleti e Allenatori', () => _navigateToChat(context, 'athletes_coaches')),
-              ChatOption('Chat Atleti', () => _navigateToChat(context, 'athletes')),
-            ];
-            break;
-          case 'allenatore':
-            chatOptions = [
-              ChatOption('Chat Globale', () => _navigateToChat(context, 'global')),
-              ChatOption('Chat Atleti e Allenatori', () => _navigateToChat(context, 'athletes_coaches')),
-              
-            ];
-            break;
-          case 'staff':
-            chatOptions = [
-              ChatOption('Chat Globale', () => _navigateToChat(context, 'global')),
-              
-            ];
-            break;
-          default:
-            return Center(child: Text('Ruolo non riconosciuto: $role'));
-        }
+              List<ChatOption> chatOptions = [
+                ChatOption('Chat Globale', () => _navigateToChat(context, 'global')),
+              ];
 
-        return ListView.builder(
-          itemCount: chatOptions.length,
-          itemBuilder: (context, index) {
-            return ListTile(
-              title: Text(chatOptions[index].title),
-              onTap: chatOptions[index].onTap,
-            );
-          },
+              if (role.toLowerCase() == 'atleta' || role.toLowerCase() == 'allenatore') {
+                chatOptions.add(ChatOption('Chat Atleti e Allenatori', () => _navigateToChat(context, 'athletes_coaches')));
+              }
+
+              if (role.toLowerCase() == 'atleta') {
+                chatOptions.add(ChatOption('Chat Atleti', () => _navigateToChat(context, 'athletes')));
+              }
+
+              // Add private chats
+              if (chatSnapshot.hasData) {
+                for (var doc in chatSnapshot.data!.docs) {
+                  final chatData = doc.data() as Map<String, dynamic>;
+                  final otherUserId = (chatData['participants'] as List<dynamic>)
+                      .firstWhere((id) => id != user?.uid);
+                  chatOptions.add(ChatOption(
+                    chatData['participantEmails'][otherUserId],
+                    () => _navigateToChat(context, 'private', chatId: doc.id),
+                  ));
+                }
+              }
+
+              return ListView.builder(
+                itemCount: chatOptions.length,
+                itemBuilder: (context, index) {
+                  return ListTile(
+                    title: Text(chatOptions[index].title),
+                    onTap: chatOptions[index].onTap,
+                  );
+                },
+              );
+            },
+          );
+        },
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _showCreateChatDialog(context),
+        child: const Icon(Icons.add),
+      ),
+    );
+  }
+
+  void _navigateToChat(BuildContext context, String chatType, {String? chatId}) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ChatScreen(chatType: chatType, chatId: chatId),
+      ),
+    );
+  }
+
+  void _showCreateChatDialog(BuildContext context) {
+    final TextEditingController controller = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Crea una nuova chat"),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Text("Inserire il codice ID della persona con cui vuoi iniziare una chat"),
+              TextField(
+                controller: controller,
+                decoration: const InputDecoration(hintText: "Inserisci l'ID dell'utente"),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              child: const Text("Annulla"),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            TextButton(
+              child: const Text("Crea chat"),
+              onPressed: () => _createPrivateChat(context, controller.text),
+            ),
+          ],
         );
       },
     );
   }
 
-  void _navigateToChat(BuildContext context, String chatType) {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => ChatScreen(chatType: chatType),
-      ),
-    );
+  void _createPrivateChat(BuildContext context, String otherUserId) async {
+    final authService = Provider.of<AuthService>(context, listen: false);
+    final currentUser = authService.currentUser;
+
+    if (currentUser != null) {
+      // Check if the other user is the same as the current user
+      if (otherUserId == currentUser.uid) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+          content: Text('Non puoi creare una chat con te stesso, digita il codice ID di un\'altra persona.'),
+        ));
+        return;
+      }
+
+      // Check if the other user exists
+      final otherUserDoc = await FirebaseFirestore.instance.collection('users').doc(otherUserId).get();
+      if (!otherUserDoc.exists) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Utente non trovato')));
+        return;
+      }
+
+      // Check if a chat already exists
+      final existingChat = await FirebaseFirestore.instance
+          .collection('chats')
+          .where('participants', isEqualTo: [currentUser.uid, otherUserId])
+          .get();
+
+      if (existingChat.docs.isNotEmpty) {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('La chat esiste già')));
+        return;
+      }
+
+      // Create a new chat
+      await FirebaseFirestore.instance.collection('chats').add({
+        'participants': [currentUser.uid, otherUserId],
+        'participantEmails': {
+          currentUser.uid: currentUser.email,
+          otherUserId: otherUserDoc['email'],
+        },
+        'lastMessage': '',
+        'lastMessageTimestamp': FieldValue.serverTimestamp(),
+      });
+
+      Navigator.of(context).pop();
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Chat creata con successo')));
+    }
   }
 }
 
