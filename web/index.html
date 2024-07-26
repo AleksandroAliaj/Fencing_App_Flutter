@@ -55,5 +55,25 @@
       });
     });
   </script>
+  <!-- Aggiungi questi script di Firebase -->
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
+
+  <!-- Inizializza Firebase -->
+  <script>
+    var firebaseConfig = {
+      apiKey: "AIzaSyAE5cj4wl19m782QOlz_dm6-zmLXM4PT9M",
+      authDomain: "scherma-f2d5e.firebaseapp.com",
+      projectId: "scherma-f2d5e",
+      storageBucket: "scherma-f2d5e.appspot.com",
+      messagingSenderId: "99064000925",
+      appId: "1:99064000925:web:ea278c34849ce42ca37f74",
+      measurementId: "G-Z4YW4DEWJW"
+    };
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+  </script>
 </body>
 </html>

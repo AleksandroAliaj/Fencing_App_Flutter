@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'armeria_screen.dart';
 import 'auth_service.dart';
 import 'chat_selection_screen.dart';
+import 'ranking_screen.dart';
 import 'sign_in_screen.dart';
 import 'profile_screen.dart';
 
@@ -80,7 +81,7 @@ class _HomeScreenState extends State<HomeScreen> {
     ArmeriaScreen(),
     ChatSelectionScreen(),
     Text('Allenamento'),
-    Text('Ranking'),
+    RankingScreen(),
     Text('Calendario'),
   ];
 
