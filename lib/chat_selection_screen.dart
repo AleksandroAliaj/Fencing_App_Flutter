@@ -166,13 +166,18 @@ class ChatSelectionScreen extends StatelessWidget {
       final otherUserDoc = otherUserQuery.docs.first;
       final otherUserId = otherUserDoc.id;
 
-      // Check if a chat already exists
+      // Check if a private chat already exists
       final existingChat = await FirebaseFirestore.instance
           .collection('chats')
-          .where('participants', arrayContainsAny: [currentUser.uid, otherUserId])
+          .where('participants', arrayContains: currentUser.uid)
           .get();
 
-      if (existingChat.docs.isNotEmpty) {
+      final chatExists = existingChat.docs.any((doc) {
+        final participants = doc['participants'] as List<dynamic>;
+        return participants.contains(otherUserId) && participants.length == 2;
+      });
+
+      if (chatExists) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('La chat esiste già')));
         return;
       }

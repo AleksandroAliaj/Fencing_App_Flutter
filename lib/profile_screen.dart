@@ -79,7 +79,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             if (_facilityCode != null) Text('Facility Code: $_facilityCode'),
             const SizedBox(height: 20),
             const Text(
-              'Comunica il tuo ID agli allenatori e ai tuoi amici',
+              'User ID',
               style: TextStyle(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
