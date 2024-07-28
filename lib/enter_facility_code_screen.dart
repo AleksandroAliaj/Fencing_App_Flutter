@@ -7,12 +7,16 @@ class EnterFacilityCodeScreen extends StatefulWidget {
   final String email;
   final String password;
   final String role;
+  final String firstName;
+  final String lastName;
 
   const EnterFacilityCodeScreen({
     super.key,
     required this.email,
     required this.password,
     required this.role,
+    required this.firstName,
+    required this.lastName,
   });
 
   @override
@@ -53,7 +57,14 @@ class _EnterFacilityCodeScreenState extends State<EnterFacilityCodeScreen> {
                       .checkFacilityCodeExists(facilityCode);
                   if (codeExists) {
                     await Provider.of<AuthService>(context, listen: false)
-                        .registerWithEmailAndPassword(widget.email, widget.password, widget.role, facilityCode: facilityCode);
+                        .registerWithEmailAndPassword(
+                          widget.email, 
+                          widget.password, 
+                          widget.role, 
+                          widget.firstName, 
+                          widget.lastName,
+                          facilityCode: facilityCode
+                        );
                     Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(builder: (context) => const ProfileScreen()),

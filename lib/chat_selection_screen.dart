@@ -1,3 +1,5 @@
+// chat_selection_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -96,7 +98,8 @@ class ChatSelectionScreen extends StatelessWidget {
   }
 
   void _showCreateChatDialog(BuildContext context) {
-    final TextEditingController controller = TextEditingController();
+    final TextEditingController firstNameController = TextEditingController();
+    final TextEditingController lastNameController = TextEditingController();
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -105,10 +108,14 @@ class ChatSelectionScreen extends StatelessWidget {
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Text("Inserire il codice ID della persona con cui vuoi iniziare una chat"),
+              const Text("Inserire il nome e cognome della persona con cui vuoi iniziare una chat"),
               TextField(
-                controller: controller,
-                decoration: const InputDecoration(hintText: "Inserisci l'ID dell'utente"),
+                controller: firstNameController,
+                decoration: const InputDecoration(hintText: "Inserisci il nome"),
+              ),
+              TextField(
+                controller: lastNameController,
+                decoration: const InputDecoration(hintText: "Inserisci il cognome"),
               ),
             ],
           ),
@@ -119,7 +126,7 @@ class ChatSelectionScreen extends StatelessWidget {
             ),
             TextButton(
               child: const Text("Crea chat"),
-              onPressed: () => _createPrivateChat(context, controller.text),
+              onPressed: () => _createPrivateChat(context, firstNameController.text, lastNameController.text),
             ),
           ],
         );
@@ -127,30 +134,42 @@ class ChatSelectionScreen extends StatelessWidget {
     );
   }
 
-  void _createPrivateChat(BuildContext context, String otherUserId) async {
+  void _createPrivateChat(BuildContext context, String otherFirstName, String otherLastName) async {
     final authService = Provider.of<AuthService>(context, listen: false);
     final currentUser = authService.currentUser;
+    final userData = await authService.getUserData(currentUser!.uid);
 
     if (currentUser != null) {
+      final currentUserName = userData['firstName'];
+      final currentUserSurname = userData['lastName'];
+
       // Check if the other user is the same as the current user
-      if (otherUserId == currentUser.uid) {
+      if (otherFirstName == currentUserName && otherLastName == currentUserSurname) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
-          content: Text('Non puoi creare una chat con te stesso, digita il codice ID di un\'altra persona.'),
+          content: Text('Non puoi creare una chat con te stesso, digita il nome e cognome di un\'altra persona.'),
         ));
         return;
       }
 
       // Check if the other user exists
-      final otherUserDoc = await FirebaseFirestore.instance.collection('users').doc(otherUserId).get();
-      if (!otherUserDoc.exists) {
+      final otherUserQuery = await FirebaseFirestore.instance
+          .collection('users')
+          .where('firstName', isEqualTo: otherFirstName)
+          .where('lastName', isEqualTo: otherLastName)
+          .get();
+
+      if (otherUserQuery.docs.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Utente non trovato')));
         return;
       }
 
+      final otherUserDoc = otherUserQuery.docs.first;
+      final otherUserId = otherUserDoc.id;
+
       // Check if a chat already exists
       final existingChat = await FirebaseFirestore.instance
           .collection('chats')
-          .where('participants', isEqualTo: [currentUser.uid, otherUserId])
+          .where('participants', arrayContainsAny: [currentUser.uid, otherUserId])
           .get();
 
       if (existingChat.docs.isNotEmpty) {

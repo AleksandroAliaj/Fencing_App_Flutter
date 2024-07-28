@@ -10,15 +10,25 @@ class AuthService {
     return _auth.authStateChanges();
   }
 
-  Future<String> registerWithEmailAndPassword(String email, String password, String role, {String? facilityCode}) async {
+  Future<String> registerWithEmailAndPassword(String email, String password, String role, String firstName, String lastName, {String? facilityCode}) async {
     UserCredential result = await _auth.createUserWithEmailAndPassword(email: email, password: password);
     User? user = result.user;
     if (user != null) {
       String userFacilityCode = facilityCode ?? _generateFacilityCode();
+      
+      if (facilityCode != null) {
+        bool codeExists = await checkFacilityCodeExists(facilityCode);
+        if (!codeExists) {
+          throw Exception('Invalid facility code');
+        }
+      }
+
       await _firestore.collection('users').doc(user.uid).set({
         'email': email,
         'role': role,
         'facilityCode': userFacilityCode,
+        'firstName': firstName,
+        'lastName': lastName,
       });
       return userFacilityCode;
     }
@@ -55,6 +65,7 @@ class AuthService {
   Future<DocumentSnapshot> getUserData(String uid) async {
     return await _firestore.collection('users').doc(uid).get();
   }
+
   Future<String?> getUserRole(String? uid) async {
     if (uid == null) return null;
     try {
@@ -76,7 +87,4 @@ class AuthService {
       return null;
     }
   }
-  
-
-  
 }

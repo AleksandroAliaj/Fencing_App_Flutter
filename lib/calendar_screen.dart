@@ -59,9 +59,14 @@ class _AgendaTabState extends State<AgendaTab> {
     final user = authService.currentUser;
 
     if (user != null) {
+      final userData = await authService.getUserData(user.uid);
+      final athleteName = userData['firstName'];
+      final athleteSurname = userData['lastName'];
+
       final querySnapshot = await FirebaseFirestore.instance
           .collection('private_lessons')
-          .where('athleteId', isEqualTo: user.uid)
+          .where('athleteName', isEqualTo: athleteName)
+          .where('athleteSurname', isEqualTo: athleteSurname)
           .get();
 
       setState(() {
@@ -72,7 +77,8 @@ class _AgendaTabState extends State<AgendaTab> {
           final event = Event(
             title: 'Lezione privata',
             time: data['time'],
-            coachEmail: data['coachEmail'],
+            coachName: '${data['coachName']} ${data['coachSurname']}',
+            athleteName: '${data['athleteName']} ${data['athleteSurname']}',
             date: date,
           );
 
@@ -152,7 +158,7 @@ class _AgendaTabState extends State<AgendaTab> {
                     child: ListTile(
                       onTap: () => _showEventDetails(context, events[index]),
                       title: Text(events[index].title),
-                      subtitle: Text('Ora: ${events[index].time}'),
+                      subtitle: Text('Ora: ${events[index].time}\nAllenatore: ${events[index].coachName}\nAtleta: ${events[index].athleteName}'),
                     ),
                   );
                 },
@@ -175,7 +181,8 @@ class _AgendaTabState extends State<AgendaTab> {
           children: [
             Text('Data: ${event.date.day}/${event.date.month}/${event.date.year}'),
             Text('Ora: ${event.time}'),
-            Text('Allenatore: ${event.coachEmail}'),
+            Text('Allenatore: ${event.coachName}'),
+            Text('Atleta: ${event.athleteName}'),
           ],
         ),
         actions: [
@@ -192,13 +199,15 @@ class _AgendaTabState extends State<AgendaTab> {
 class Event {
   final String title;
   final String time;
-  final String coachEmail;
+  final String coachName;
+  final String athleteName;
   final DateTime date;
 
   const Event({
     required this.title,
     required this.time,
-    required this.coachEmail,
+    required this.coachName,
+    required this.athleteName,
     required this.date,
   });
 }

@@ -34,7 +34,14 @@ class TrainingScreen extends StatelessWidget {
   }
 }
 
-class PrivateLessonTab extends StatelessWidget {
+class PrivateLessonTab extends StatefulWidget {
+  @override
+  _PrivateLessonTabState createState() => _PrivateLessonTabState();
+}
+
+class _PrivateLessonTabState extends State<PrivateLessonTab> {
+  bool _showCreateLesson = false;
+
   @override
   Widget build(BuildContext context) {
     final authService = Provider.of<AuthService>(context, listen: false);
@@ -53,10 +60,39 @@ class PrivateLessonTab extends StatelessWidget {
 
         final role = snapshot.data!.toLowerCase();
 
-        if (role == 'allenatore' || role == 'staff') {
-          return CreateLessonScreen();
+        if (role == 'allenatore') {
+          return _showCreateLesson
+              ? CreateLessonScreen(onCancel: () {
+                  setState(() {
+                    _showCreateLesson = false;
+                  });
+                })
+              : Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    ElevatedButton(
+                      onPressed: () {
+                        setState(() {
+                          _showCreateLesson = true;
+                        });
+                      },
+                      child: const Text('Aggiungi Lezione'),
+                    ),
+                    ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => CoachLessonsScreen()),
+                        );
+                      },
+                      child: const Text('Le Mie Lezioni'),
+                    ),
+                  ],
+                );
         } else if (role == 'atleta') {
           return AthleteLesson();
+        } else if (role == 'staff') {
+          return StaffLessonView();
         } else {
           return const Center(child: Text('Ruolo non riconosciuto'));
         }
@@ -66,6 +102,10 @@ class PrivateLessonTab extends StatelessWidget {
 }
 
 class CreateLessonScreen extends StatefulWidget {
+  final VoidCallback onCancel;
+
+  const CreateLessonScreen({required this.onCancel});
+
   @override
   _CreateLessonScreenState createState() => _CreateLessonScreenState();
 }
@@ -74,7 +114,8 @@ class _CreateLessonScreenState extends State<CreateLessonScreen> {
   final _formKey = GlobalKey<FormState>();
   DateTime _selectedDate = DateTime.now();
   TimeOfDay _selectedTime = TimeOfDay.now();
-  String _athleteId = '';
+  String _athleteName = '';
+  String _athleteSurname = '';
 
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
@@ -104,7 +145,7 @@ class _CreateLessonScreenState extends State<CreateLessonScreen> {
 
   Future<void> _submitLesson() async {
     if (_formKey.currentState!.validate()) {
-      _formKey.currentState!.save(); // Questo salverà il valore di _athleteId
+      _formKey.currentState!.save();
       final authService = Provider.of<AuthService>(context, listen: false);
       final user = authService.currentUser;
       final userData = await authService.getUserData(user!.uid);
@@ -112,15 +153,18 @@ class _CreateLessonScreenState extends State<CreateLessonScreen> {
       await FirebaseFirestore.instance.collection('private_lessons').add({
         'date': Timestamp.fromDate(_selectedDate),
         'time': '${_selectedTime.hour}:${_selectedTime.minute}',
-        'athleteId': _athleteId, // Ora questo verrà salvato correttamente
+        'athleteName': _athleteName,
+        'athleteSurname': _athleteSurname,
         'facilityCode': userData['facilityCode'],
-        'coachId': user.uid,
-        'coachEmail': user.email,
+        'coachName': userData['firstName'],
+        'coachSurname': userData['lastName'],
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Lezione creata con successo')),
       );
+
+      widget.onCancel();
     }
   }
 
@@ -133,14 +177,24 @@ class _CreateLessonScreenState extends State<CreateLessonScreen> {
         child: Column(
           children: [
             TextFormField(
-              decoration: const InputDecoration(labelText: 'ID Atleta'),
+              decoration: const InputDecoration(labelText: 'Nome Atleta'),
               validator: (value) {
                 if (value == null || value.isEmpty) {
-                  return 'Inserisci l\'ID dell\'atleta';
+                  return 'Inserisci il nome dell\'atleta';
                 }
                 return null;
               },
-              onSaved: (value) => _athleteId = value!, // Questo salva il valore in _athleteId
+              onSaved: (value) => _athleteName = value!,
+            ),
+            TextFormField(
+              decoration: const InputDecoration(labelText: 'Cognome Atleta'),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return 'Inserisci il cognome dell\'atleta';
+                }
+                return null;
+              },
+              onSaved: (value) => _athleteSurname = value!,
             ),
             ListTile(
               title: const Text('Data'),
@@ -154,13 +208,86 @@ class _CreateLessonScreenState extends State<CreateLessonScreen> {
               trailing: const Icon(Icons.access_time),
               onTap: () => _selectTime(context),
             ),
-            ElevatedButton(
-              onPressed: _submitLesson,
-              child: const Text('Crea Lezione'),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                ElevatedButton(
+                  onPressed: widget.onCancel,
+                  child: const Text('Annulla'),
+                ),
+                ElevatedButton(
+                  onPressed: _submitLesson,
+                  child: const Text('Crea Lezione'),
+                ),
+              ],
             ),
           ],
         ),
       ),
+    );
+  }
+}
+
+class CoachLessonsScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final authService = Provider.of<AuthService>(context, listen: false);
+    final user = authService.currentUser;
+
+    return FutureBuilder<DocumentSnapshot>(
+      future: authService.getUserData(user!.uid),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (snapshot.hasError || !snapshot.hasData) {
+          return const Center(child: Text('Error loading user data'));
+        }
+
+        final userData = snapshot.data!.data() as Map<String, dynamic>;
+        final coachName = userData['firstName'];
+        final coachSurname = userData['lastName'];
+
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('Le Mie Lezioni'),
+          ),
+          body: StreamBuilder<QuerySnapshot>(
+            stream: FirebaseFirestore.instance
+                .collection('private_lessons')
+                .where('coachName', isEqualTo: coachName)
+                .where('coachSurname', isEqualTo: coachSurname)
+                .snapshots(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+
+              if (snapshot.hasError) {
+                return Center(child: Text('Error: ${snapshot.error}'));
+              }
+
+              if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                return const Center(child: Text('Nessuna lezione privata programmata'));
+              }
+
+              return ListView(
+                children: snapshot.data!.docs.map((doc) {
+                  final data = doc.data() as Map<String, dynamic>;
+                  final date = (data['date'] as Timestamp).toDate();
+                  return ListTile(
+                    title: Text('Lezione del ${date.day}/${date.month}/${date.year}'),
+                    subtitle: Text(
+                      'Ora: ${data['time']}\nAtleta: ${data['athleteName']} ${data['athleteSurname']}',
+                    ),
+                  );
+                }).toList(),
+              );
+            },
+          ),
+        );
+      },
     );
   }
 }
@@ -171,33 +298,108 @@ class AthleteLesson extends StatelessWidget {
     final authService = Provider.of<AuthService>(context, listen: false);
     final user = authService.currentUser;
 
-    return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection('private_lessons')
-          .where('athleteId', isEqualTo: user?.uid)
-          .snapshots(),
+    return FutureBuilder<DocumentSnapshot>(
+      future: authService.getUserData(user!.uid),
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         }
 
-        if (snapshot.hasError) {
-          return Center(child: Text('Error: ${snapshot.error}'));
+        if (snapshot.hasError || !snapshot.hasData) {
+          return const Center(child: Text('Error loading user data'));
         }
 
-        if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-          return const Center(child: Text('Nessuna lezione privata programmata'));
-        }
+        final userData = snapshot.data!.data() as Map<String, dynamic>;
+        final athleteName = userData['firstName'];
+        final athleteSurname = userData['lastName'];
 
-        return ListView(
-          children: snapshot.data!.docs.map((doc) {
-            final data = doc.data() as Map<String, dynamic>;
-            final date = (data['date'] as Timestamp).toDate();
-            return ListTile(
-              title: Text('Lezione del ${date.day}/${date.month}/${date.year}'),
-              subtitle: Text('Ora: ${data['time']}\nAllenatore: ${data['coachEmail']}'),
+        return StreamBuilder<QuerySnapshot>(
+          stream: FirebaseFirestore.instance
+              .collection('private_lessons')
+              .where('athleteName', isEqualTo: athleteName)
+              .where('athleteSurname', isEqualTo: athleteSurname)
+              .snapshots(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            if (snapshot.hasError) {
+              return Center(child: Text('Error: ${snapshot.error}'));
+            }
+
+            if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+              return const Center(child: Text('Nessuna lezione privata programmata'));
+            }
+
+            return ListView(
+              children: snapshot.data!.docs.map((doc) {
+                final data = doc.data() as Map<String, dynamic>;
+                final date = (data['date'] as Timestamp).toDate();
+                return ListTile(
+                  title: Text('Lezione del ${date.day}/${date.month}/${date.year}'),
+                  subtitle: Text('Ora: ${data['time']}\nCoach: ${data['coachName']} ${data['coachSurname']}'),
+                );
+              }).toList(),
             );
-          }).toList(),
+          },
+        );
+      },
+    );
+  }
+}
+
+class StaffLessonView extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final authService = Provider.of<AuthService>(context, listen: false);
+    final user = authService.currentUser;
+
+    return FutureBuilder<DocumentSnapshot>(
+      future: authService.getUserData(user!.uid),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (snapshot.hasError || !snapshot.hasData) {
+          return const Center(child: Text('Error loading user data'));
+        }
+
+        final userData = snapshot.data!.data() as Map<String, dynamic>;
+        final facilityCode = userData['facilityCode'];
+
+        return StreamBuilder<QuerySnapshot>(
+          stream: FirebaseFirestore.instance
+              .collection('private_lessons')
+              .where('facilityCode', isEqualTo: facilityCode)
+              .snapshots(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            if (snapshot.hasError) {
+              return Center(child: Text('Error: ${snapshot.error}'));
+            }
+
+            if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+              return const Center(child: Text('Nessuna lezione privata programmata'));
+            }
+
+            return ListView(
+              children: snapshot.data!.docs.map((doc) {
+                final data = doc.data() as Map<String, dynamic>;
+                final date = (data['date'] as Timestamp).toDate();
+                return ListTile(
+                  title: Text('Lezione del ${date.day}/${date.month}/${date.year}'),
+                  subtitle: Text(
+                    'Ora: ${data['time']}\nAtleta: ${data['athleteName']} ${data['athleteSurname']}\nCoach: ${data['coachName']} ${data['coachSurname']}',
+                  ),
+                );
+              }).toList(),
+            );
+          },
         );
       },
     );

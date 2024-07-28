@@ -14,12 +14,19 @@ class RegisterScreen extends StatefulWidget {
 class _RegisterScreenState extends State<RegisterScreen> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+  final TextEditingController _firstNameController = TextEditingController();
+  final TextEditingController _lastNameController = TextEditingController();
+  final TextEditingController _facilityCodeController = TextEditingController();
   String _role = 'Staff';
+  bool _generateNewCode = true;
 
   @override
   void dispose() {
     _emailController.dispose();
     _passwordController.dispose();
+    _firstNameController.dispose();
+    _lastNameController.dispose();
+    _facilityCodeController.dispose();
     super.dispose();
   }
 
@@ -29,11 +36,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
       appBar: AppBar(
         title: const Text('Register'),
       ),
-      body: Padding(
+      body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
+            TextField(
+              controller: _firstNameController,
+              decoration: const InputDecoration(labelText: 'First Name'),
+            ),
+            TextField(
+              controller: _lastNameController,
+              decoration: const InputDecoration(labelText: 'Last Name'),
+            ),
             TextField(
               controller: _emailController,
               decoration: const InputDecoration(labelText: 'Email'),
@@ -58,20 +73,43 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 );
               }).toList(),
             ),
+            if (_role == 'Staff') ...[
+              Row(
+                children: [
+                  Checkbox(
+                    value: _generateNewCode,
+                    onChanged: (bool? value) {
+                      setState(() {
+                        _generateNewCode = value!;
+                      });
+                    },
+                  ),
+                  const Text('Generate new facility code'),
+                ],
+              ),
+              if (!_generateNewCode)
+                TextField(
+                  controller: _facilityCodeController,
+                  decoration: const InputDecoration(labelText: 'Existing Facility Code'),
+                ),
+            ],
             const SizedBox(height: 20),
             ElevatedButton(
               child: const Text('Register'),
               onPressed: () async {
                 final String email = _emailController.text.trim();
                 final String password = _passwordController.text.trim();
+                final String firstName = _firstNameController.text.trim();
+                final String lastName = _lastNameController.text.trim();
                 try {
                   if (_role == 'Staff') {
-                    String facilityCode = await Provider.of<AuthService>(context, listen: false)
-                        .registerWithEmailAndPassword(email, password, _role);
+                    String? facilityCode = _generateNewCode ? null : _facilityCodeController.text.trim();
+                    String registeredFacilityCode = await Provider.of<AuthService>(context, listen: false)
+                        .registerWithEmailAndPassword(email, password, _role, firstName, lastName, facilityCode: facilityCode);
                     Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => FacilityCodeScreen(facilityCode: facilityCode),
+                        builder: (context) => FacilityCodeScreen(facilityCode: registeredFacilityCode),
                       ),
                     );
                   } else {
@@ -82,6 +120,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           email: email,
                           password: password,
                           role: _role,
+                          firstName: firstName,
+                          lastName: lastName,
                         ),
                       ),
                     );

@@ -18,6 +18,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String? _role;
   String? _facilityCode;
   String? _userId;
+  String? _firstName;
+  String? _lastName;
 
   @override
   void initState() {
@@ -34,6 +36,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _role = userData['role'];
         _facilityCode = userData['facilityCode'];
         _userId = user.uid;
+        _firstName = userData['firstName'];
+        _lastName = userData['lastName'];
       });
     }
   }
@@ -67,6 +71,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
+            if (_firstName != null && _lastName != null)
+              Text('Name: $_firstName $_lastName', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 20),
             if (_email != null) Text('Email: $_email'),
             if (_role != null) Text('Role: $_role'),
             if (_facilityCode != null) Text('Facility Code: $_facilityCode'),
