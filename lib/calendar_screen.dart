@@ -9,205 +9,268 @@ class CalendarScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DefaultTabController(
-      length: 3,
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Calendario'),
-          bottom: const TabBar(
-            tabs: [
-              Tab(text: 'Eventi'),
-              Tab(text: 'Scadenziario'),
-              Tab(text: 'Agenda'),
-            ],
+    final authService = Provider.of<AuthService>(context, listen: false);
+    final user = authService.currentUser;
+
+    return FutureBuilder<String?>(
+      future: authService.getUserRole(user?.uid),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        if (snapshot.hasError) {
+          return Scaffold(
+            body: Center(child: Text('Error loading user role: ${snapshot.error}')),
+          );
+        }
+
+        if (!snapshot.hasData || snapshot.data == null) {
+          return const Scaffold(
+            body: Center(child: Text('User role not found')),
+          );
+        }
+
+        final role = snapshot.data!;
+        print('User role: $role');
+
+        return DefaultTabController(
+          length: 3,
+          child: Scaffold(
+            appBar: AppBar(
+              title: const Text('Calendario'),
+              bottom: const TabBar(
+                tabs: [
+                  Tab(text: 'Eventi'),
+                  Tab(text: 'Scadenziario'),
+                  Tab(text: 'Agenda'),
+                ],
+              ),
+            ),
+            body: TabBarView(
+              children: [
+                Center(child: Text('Eventi')), // Placeholder
+                _buildScadenziarioTab(context, role),
+                AgendaTab(),
+              ],
+            ),
           ),
-        ),
-        body: TabBarView(
+        );
+      },
+    );
+  }
+
+  Widget _buildScadenziarioTab(BuildContext context, String role) {
+    if (role.toLowerCase() == 'staff') {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Center(child: Text('Eventi')), // Placeholder
-            Center(child: Text('Scadenziario')), // Placeholder
-            AgendaTab(),
+            ElevatedButton(
+              onPressed: () => _navigateToAddDeadline(context),
+              child: const Text('Inserisci Scadenza'),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () => _navigateToDeadlineList(context),
+              child: const Text('Elenco Scadenze'),
+            ),
           ],
         ),
-      ),
+      );
+    } else {
+      final authService = Provider.of<AuthService>(context, listen: false);
+      final user = authService.currentUser;
+      return DeadlineList(userId: user?.uid);
+    }
+  }
+
+  void _navigateToAddDeadline(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => AddDeadlineScreen()),
+    );
+  }
+
+  void _navigateToDeadlineList(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => DeadlineListScreen()),
     );
   }
 }
 
-class AgendaTab extends StatefulWidget {
+class AddDeadlineScreen extends StatefulWidget {
   @override
-  _AgendaTabState createState() => _AgendaTabState();
+  _AddDeadlineScreenState createState() => _AddDeadlineScreenState();
 }
 
-class _AgendaTabState extends State<AgendaTab> {
-  late ValueNotifier<List<Event>> _selectedEvents;
-  CalendarFormat _calendarFormat = CalendarFormat.month;
-  DateTime _focusedDay = DateTime.now();
-  DateTime? _selectedDay;
-  Map<DateTime, List<Event>> _events = {};
+class _AddDeadlineScreenState extends State<AddDeadlineScreen> {
+  final TextEditingController _firstNameController = TextEditingController();
+  final TextEditingController _lastNameController = TextEditingController();
+  final TextEditingController _deadlineController = TextEditingController();
 
-  @override
-  void initState() {
-    super.initState();
-    _selectedDay = _focusedDay;
-    _selectedEvents = ValueNotifier(_getEventsForDay(_selectedDay!));
-    _loadEvents();
-  }
-
-  void _loadEvents() async {
-    final authService = Provider.of<AuthService>(context, listen: false);
-    final user = authService.currentUser;
-
-    if (user != null) {
-      final userData = await authService.getUserData(user.uid);
-      final athleteName = userData['firstName'];
-      final athleteSurname = userData['lastName'];
-
-      final querySnapshot = await FirebaseFirestore.instance
-          .collection('private_lessons')
-          .where('athleteName', isEqualTo: athleteName)
-          .where('athleteSurname', isEqualTo: athleteSurname)
-          .get();
-
-      setState(() {
-        for (var doc in querySnapshot.docs) {
-          final data = doc.data();
-          final date = (data['date'] as Timestamp).toDate();
-          final eventDate = DateTime(date.year, date.month, date.day);
-          final event = Event(
-            title: 'Lezione privata',
-            time: data['time'],
-            coachName: '${data['coachName']} ${data['coachSurname']}',
-            athleteName: '${data['athleteName']} ${data['athleteSurname']}',
-            date: date,
-          );
-
-          if (_events[eventDate] == null) _events[eventDate] = [];
-          _events[eventDate]!.add(event);
-        }
+  Future<void> _submitDeadline() async {
+    if (_firstNameController.text.isNotEmpty && _lastNameController.text.isNotEmpty && _deadlineController.text.isNotEmpty) {
+      await FirebaseFirestore.instance.collection('deadlines').add({
+        'firstName': _firstNameController.text,
+        'lastName': _lastNameController.text,
+        'text': _deadlineController.text,
+        'status': 'Pending',
       });
-
-      _selectedEvents.value = _getEventsForDay(_selectedDay!);
-    }
-  }
-
-  List<Event> _getEventsForDay(DateTime day) {
-    return _events[DateTime(day.year, day.month, day.day)] ?? [];
-  }
-
-  void _onDaySelected(DateTime selectedDay, DateTime focusedDay) {
-    setState(() {
-      _selectedDay = selectedDay;
-      _focusedDay = focusedDay;
-      _selectedEvents.value = _getEventsForDay(selectedDay);
-    });
-
-    if (_selectedEvents.value.isNotEmpty) {
-      _showEventDetails(context, _selectedEvents.value[0]);
+      Navigator.pop(context);
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        TableCalendar<Event>(
-          firstDay: DateTime.utc(2023, 1, 1),
-          lastDay: DateTime.utc(2030, 12, 31),
-          focusedDay: _focusedDay,
-          selectedDayPredicate: (day) => isSameDay(_selectedDay, day),
-          calendarFormat: _calendarFormat,
-          eventLoader: _getEventsForDay,
-          startingDayOfWeek: StartingDayOfWeek.monday,
-          calendarStyle: CalendarStyle(
-            outsideDaysVisible: false,
-            markerDecoration: BoxDecoration(
-              color: Colors.green,
-              shape: BoxShape.circle,
-            ),
-          ),
-          onDaySelected: _onDaySelected,
-          onFormatChanged: (format) {
-            if (_calendarFormat != format) {
-              setState(() {
-                _calendarFormat = format;
-              });
-            }
-          },
-          onPageChanged: (focusedDay) {
-            _focusedDay = focusedDay;
-          },
-        ),
-        const SizedBox(height: 8.0),
-        Expanded(
-          child: ValueListenableBuilder<List<Event>>(
-            valueListenable: _selectedEvents,
-            builder: (context, events, _) {
-              return ListView.builder(
-                itemCount: events.length,
-                itemBuilder: (context, index) {
-                  return Container(
-                    margin: const EdgeInsets.symmetric(
-                      horizontal: 12.0,
-                      vertical: 4.0,
-                    ),
-                    decoration: BoxDecoration(
-                      border: Border.all(),
-                      borderRadius: BorderRadius.circular(12.0),
-                    ),
-                    child: ListTile(
-                      onTap: () => _showEventDetails(context, events[index]),
-                      title: Text(events[index].title),
-                      subtitle: Text('Ora: ${events[index].time}\nAllenatore: ${events[index].coachName}\nAtleta: ${events[index].athleteName}'),
-                    ),
-                  );
-                },
-              );
-            },
-          ),
-        ),
-      ],
-    );
-  }
-
-  void _showEventDetails(BuildContext context, Event event) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: Text(event.title),
-        content: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Inserisci Scadenza'),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
           children: [
-            Text('Data: ${event.date.day}/${event.date.month}/${event.date.year}'),
-            Text('Ora: ${event.time}'),
-            Text('Allenatore: ${event.coachName}'),
-            Text('Atleta: ${event.athleteName}'),
+            TextField(
+              controller: _firstNameController,
+              decoration: const InputDecoration(
+                labelText: 'Nome',
+              ),
+            ),
+            TextField(
+              controller: _lastNameController,
+              decoration: const InputDecoration(
+                labelText: 'Cognome',
+              ),
+            ),
+            TextField(
+              controller: _deadlineController,
+              decoration: const InputDecoration(
+                labelText: 'Scadenza',
+              ),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: _submitDeadline,
+              child: const Text('Invia'),
+            ),
           ],
         ),
-        actions: [
-          TextButton(
-            child: Text('Chiudi'),
-            onPressed: () => Navigator.of(context).pop(),
-          ),
-        ],
       ),
     );
   }
 }
 
-class Event {
-  final String title;
-  final String time;
-  final String coachName;
-  final String athleteName;
-  final DateTime date;
+class DeadlineListScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Elenco Scadenze'),
+      ),
+      body: StreamBuilder<QuerySnapshot>(
+        stream: FirebaseFirestore.instance.collection('deadlines').snapshots(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          }
+          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+            return const Center(child: Text('Nessuna scadenza trovata'));
+          }
 
-  const Event({
-    required this.title,
-    required this.time,
-    required this.coachName,
-    required this.athleteName,
-    required this.date,
-  });
+          return ListView(
+            children: snapshot.data!.docs.map((doc) {
+              return ListTile(
+                title: Text(doc['text']),
+                subtitle: Text('${doc['firstName']} ${doc['lastName']}'),
+                trailing: doc['status'] == 'Confirmed'
+                    ? const Text('Confirmed', style: TextStyle(color: Colors.green))
+                    : ElevatedButton(
+                        onPressed: () async {
+                          await doc.reference.update({'status': 'Confirmed'});
+                        },
+                        child: const Text('Conferma'),
+                      ),
+              );
+            }).toList(),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class DeadlineList extends StatelessWidget {
+  final String? userId;
+
+  const DeadlineList({Key? key, required this.userId}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final authService = Provider.of<AuthService>(context, listen: false);
+    
+    return FutureBuilder<DocumentSnapshot>(
+      future: authService.getUserData(userId!),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        }
+        if (!snapshot.hasData || !snapshot.data!.exists) {
+          return const Center(child: Text('User data not found'));
+        }
+
+        final userData = snapshot.data!;
+        final firstName = userData['firstName'];
+        final lastName = userData['lastName'];
+
+        return StreamBuilder<QuerySnapshot>(
+          stream: FirebaseFirestore.instance
+              .collection('deadlines')
+              .where('firstName', isEqualTo: firstName)
+              .where('lastName', isEqualTo: lastName)
+              .snapshots(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (snapshot.hasError) {
+              return Center(child: Text('Error: ${snapshot.error}'));
+            }
+            if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+              return const Center(child: Text('Nessuna scadenza trovata'));
+            }
+
+            return ListView(
+              children: snapshot.data!.docs.map((doc) {
+                return ListTile(
+                  title: Text(doc['text']),
+                  subtitle: Text(doc['status']),
+                );
+              }).toList(),
+            );
+          },
+        );
+      },
+    );
+  }
+}
+
+class AgendaTab extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Text('Agenda Tab Placeholder'),
+      ),
+    );
+  }
 }

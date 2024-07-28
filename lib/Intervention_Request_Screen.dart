@@ -1,6 +1,7 @@
+// intervention_request_screen.dart
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
 import 'auth_service.dart';
 
@@ -132,6 +133,7 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
 
   Future<void> _submitRequest() async {
     if (_repairController.text.isNotEmpty && _descriptionController.text.isNotEmpty) {
+      final userData = await Provider.of<AuthService>(context, listen: false).getUserData(widget.userId);
       await FirebaseFirestore.instance.collection('intervention_requests').add({
         'repair': _repairController.text,
         'description': _descriptionController.text,
@@ -139,6 +141,8 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
         'facilityCode': widget.facilityCode,
         'status': 'Pending',
         'timestamp': FieldValue.serverTimestamp(),
+        'firstName': userData['firstName'],
+        'lastName': userData['lastName'],
       });
       Navigator.pop(context);
     }
@@ -247,19 +251,39 @@ class RequestListScreen extends StatelessWidget {
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
             return const Center(child: Text('Nessuna richiesta trovata'));
           }
+
           return ListView(
             children: snapshot.data!.docs.map((doc) {
-              return ListTile(
-                title: Text(doc['repair']),
-                subtitle: Text(doc['description']),
-                trailing: doc['status'] == 'Confirmed'
-                    ? const Text('Confirmed', style: TextStyle(color: Colors.green))
-                    : ElevatedButton(
-                        onPressed: () async {
-                          await doc.reference.update({'status': 'Confirmed'});
-                        },
-                        child: const Text('Conferma'),
-                      ),
+              return FutureBuilder<DocumentSnapshot>(
+                future: FirebaseFirestore.instance.collection('users').doc(doc['userId']).get(),
+                builder: (context, userSnapshot) {
+                  if (userSnapshot.connectionState == ConnectionState.waiting) {
+                    return const ListTile(title: Text('Loading...'));
+                  }
+                  if (userSnapshot.hasError) {
+                    return ListTile(title: Text('Error: ${userSnapshot.error}'));
+                  }
+                  if (!userSnapshot.hasData || !userSnapshot.data!.exists) {
+                    return const ListTile(title: Text('User not found'));
+                  }
+
+                  final userData = userSnapshot.data!;
+                  final firstName = userData['firstName'];
+                  final lastName = userData['lastName'];
+
+                  return ListTile(
+                    title: Text(doc['repair']),
+                    subtitle: Text('${doc['description']}\n$firstName $lastName'),
+                    trailing: doc['status'] == 'Confirmed'
+                        ? const Text('Confirmed', style: TextStyle(color: Colors.green))
+                        : ElevatedButton(
+                            onPressed: () async {
+                              await doc.reference.update({'status': 'Confirmed'});
+                            },
+                            child: const Text('Conferma'),
+                          ),
+                  );
+                },
               );
             }).toList(),
           );
