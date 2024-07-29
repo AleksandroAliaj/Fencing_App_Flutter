@@ -111,14 +111,33 @@ class _AddDeadlineScreenState extends State<AddDeadlineScreen> {
   final TextEditingController _firstNameController = TextEditingController();
   final TextEditingController _lastNameController = TextEditingController();
   final TextEditingController _deadlineController = TextEditingController();
+  String? _facilityCode;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFacilityCode();
+  }
+
+  Future<void> _loadFacilityCode() async {
+    final authService = Provider.of<AuthService>(context, listen: false);
+    final user = authService.currentUser;
+    if (user != null) {
+      final userData = await authService.getUserData(user.uid);
+      setState(() {
+        _facilityCode = userData['facilityCode'];
+      });
+    }
+  }
 
   Future<void> _submitDeadline() async {
-    if (_firstNameController.text.isNotEmpty && _lastNameController.text.isNotEmpty && _deadlineController.text.isNotEmpty) {
+    if (_firstNameController.text.isNotEmpty && _lastNameController.text.isNotEmpty && _deadlineController.text.isNotEmpty && _facilityCode != null) {
       await FirebaseFirestore.instance.collection('deadlines').add({
         'firstName': _firstNameController.text,
         'lastName': _lastNameController.text,
         'text': _deadlineController.text,
         'status': 'Pending',
+        'facilityCode': _facilityCode,
       });
       Navigator.pop(context);
     }
@@ -167,41 +186,73 @@ class _AddDeadlineScreenState extends State<AddDeadlineScreen> {
 class DeadlineListScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Elenco Scadenze'),
-      ),
-      body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance.collection('deadlines').snapshots(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
-          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return const Center(child: Text('Nessuna scadenza trovata'));
-          }
+    final authService = Provider.of<AuthService>(context, listen: false);
+    final user = authService.currentUser;
 
-          return ListView(
-            children: snapshot.data!.docs.map((doc) {
-              return ListTile(
-                title: Text(doc['text']),
-                subtitle: Text('${doc['firstName']} ${doc['lastName']}'),
-                trailing: doc['status'] == 'Confirmed'
-                    ? const Text('Confirmed', style: TextStyle(color: Colors.green))
-                    : ElevatedButton(
-                        onPressed: () async {
-                          await doc.reference.update({'status': 'Confirmed'});
-                        },
-                        child: const Text('Conferma'),
-                      ),
-              );
-            }).toList(),
+    return FutureBuilder<DocumentSnapshot>(
+      future: authService.getUserData(user!.uid),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
           );
-        },
-      ),
+        }
+
+        if (snapshot.hasError) {
+          return Scaffold(
+            body: Center(child: Text('Error: ${snapshot.error}')),
+          );
+        }
+
+        if (!snapshot.hasData || !snapshot.data!.exists) {
+          return const Scaffold(
+            body: Center(child: Text('User data not found')),
+          );
+        }
+
+        final userData = snapshot.data!;
+        final facilityCode = userData['facilityCode'];
+
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('Elenco Scadenze'),
+          ),
+          body: StreamBuilder<QuerySnapshot>(
+            stream: FirebaseFirestore.instance
+                .collection('deadlines')
+                .where('facilityCode', isEqualTo: facilityCode)
+                .snapshots(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              if (snapshot.hasError) {
+                return Center(child: Text('Error: ${snapshot.error}'));
+              }
+              if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                return const Center(child: Text('Nessuna scadenza trovata'));
+              }
+
+              return ListView(
+                children: snapshot.data!.docs.map((doc) {
+                  return ListTile(
+                    title: Text(doc['text']),
+                    subtitle: Text('${doc['firstName']} ${doc['lastName']}'),
+                    trailing: doc['status'] == 'Confirmed'
+                        ? const Text('Confirmed', style: TextStyle(color: Colors.green))
+                        : ElevatedButton(
+                            onPressed: () async {
+                              await doc.reference.update({'status': 'Confirmed'});
+                            },
+                            child: const Text('Conferma'),
+                          ),
+                  );
+                }).toList(),
+              );
+            },
+          ),
+        );
+      },
     );
   }
 }
@@ -214,7 +265,7 @@ class DeadlineList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final authService = Provider.of<AuthService>(context, listen: false);
-    
+
     return FutureBuilder<DocumentSnapshot>(
       future: authService.getUserData(userId!),
       builder: (context, snapshot) {
@@ -231,12 +282,14 @@ class DeadlineList extends StatelessWidget {
         final userData = snapshot.data!;
         final firstName = userData['firstName'];
         final lastName = userData['lastName'];
+        final facilityCode = userData['facilityCode'];
 
         return StreamBuilder<QuerySnapshot>(
           stream: FirebaseFirestore.instance
               .collection('deadlines')
               .where('firstName', isEqualTo: firstName)
               .where('lastName', isEqualTo: lastName)
+              .where('facilityCode', isEqualTo: facilityCode)
               .snapshots(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
@@ -253,7 +306,10 @@ class DeadlineList extends StatelessWidget {
               children: snapshot.data!.docs.map((doc) {
                 return ListTile(
                   title: Text(doc['text']),
-                  subtitle: Text(doc['status']),
+                  subtitle: Text('${doc['firstName']} ${doc['lastName']}'),
+                  trailing: doc['status'] == 'Confirmed'
+                      ? const Text('Confirmed', style: TextStyle(color: Colors.green))
+                      : null,
                 );
               }).toList(),
             );
