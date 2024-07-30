@@ -704,10 +704,6 @@ class _AgendaTabState extends State<AgendaTab> {
       _focusedDay = focusedDay;
       _selectedEvents.value = _getEventsForDay(selectedDay);
     });
-
-    if (_selectedEvents.value.isNotEmpty) {
-      _showEventDetails(context, _selectedEvents.value[0]);
-    }
   }
 
   @override
