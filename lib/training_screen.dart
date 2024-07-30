@@ -125,9 +125,10 @@ class CreateCombattimentoScreen extends StatelessWidget {
           ),
           ListTile(
             title: const Text('A squadre'),
-            onTap: () {
-              // TODO: Implement team creation screen
-            },
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => CreateTeamCombattimentoScreen()),
+            ),
           ),
           ListTile(
             title: const Text('A tema'),
@@ -141,6 +142,162 @@ class CreateCombattimentoScreen extends StatelessWidget {
   }
 }
 
+// combattimento a squadre
+class CreateTeamCombattimentoScreen extends StatefulWidget {
+  @override
+  _CreateTeamCombattimentoScreenState createState() => _CreateTeamCombattimentoScreenState();
+}
+
+class _CreateTeamCombattimentoScreenState extends State<CreateTeamCombattimentoScreen> {
+  final _formKey = GlobalKey<FormState>();
+  DateTime _selectedDate = DateTime.now();
+  TimeOfDay _selectedTime = TimeOfDay.now();
+  List<Map<String, List<String>>> _teams = [];
+  String _newTeamName = '';
+  String _newAthleteName = '';
+  String _newAthleteSurname = '';
+  int _currentTeamIndex = 0;
+
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+    );
+    if (picked != null && picked != _selectedDate) {
+      setState(() {
+        _selectedDate = picked;
+      });
+    }
+  }
+
+  Future<void> _selectTime(BuildContext context) async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: _selectedTime,
+    );
+    if (picked != null && picked != _selectedTime) {
+      setState(() {
+        _selectedTime = picked;
+      });
+    }
+  }
+
+  void _addTeam() {
+    setState(() {
+      _teams.add({'teamName': [], 'teamMembers': []});
+      _currentTeamIndex = _teams.length - 1;
+    });
+  }
+
+  void _addAthleteToCurrentTeam() {
+    if (_newAthleteName.isNotEmpty && _newAthleteSurname.isNotEmpty) {
+      setState(() {
+        _teams[_currentTeamIndex]['teamMembers']!.add('$_newAthleteName $_newAthleteSurname');
+        _newAthleteName = '';
+        _newAthleteSurname = '';
+      });
+    }
+  }
+
+  Future<void> _submitCombattimento() async {
+    if (_formKey.currentState!.validate() && _teams.isNotEmpty) {
+      final authService = Provider.of<AuthService>(context, listen: false);
+      final user = authService.currentUser;
+      final userData = await authService.getUserData(user!.uid);
+
+      // Flatten all team members into a single list
+      List<String> athletes = _teams
+          .expand((team) => team['teamMembers']!)
+          .toList();
+
+      await FirebaseFirestore.instance.collection('combattimenti').add({
+        'type': 'squadre',
+        'date': Timestamp.fromDate(_selectedDate),
+        'time': '${_selectedTime.hour}:${_selectedTime.minute}',
+        'teams': _teams.map((team) => {
+          'teamName': team['teamName'],
+          'teamMembers': team['teamMembers']
+        }).toList(),
+        'athletes': athletes,
+        'facilityCode': userData['facilityCode'],
+        'coachName': userData['firstName'],
+        'coachSurname': userData['lastName'],
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Combattimento creato con successo')),
+      );
+
+      Navigator.pop(context);
+    } else if (_teams.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Aggiungi almeno una squadra')),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Crea Combattimento a Squadre')),
+      body: Form(
+        key: _formKey,
+        child: ListView(
+          padding: const EdgeInsets.all(16.0),
+          children: [
+            ListTile(
+              title: const Text('Data'),
+              subtitle: Text("${_selectedDate.toLocal()}".split(' ')[0]),
+              trailing: const Icon(Icons.calendar_today),
+              onTap: () => _selectDate(context),
+            ),
+            ListTile(
+              title: const Text('Ora'),
+              subtitle: Text(_selectedTime.format(context)),
+              trailing: const Icon(Icons.access_time),
+              onTap: () => _selectTime(context),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: _addTeam,
+              child: const Text('Aggiungi Squadra'),
+            ),
+            const SizedBox(height: 20),
+            for (int i = 0; i < _teams.length; i++)
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Squadra ${i + 1}'),
+                  ..._teams[i]['teamMembers']!.map((athlete) => ListTile(title: Text(athlete))).toList(),
+                  TextFormField(
+                    decoration: const InputDecoration(labelText: 'Nome Atleta'),
+                    onChanged: (value) => _newAthleteName = value,
+                  ),
+                  TextFormField(
+                    decoration: const InputDecoration(labelText: 'Cognome Atleta'),
+                    onChanged: (value) => _newAthleteSurname = value,
+                  ),
+                  ElevatedButton(
+                    onPressed: _addAthleteToCurrentTeam,
+                    child: const Text('Aggiungi Atleta alla Squadra'),
+                  ),
+                ],
+              ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: _submitCombattimento,
+              child: const Text('Crea Combattimento'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// 1 vs 1
 class Create1vs1CombattimentoScreen extends StatefulWidget {
   @override
   _Create1vs1CombattimentoScreenState createState() => _Create1vs1CombattimentoScreenState();
@@ -261,7 +418,7 @@ class _Create1vs1CombattimentoScreenState extends State<Create1vs1CombattimentoS
   }
 }
 
-
+// combattimento libero
 class CreateLiberoCombattimentoScreen extends StatefulWidget {
   @override
   _CreateLiberoCombattimentoScreenState createState() => _CreateLiberoCombattimentoScreenState();
@@ -395,6 +552,7 @@ extension StringExtension on String {
 }
 
 // Helper widget to display a list of combattimenti
+// Helper widget to display a list of combattimenti
 class CombattimentiList extends StatelessWidget {
   final Stream<QuerySnapshot> stream;
 
@@ -431,18 +589,35 @@ class CombattimentiList extends StatelessWidget {
               children: combattimenti.map((doc) {
                 final data = doc.data() as Map<String, dynamic>;
                 final athletes = data['athletes'] as List<dynamic>? ?? [];
+                final combattimentoId = doc.id; // Save the document ID
+
                 return ListTile(
                   title: Text('${data['type'].toString().capitalize()} - ${data['time']}'),
                   subtitle: Text(
                     'Allenatore: ${data['coachName']} ${data['coachSurname']}\n'
                     'Atleti: ${athletes.join(', ')}'
                   ),
+                  trailing: data['type'] == 'squadre' // Show button only for team combat
+                      ? IconButton(
+                          icon: const Icon(Icons.info),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => TeamCombattimentoDetailScreen(
+                                  combattimentoId: combattimentoId,
+                                ),
+                              ),
+                            );
+                          },
+                        )
+                      : null,
                 );
               }).toList(),
             );
           },
         );
-      },
+      }
     );
   }
 
@@ -464,6 +639,75 @@ class CombattimentiList extends StatelessWidget {
     return '${date.day}/${date.month}/${date.year}';
   }
 }
+
+class TeamCombattimentoDetailScreen extends StatelessWidget {
+  final String combattimentoId;
+
+  const TeamCombattimentoDetailScreen({Key? key, required this.combattimentoId}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Dettagli Combattimento a Squadre')),
+      body: FutureBuilder<DocumentSnapshot>(
+        future: FirebaseFirestore.instance.collection('combattimenti').doc(combattimentoId).get(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (snapshot.hasError || !snapshot.hasData) {
+            return const Center(child: Text('Errore nel caricamento dei dettagli'));
+          }
+
+          final data = snapshot.data!.data() as Map<String, dynamic>;
+          final teams = data['teams'] as List<dynamic>;
+
+          return ListView(
+            padding: const EdgeInsets.all(16.0),
+            children: [
+              Text(
+                'Allenatore: ${data['coachName']} ${data['coachSurname']}',
+                style: Theme.of(context).textTheme.headline6,
+              ),
+              const SizedBox(height: 20),
+              Text(
+                'Data: ${formatDate((data['date'] as Timestamp).toDate())}',
+                style: Theme.of(context).textTheme.subtitle1,
+              ),
+              Text(
+                'Ora: ${data['time']}',
+                style: Theme.of(context).textTheme.subtitle1,
+              ),
+              const SizedBox(height: 20),
+              ...teams.map((team) {
+                final teamName = team['teamName'] as List<dynamic>;
+                final teamMembers = team['teamMembers'] as List<dynamic>;
+
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Squadra ${teamName.join(', ')}',
+                      style: Theme.of(context).textTheme.headline6,
+                    ),
+                    ...teamMembers.map((member) => ListTile(title: Text(member as String))),
+                    const SizedBox(height: 20),
+                  ],
+                );
+              }).toList(),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  String formatDate(DateTime date) {
+    return '${date.day}/${date.month}/${date.year}';
+  }
+}
+
 
 // Update the CoachCombattimentiListScreen to use the CombattimentiList widget
 class CoachCombattimentiListScreen extends StatelessWidget {
