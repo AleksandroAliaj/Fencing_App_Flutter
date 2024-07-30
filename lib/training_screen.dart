@@ -34,6 +34,7 @@ class TrainingScreen extends StatelessWidget {
   }
 }
 
+//Assalti
 class AssaltiTab extends StatefulWidget {
   @override
   _AssaltiTabState createState() => _AssaltiTabState();
@@ -117,9 +118,10 @@ class CreateCombattimentoScreen extends StatelessWidget {
           ),
           ListTile(
             title: const Text('1 vs 1'),
-            onTap: () {
-              // TODO: Implement 1 vs 1 creation screen
-            },
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => Create1vs1CombattimentoScreen()),
+            ),
           ),
           ListTile(
             title: const Text('A squadre'),
@@ -138,6 +140,127 @@ class CreateCombattimentoScreen extends StatelessWidget {
     );
   }
 }
+
+class Create1vs1CombattimentoScreen extends StatefulWidget {
+  @override
+  _Create1vs1CombattimentoScreenState createState() => _Create1vs1CombattimentoScreenState();
+}
+
+class _Create1vs1CombattimentoScreenState extends State<Create1vs1CombattimentoScreen> {
+  final _formKey = GlobalKey<FormState>();
+  DateTime _selectedDate = DateTime.now();
+  TimeOfDay _selectedTime = TimeOfDay.now();
+  String _firstAthleteName = '';
+  String _firstAthleteSurname = '';
+  String _secondAthleteName = '';
+  String _secondAthleteSurname = '';
+
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+    );
+    if (picked != null && picked != _selectedDate) {
+      setState(() {
+        _selectedDate = picked;
+      });
+    }
+  }
+
+  Future<void> _selectTime(BuildContext context) async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: _selectedTime,
+    );
+    if (picked != null && picked != _selectedTime) {
+      setState(() {
+        _selectedTime = picked;
+      });
+    }
+  }
+
+  Future<void> _submitCombattimento() async {
+    if (_formKey.currentState!.validate()) {
+      final authService = Provider.of<AuthService>(context, listen: false);
+      final user = authService.currentUser;
+      final userData = await authService.getUserData(user!.uid);
+
+      await FirebaseFirestore.instance.collection('combattimenti').add({
+        'type': '1vs1',
+        'date': Timestamp.fromDate(_selectedDate),
+        'time': '${_selectedTime.hour}:${_selectedTime.minute}',
+        'athletes': [
+          '$_firstAthleteName $_firstAthleteSurname',
+          '$_secondAthleteName $_secondAthleteSurname',
+        ],
+        'facilityCode': userData['facilityCode'],
+        'coachName': userData['firstName'],
+        'coachSurname': userData['lastName'],
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Combattimento creato con successo')),
+      );
+
+      Navigator.pop(context);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Crea Combattimento 1 vs 1')),
+      body: Form(
+        key: _formKey,
+        child: ListView(
+          padding: const EdgeInsets.all(16.0),
+          children: [
+            ListTile(
+              title: const Text('Data'),
+              subtitle: Text("${_selectedDate.toLocal()}".split(' ')[0]),
+              trailing: const Icon(Icons.calendar_today),
+              onTap: () => _selectDate(context),
+            ),
+            ListTile(
+              title: const Text('Ora'),
+              subtitle: Text(_selectedTime.format(context)),
+              trailing: const Icon(Icons.access_time),
+              onTap: () => _selectTime(context),
+            ),
+            const SizedBox(height: 20),
+            const Text('Primo Atleta:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            TextFormField(
+              decoration: const InputDecoration(labelText: 'Nome'),
+              onChanged: (value) => _firstAthleteName = value,
+            ),
+            TextFormField(
+              decoration: const InputDecoration(labelText: 'Cognome'),
+              onChanged: (value) => _firstAthleteSurname = value,
+            ),
+            const SizedBox(height: 20),
+            const Text('Secondo Atleta:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            TextFormField(
+              decoration: const InputDecoration(labelText: 'Nome'),
+              onChanged: (value) => _secondAthleteName = value,
+            ),
+            TextFormField(
+              decoration: const InputDecoration(labelText: 'Cognome'),
+              onChanged: (value) => _secondAthleteSurname = value,
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: _submitCombattimento,
+              child: const Text('Crea Combattimento'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
 
 class CreateLiberoCombattimentoScreen extends StatefulWidget {
   @override
@@ -307,11 +430,12 @@ class CombattimentiList extends StatelessWidget {
               title: Text(formatDate(date)),
               children: combattimenti.map((doc) {
                 final data = doc.data() as Map<String, dynamic>;
+                final athletes = data['athletes'] as List<dynamic>? ?? [];
                 return ListTile(
                   title: Text('${data['type'].toString().capitalize()} - ${data['time']}'),
                   subtitle: Text(
                     'Allenatore: ${data['coachName']} ${data['coachSurname']}\n'
-                    'Atleti: ${(data['athletes'] as List).join(', ')}'
+                    'Atleti: ${athletes.join(', ')}'
                   ),
                 );
               }).toList(),
@@ -442,6 +566,7 @@ class StaffAssaltiView extends StatelessWidget {
   }
 }
 
+//Lezione privata
 class PrivateLessonTab extends StatefulWidget {
   @override
   _PrivateLessonTabState createState() => _PrivateLessonTabState();
