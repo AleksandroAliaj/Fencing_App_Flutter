@@ -51,7 +51,7 @@ class CalendarScreen extends StatelessWidget {
             ),
             body: TabBarView(
               children: [
-                Center(child: Text('Eventi')), // Placeholder
+                _buildEventiTab(context, role),
                 _buildScadenziarioTab(context, role),
                 AgendaTab(),
               ],
@@ -61,6 +61,295 @@ class CalendarScreen extends StatelessWidget {
       },
     );
   }
+
+  Widget _buildEventiTab(BuildContext context, String role) {
+    if (role.toLowerCase() == 'staff') {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ElevatedButton(
+              onPressed: () => _navigateToAddEvent(context),
+              child: const Text('Aggiungi Evento'),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () => _navigateToEventList(context),
+              child: const Text('Elenco Eventi'),
+            ),
+          ],
+        ),
+      );
+    } else {
+      final authService = Provider.of<AuthService>(context, listen: false);
+      final user = authService.currentUser;
+      return EventList(userId: user?.uid);
+    }
+  }
+
+  Widget _buildScadenziarioTab(BuildContext context, String role) {
+    if (role.toLowerCase() == 'staff') {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ElevatedButton(
+              onPressed: () => _navigateToAddDeadline(context),
+              child: const Text('Inserisci Scadenza'),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: () => _navigateToDeadlineList(context),
+              child: const Text('Elenco Scadenze'),
+            ),
+          ],
+        ),
+      );
+    } else {
+      final authService = Provider.of<AuthService>(context, listen: false);
+      final user = authService.currentUser;
+      return DeadlineList(userId: user?.uid);
+    }
+  }
+
+  void _navigateToAddEvent(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => AddEventScreen()),
+    );
+  }
+
+  void _navigateToEventList(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => EventListScreen()),
+    );
+  }
+
+  void _navigateToAddDeadline(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => AddDeadlineScreen()),
+    );
+  }
+
+  void _navigateToDeadlineList(BuildContext context) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => DeadlineListScreen()),
+    );
+  }
+}
+
+class AddEventScreen extends StatefulWidget {
+  @override
+  _AddEventScreenState createState() => _AddEventScreenState();
+}
+
+class _AddEventScreenState extends State<AddEventScreen> {
+  final TextEditingController _dateController = TextEditingController();
+  final TextEditingController _timeController = TextEditingController();
+  final TextEditingController _locationController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
+  String? _facilityCode;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadFacilityCode();
+  }
+
+  Future<void> _loadFacilityCode() async {
+    final authService = Provider.of<AuthService>(context, listen: false);
+    final user = authService.currentUser;
+    if (user != null) {
+      final userData = await authService.getUserData(user.uid);
+      setState(() {
+        _facilityCode = userData['facilityCode'];
+      });
+    }
+  }
+
+  Future<void> _submitEvent() async {
+    if (_dateController.text.isNotEmpty && _timeController.text.isNotEmpty && _locationController.text.isNotEmpty && _descriptionController.text.isNotEmpty && _facilityCode != null) {
+      await FirebaseFirestore.instance.collection('events').add({
+        'date': _dateController.text,
+        'time': _timeController.text,
+        'location': _locationController.text,
+        'description': _descriptionController.text,
+        'facilityCode': _facilityCode,
+      });
+      Navigator.pop(context);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Aggiungi Evento'),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            TextField(
+              controller: _dateController,
+              decoration: const InputDecoration(
+                labelText: 'Data',
+              ),
+            ),
+            TextField(
+              controller: _timeController,
+              decoration: const InputDecoration(
+                labelText: 'Ora',
+              ),
+            ),
+            TextField(
+              controller: _locationController,
+              decoration: const InputDecoration(
+                labelText: 'Luogo',
+              ),
+            ),
+            TextField(
+              controller: _descriptionController,
+              decoration: const InputDecoration(
+                labelText: 'Descrizione',
+              ),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: _submitEvent,
+              child: const Text('Pubblica'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class EventListScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final authService = Provider.of<AuthService>(context, listen: false);
+    final user = authService.currentUser;
+
+    return FutureBuilder<DocumentSnapshot>(
+      future: authService.getUserData(user!.uid),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        if (snapshot.hasError) {
+          return Scaffold(
+            body: Center(child: Text('Error: ${snapshot.error}')),
+          );
+        }
+
+        if (!snapshot.hasData || !snapshot.data!.exists) {
+          return const Scaffold(
+            body: Center(child: Text('User data not found')),
+          );
+        }
+
+        final userData = snapshot.data!;
+        final facilityCode = userData['facilityCode'];
+
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('Elenco Eventi'),
+          ),
+          body: StreamBuilder<QuerySnapshot>(
+            stream: FirebaseFirestore.instance
+                .collection('events')
+                .where('facilityCode', isEqualTo: facilityCode)
+                .snapshots(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              if (snapshot.hasError) {
+                return Center(child: Text('Error: ${snapshot.error}'));
+              }
+              if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                return const Center(child: Text('Nessun evento trovato'));
+              }
+
+              return ListView(
+                children: snapshot.data!.docs.map((doc) {
+                  return ListTile(
+                    title: Text(doc['description']),
+                    subtitle: Text('${doc['date']} - ${doc['time']} @ ${doc['location']}'),
+                  );
+                }).toList(),
+              );
+            },
+          ),
+        );
+      },
+    );
+  }
+}
+
+class EventList extends StatelessWidget {
+  final String? userId;
+
+  const EventList({Key? key, required this.userId}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final authService = Provider.of<AuthService>(context, listen: false);
+
+    return FutureBuilder<DocumentSnapshot>(
+      future: authService.getUserData(userId!),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+        if (snapshot.hasError) {
+          return Center(child: Text('Error: ${snapshot.error}'));
+        }
+        if (!snapshot.hasData || !snapshot.data!.exists) {
+          return const Center(child: Text('User data not found'));
+        }
+
+        final userData = snapshot.data!;
+        final facilityCode = userData['facilityCode'];
+
+        return StreamBuilder<QuerySnapshot>(
+          stream: FirebaseFirestore.instance
+              .collection('events')
+              .where('facilityCode', isEqualTo: facilityCode)
+              .snapshots(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (snapshot.hasError) {
+              return Center(child: Text('Error: ${snapshot.error}'));
+            }
+            if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+              return const Center(child: Text('Nessun evento trovato'));
+            }
+
+            return ListView(
+              children: snapshot.data!.docs.map((doc) {
+                return ListTile(
+                  title: Text(doc['description']),
+                  subtitle: Text('${doc['date']} - ${doc['time']} @ ${doc['location']}'),
+                );
+              }).toList(),
+            );
+          },
+        );
+      },
+    );
+  }
+}
 
   Widget _buildScadenziarioTab(BuildContext context, String role) {
     if (role.toLowerCase() == 'staff') {
@@ -100,7 +389,7 @@ class CalendarScreen extends StatelessWidget {
       MaterialPageRoute(builder: (context) => DeadlineListScreen()),
     );
   }
-}
+
 
 class AddDeadlineScreen extends StatefulWidget {
   @override
@@ -348,15 +637,24 @@ class _AgendaTabState extends State<AgendaTab> {
       final userData = await authService.getUserData(user.uid);
       final athleteName = userData['firstName'];
       final athleteSurname = userData['lastName'];
+      final fullName = '$athleteName $athleteSurname';
 
-      final querySnapshot = await FirebaseFirestore.instance
+      // Load private lessons
+      final lessonsSnapshot = await FirebaseFirestore.instance
           .collection('private_lessons')
           .where('athleteName', isEqualTo: athleteName)
           .where('athleteSurname', isEqualTo: athleteSurname)
           .get();
 
+      // Load combattimenti
+      final combattimentiSnapshot = await FirebaseFirestore.instance
+          .collection('combattimenti')
+          .where('athletes', arrayContains: fullName)
+          .get();
+
       setState(() {
-        for (var doc in querySnapshot.docs) {
+        // Process private lessons
+        for (var doc in lessonsSnapshot.docs) {
           final data = doc.data();
           final date = (data['date'] as Timestamp).toDate();
           final eventDate = DateTime(date.year, date.month, date.day);
@@ -366,6 +664,25 @@ class _AgendaTabState extends State<AgendaTab> {
             coachName: '${data['coachName']} ${data['coachSurname']}',
             athleteName: '${data['athleteName']} ${data['athleteSurname']}',
             date: date,
+            type: 'lesson',
+          );
+
+          if (_events[eventDate] == null) _events[eventDate] = [];
+          _events[eventDate]!.add(event);
+        }
+
+        // Process combattimenti
+        for (var doc in combattimentiSnapshot.docs) {
+          final data = doc.data();
+          final date = (data['date'] as Timestamp).toDate();
+          final eventDate = DateTime(date.year, date.month, date.day);
+          final event = Event(
+            title: 'Combattimento ${data['type']}',
+            time: data['time'],
+            coachName: '${data['coachName']} ${data['coachSurname']}',
+            athleteName: (data['athletes'] as List<dynamic>).join(', '),
+            date: date,
+            type: 'combattimento',
           );
 
           if (_events[eventDate] == null) _events[eventDate] = [];
@@ -488,6 +805,7 @@ class Event {
   final String coachName;
   final String athleteName;
   final DateTime date;
+  final String type;
 
   const Event({
     required this.title,
@@ -495,5 +813,6 @@ class Event {
     required this.coachName,
     required this.athleteName,
     required this.date,
+    required this.type,
   });
 }
