@@ -441,6 +441,7 @@ class StaffAssaltiView extends StatelessWidget {
     );
   }
 }
+
 class PrivateLessonTab extends StatefulWidget {
   @override
   _PrivateLessonTabState createState() => _PrivateLessonTabState();
@@ -679,23 +680,49 @@ class CoachLessonsScreen extends StatelessWidget {
                 return const Center(child: Text('Nessuna lezione privata programmata'));
               }
 
-              return ListView(
-                children: snapshot.data!.docs.map((doc) {
-                  final data = doc.data() as Map<String, dynamic>;
-                  final date = (data['date'] as Timestamp).toDate();
-                  return ListTile(
-                    title: Text('Lezione del ${date.day}/${date.month}/${date.year}'),
-                    subtitle: Text(
-                      'Ora: ${data['time']}\nAtleta: ${data['athleteName']} ${data['athleteSurname']}',
-                    ),
+              final groupedLessons = _groupLessonsByDate(snapshot.data!.docs);
+
+              return ListView.builder(
+                itemCount: groupedLessons.length,
+                itemBuilder: (context, index) {
+                  final date = groupedLessons.keys.elementAt(index);
+                  final lessons = groupedLessons[date]!;
+
+                  return ExpansionTile(
+                    title: Text(_formatDate(date)),
+                    children: lessons.map((doc) {
+                      final data = doc.data() as Map<String, dynamic>;
+                      return ListTile(
+                        title: Text('Lezione privata - ${data['time']}'),
+                        subtitle: Text('Atleta: ${data['athleteName']} ${data['athleteSurname']}'),
+                      );
+                    }).toList(),
                   );
-                }).toList(),
+                },
               );
             },
           ),
         );
       },
     );
+  }
+
+  Map<DateTime, List<QueryDocumentSnapshot>> _groupLessonsByDate(List<QueryDocumentSnapshot> docs) {
+    final grouped = <DateTime, List<QueryDocumentSnapshot>>{};
+    for (final doc in docs) {
+      final data = doc.data() as Map<String, dynamic>;
+      final date = (data['date'] as Timestamp).toDate();
+      final dateWithoutTime = DateTime(date.year, date.month, date.day);
+      if (!grouped.containsKey(dateWithoutTime)) {
+        grouped[dateWithoutTime] = [];
+      }
+      grouped[dateWithoutTime]!.add(doc);
+    }
+    return Map.fromEntries(grouped.entries.toList()..sort((a, b) => a.key.compareTo(b.key)));
+  }
+
+  String _formatDate(DateTime date) {
+    return '${date.day}/${date.month}/${date.year}';
   }
 }
 
@@ -739,20 +766,49 @@ class AthleteLesson extends StatelessWidget {
               return const Center(child: Text('Nessuna lezione privata programmata'));
             }
 
-            return ListView(
-              children: snapshot.data!.docs.map((doc) {
-                final data = doc.data() as Map<String, dynamic>;
-                final date = (data['date'] as Timestamp).toDate();
-                return ListTile(
-                  title: Text('Lezione del ${date.day}/${date.month}/${date.year}'),
-                  subtitle: Text('Ora: ${data['time']}\nCoach: ${data['coachName']} ${data['coachSurname']}'),
+            // Group lessons by date
+            final groupedLessons = _groupLessonsByDate(snapshot.data!.docs);
+
+            return ListView.builder(
+              itemCount: groupedLessons.length,
+              itemBuilder: (context, index) {
+                final date = groupedLessons.keys.elementAt(index);
+                final lessons = groupedLessons[date]!;
+
+                return ExpansionTile(
+                  title: Text(_formatDate(date)),
+                  children: lessons.map((doc) {
+                    final data = doc.data() as Map<String, dynamic>;
+                    return ListTile(
+                      title: Text('Lezione privata - ${data['time']}'),
+                      subtitle: Text('Coach: ${data['coachName']} ${data['coachSurname']}'),
+                    );
+                  }).toList(),
                 );
-              }).toList(),
+              },
             );
           },
         );
       },
     );
+  }
+
+  Map<DateTime, List<QueryDocumentSnapshot>> _groupLessonsByDate(List<QueryDocumentSnapshot> docs) {
+    final grouped = <DateTime, List<QueryDocumentSnapshot>>{};
+    for (final doc in docs) {
+      final data = doc.data() as Map<String, dynamic>;
+      final date = (data['date'] as Timestamp).toDate();
+      final dateWithoutTime = DateTime(date.year, date.month, date.day);
+      if (!grouped.containsKey(dateWithoutTime)) {
+        grouped[dateWithoutTime] = [];
+      }
+      grouped[dateWithoutTime]!.add(doc);
+    }
+    return Map.fromEntries(grouped.entries.toList()..sort((a, b) => a.key.compareTo(b.key)));
+  }
+
+  String _formatDate(DateTime date) {
+    return '${date.day}/${date.month}/${date.year}';
   }
 }
 
@@ -794,21 +850,50 @@ class StaffLessonView extends StatelessWidget {
               return const Center(child: Text('Nessuna lezione privata programmata'));
             }
 
-            return ListView(
-              children: snapshot.data!.docs.map((doc) {
-                final data = doc.data() as Map<String, dynamic>;
-                final date = (data['date'] as Timestamp).toDate();
-                return ListTile(
-                  title: Text('Lezione del ${date.day}/${date.month}/${date.year}'),
-                  subtitle: Text(
-                    'Ora: ${data['time']}\nAtleta: ${data['athleteName']} ${data['athleteSurname']}\nCoach: ${data['coachName']} ${data['coachSurname']}',
-                  ),
+            final groupedLessons = _groupLessonsByDate(snapshot.data!.docs);
+
+            return ListView.builder(
+              itemCount: groupedLessons.length,
+              itemBuilder: (context, index) {
+                final date = groupedLessons.keys.elementAt(index);
+                final lessons = groupedLessons[date]!;
+
+                return ExpansionTile(
+                  title: Text(_formatDate(date)),
+                  children: lessons.map((doc) {
+                    final data = doc.data() as Map<String, dynamic>;
+                    return ListTile(
+                      title: Text('Lezione privata - ${data['time']}'),
+                      subtitle: Text(
+                        'Atleta: ${data['athleteName']} ${data['athleteSurname']}\n'
+                        'Coach: ${data['coachName']} ${data['coachSurname']}'
+                      ),
+                    );
+                  }).toList(),
                 );
-              }).toList(),
+              },
             );
           },
         );
       },
     );
+  }
+
+  Map<DateTime, List<QueryDocumentSnapshot>> _groupLessonsByDate(List<QueryDocumentSnapshot> docs) {
+    final grouped = <DateTime, List<QueryDocumentSnapshot>>{};
+    for (final doc in docs) {
+      final data = doc.data() as Map<String, dynamic>;
+      final date = (data['date'] as Timestamp).toDate();
+      final dateWithoutTime = DateTime(date.year, date.month, date.day);
+      if (!grouped.containsKey(dateWithoutTime)) {
+        grouped[dateWithoutTime] = [];
+      }
+      grouped[dateWithoutTime]!.add(doc);
+    }
+    return Map.fromEntries(grouped.entries.toList()..sort((a, b) => a.key.compareTo(b.key)));
+  }
+
+  String _formatDate(DateTime date) {
+    return '${date.day}/${date.month}/${date.year}';
   }
 }
