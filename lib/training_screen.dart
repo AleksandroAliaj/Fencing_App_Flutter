@@ -132,15 +132,213 @@ class CreateCombattimentoScreen extends StatelessWidget {
           ),
           ListTile(
             title: const Text('A tema'),
-            onTap: () {
-              // TODO: Implement themed creation screen
-            },
+            onTap: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => CreateThemedCombattimentoScreen()),
+            ),
           ),
         ],
       ),
     );
   }
 }
+
+// combattimento a tema
+class CreateThemedCombattimentoScreen extends StatefulWidget {
+  @override
+  _CreateThemedCombattimentoScreenState createState() => _CreateThemedCombattimentoScreenState();
+}
+
+class _CreateThemedCombattimentoScreenState extends State<CreateThemedCombattimentoScreen> {
+  final _formKey = GlobalKey<FormState>();
+  DateTime _selectedDate = DateTime.now();
+  TimeOfDay _selectedTime = TimeOfDay.now();
+  List<String> _athletes = [];
+  String _newAthleteName = '';
+  String _newAthleteSurname = '';
+  String _theme = '';
+
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+    );
+    if (picked != null && picked != _selectedDate) {
+      setState(() {
+        _selectedDate = picked;
+      });
+    }
+  }
+
+  Future<void> _selectTime(BuildContext context) async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: _selectedTime,
+    );
+    if (picked != null && picked != _selectedTime) {
+      setState(() {
+        _selectedTime = picked;
+      });
+    }
+  }
+
+  void _addAthlete() {
+    if (_newAthleteName.isNotEmpty && _newAthleteSurname.isNotEmpty) {
+      setState(() {
+        _athletes.add('$_newAthleteName $_newAthleteSurname');
+        _newAthleteName = '';
+        _newAthleteSurname = '';
+      });
+    }
+  }
+
+  Future<void> _submitCombattimento() async {
+    if (_formKey.currentState!.validate() && _athletes.isNotEmpty && _theme.isNotEmpty) {
+      final authService = Provider.of<AuthService>(context, listen: false);
+      final user = authService.currentUser;
+      final userData = await authService.getUserData(user!.uid);
+
+      await FirebaseFirestore.instance.collection('combattimenti').add({
+        'type': 'a tema',
+        'date': Timestamp.fromDate(_selectedDate),
+        'time': '${_selectedTime.hour}:${_selectedTime.minute}',
+        'athletes': _athletes,
+        'facilityCode': userData['facilityCode'],
+        'coachName': userData['firstName'],
+        'coachSurname': userData['lastName'],
+        'theme': _theme,
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Combattimento a tema creato con successo')),
+      );
+
+      Navigator.pop(context);
+    } else if (_athletes.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Aggiungi almeno un atleta')),
+      );
+    } else if (_theme.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Inserisci il tema del combattimento')),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Crea Combattimento a Tema')),
+      body: Form(
+        key: _formKey,
+        child: ListView(
+          padding: const EdgeInsets.all(16.0),
+          children: [
+            ListTile(
+              title: const Text('Data'),
+              subtitle: Text("${_selectedDate.toLocal()}".split(' ')[0]),
+              trailing: const Icon(Icons.calendar_today),
+              onTap: () => _selectDate(context),
+            ),
+            ListTile(
+              title: const Text('Ora'),
+              subtitle: Text(_selectedTime.format(context)),
+              trailing: const Icon(Icons.access_time),
+              onTap: () => _selectTime(context),
+            ),
+            const SizedBox(height: 20),
+            const Text('Atleti:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            ..._athletes.map((athlete) => ListTile(title: Text(athlete))).toList(),
+            const SizedBox(height: 20),
+            TextFormField(
+              decoration: const InputDecoration(labelText: 'Nome Atleta'),
+              onChanged: (value) => _newAthleteName = value,
+            ),
+            TextFormField(
+              decoration: const InputDecoration(labelText: 'Cognome Atleta'),
+              onChanged: (value) => _newAthleteSurname = value,
+            ),
+            ElevatedButton(
+              onPressed: _addAthlete,
+              child: const Text('Aggiungi Atleta'),
+            ),
+            const SizedBox(height: 20),
+            TextFormField(
+              decoration: const InputDecoration(labelText: 'Tema del Combattimento'),
+              onChanged: (value) => _theme = value,
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: _submitCombattimento,
+              child: const Text('Crea Combattimento'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class ThemedCombattimentoDetailScreen extends StatelessWidget {
+  final String combattimentoId;
+
+  const ThemedCombattimentoDetailScreen({Key? key, required this.combattimentoId}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Dettagli Combattimento a Tema')),
+      body: FutureBuilder<DocumentSnapshot>(
+        future: FirebaseFirestore.instance.collection('combattimenti').doc(combattimentoId).get(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (snapshot.hasError || !snapshot.hasData) {
+            return const Center(child: Text('Errore nel caricamento dei dettagli'));
+          }
+
+          final data = snapshot.data!.data() as Map<String, dynamic>;
+          final athletes = data['athletes'] as List<dynamic>;
+
+          return ListView(
+            padding: const EdgeInsets.all(16.0),
+            children: [
+              Text(
+                'Allenatore: ${data['coachName']} ${data['coachSurname']}',
+                style: Theme.of(context).textTheme.headline6,
+              ),
+              const SizedBox(height: 20),
+              Text(
+                'Data: ${formatDate((data['date'] as Timestamp).toDate())}',
+                style: Theme.of(context).textTheme.subtitle1,
+              ),
+              Text(
+                'Ora: ${data['time']}',
+                style: Theme.of(context).textTheme.subtitle1,
+              ),
+              const SizedBox(height: 20),
+              Text(
+                'Tema: ${data['theme']}',
+                style: Theme.of(context).textTheme.subtitle1,
+              ),
+              const SizedBox(height: 20),
+              ...athletes.map((athlete) => ListTile(title: Text(athlete as String))),
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  String formatDate(DateTime date) {
+    return '${date.day}/${date.month}/${date.year}';
+  }
+}
+
 
 // combattimento a squadre
 class CreateTeamCombattimentoScreen extends StatefulWidget {
@@ -552,7 +750,6 @@ extension StringExtension on String {
 }
 
 // Helper widget to display a list of combattimenti
-// Helper widget to display a list of combattimenti
 class CombattimentiList extends StatelessWidget {
   final Stream<QuerySnapshot> stream;
 
@@ -591,27 +788,52 @@ class CombattimentiList extends StatelessWidget {
                 final athletes = data['athletes'] as List<dynamic>? ?? [];
                 final combattimentoId = doc.id; // Save the document ID
 
+                // Determine the type of combattimento and set the appropriate detail screen
+                Widget trailingIcon;
+                String? subtitle;
+                if (data['type'] == 'a tema') {
+                  trailingIcon = IconButton(
+                    icon: const Icon(Icons.info),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => ThemedCombattimentoDetailScreen(
+                            combattimentoId: combattimentoId,
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                  subtitle = 'Tema: ${data['theme']}\n'
+                             'Allenatore: ${data['coachName']} ${data['coachSurname']}\n'
+                             'Atleti: ${athletes.join(', ')}';
+                } else if (data['type'] == 'squadre') {
+                  trailingIcon = IconButton(
+                    icon: const Icon(Icons.info),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => TeamCombattimentoDetailScreen(
+                            combattimentoId: combattimentoId,
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                  subtitle = 'Allenatore: ${data['coachName']} ${data['coachSurname']}\n'
+                             'Atleti: ${athletes.join(', ')}';
+                } else {
+                  trailingIcon = const SizedBox.shrink();
+                  subtitle = 'Allenatore: ${data['coachName']} ${data['coachSurname']}\n'
+                             'Atleti: ${athletes.join(', ')}';
+                }
+
                 return ListTile(
                   title: Text('${data['type'].toString().capitalize()} - ${data['time']}'),
-                  subtitle: Text(
-                    'Allenatore: ${data['coachName']} ${data['coachSurname']}\n'
-                    'Atleti: ${athletes.join(', ')}'
-                  ),
-                  trailing: data['type'] == 'squadre' // Show button only for team combat
-                      ? IconButton(
-                          icon: const Icon(Icons.info),
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => TeamCombattimentoDetailScreen(
-                                  combattimentoId: combattimentoId,
-                                ),
-                              ),
-                            );
-                          },
-                        )
-                      : null,
+                  subtitle: Text(subtitle ?? ''),
+                  trailing: trailingIcon,
                 );
               }).toList(),
             );
@@ -639,6 +861,7 @@ class CombattimentiList extends StatelessWidget {
     return '${date.day}/${date.month}/${date.year}';
   }
 }
+
 
 class TeamCombattimentoDetailScreen extends StatelessWidget {
   final String combattimentoId;
