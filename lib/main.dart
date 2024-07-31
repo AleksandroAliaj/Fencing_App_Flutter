@@ -12,6 +12,8 @@ import 'profile_screen.dart';
 import 'training_screen.dart';
 import 'calendar_screen.dart';
 import 'user_list_screen.dart';
+import 'score_screen.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -159,8 +161,11 @@ class _HomeScreenState extends State<HomeScreen> {
             ListTile(
               leading: const Icon(Icons.numbers),
               title: const Text('Segna punteggio'),
-              onTap: () {
-                Navigator.pop(context);
+              onTap: () {Navigator.pop(context);
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ScoreScreen()),
+              );
               },
             ),
             ListTile(
