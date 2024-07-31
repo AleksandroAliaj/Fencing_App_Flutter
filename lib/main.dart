@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'armeria_screen.dart';
 import 'auth_service.dart';
 import 'chat_selection_screen.dart';
+import 'news_list_screen.dart';
 import 'ranking_screen.dart';
 import 'sign_in_screen.dart';
 import 'profile_screen.dart';
@@ -145,14 +146,7 @@ class _HomeScreenState extends State<HomeScreen> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.group),
-              title: const Text('Girone'),
-              onTap: () {
-                Navigator.pop(context);
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.new_releases),
+              leading: const Icon(Icons.people),
               title: const Text('Elenco utenti'),
               onTap: () {
               Navigator.pop(context); 
@@ -163,10 +157,21 @@ class _HomeScreenState extends State<HomeScreen> {
               },
             ),
             ListTile(
-              leading: const Icon(Icons.settings),
-              title: const Text('News'),
+              leading: const Icon(Icons.numbers),
+              title: const Text('Segna punteggio'),
               onTap: () {
                 Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.newspaper),
+              title: const Text('News'),
+              onTap: () {
+              Navigator.pop(context); 
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const NewsListScreen()),
+              );
               },
             ),
             const Divider(), // Separatore opzionale
