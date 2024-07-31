@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
 import 'auth_service.dart';
+import 'package:intl/intl.dart';
 
 class TrainingScreen extends StatelessWidget {
   const TrainingScreen({Key? key}) : super(key: key);
@@ -18,7 +19,7 @@ class TrainingScreen extends StatelessWidget {
             tabs: [
               Tab(text: 'Lezione privata'),
               Tab(text: 'Assalti'),
-              Tab(text: 'Preparazione atleti'),
+              Tab(text: 'Preparazione atletica'),
             ],
           ),
         ),
@@ -26,10 +27,376 @@ class TrainingScreen extends StatelessWidget {
           children: [
             PrivateLessonTab(),
             AssaltiTab(),
-            Center(child: Text('Preparazione atleti')), // Placeholder
+            AthleticPreparationTab(),
           ],
         ),
       ),
+    );
+  }
+}
+
+// Preparazione atletica
+
+class AthleticPreparationTab extends StatelessWidget {
+  const AthleticPreparationTab({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final authService = Provider.of<AuthService>(context, listen: false);
+    final user = authService.currentUser;
+
+    return FutureBuilder<String?>(
+      future: authService.getUserRole(user?.uid),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (snapshot.hasError || !snapshot.hasData) {
+          return const Center(child: Text('Error loading user role'));
+        }
+
+        final role = snapshot.data!.toLowerCase();
+
+        if (role == 'allenatore') {
+          return Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const NewPreparationScreen()),
+                  );
+                },
+                child: const Text('Nuova Preparazione'),
+              ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const PreparationListScreen()),
+                  );
+                },
+                child: const Text('Elenco Preparazioni'),
+              ),
+            ],
+          );
+        } else if (role == 'atleta') {
+          return const AthletePreparationView();
+        } else {
+          return const Center(child: Text('Ruolo non autorizzato'));
+        }
+      },
+    );
+  }
+}
+
+class NewPreparationScreen extends StatefulWidget {
+  const NewPreparationScreen({Key? key}) : super(key: key);
+
+  @override
+  _NewPreparationScreenState createState() => _NewPreparationScreenState();
+}
+
+class _NewPreparationScreenState extends State<NewPreparationScreen> {
+  final _formKey = GlobalKey<FormState>();
+  String? _athleteType;
+  String? _workoutType;
+  String? _workoutDetails;
+  String? _athleteName;
+  String? _athleteSurname;
+  DateTime? _dueDate;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Nuova Preparazione')),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Form(
+          key: _formKey,
+          child: ListView(
+            children: [
+              DropdownButtonFormField<String>(
+                decoration: const InputDecoration(labelText: 'Seleziona Atleta'),
+                items: [
+                  DropdownMenuItem(value: 'all', child: Text('Tutti gli atleti')),
+                  DropdownMenuItem(value: 'specific', child: Text('Atleta specifico')),
+                ],
+                onChanged: (value) {
+                  setState(() {
+                    _athleteType = value;
+                  });
+                },
+                validator: (value) => value == null ? 'Seleziona un opzione' : null,
+              ),
+              if (_athleteType == 'specific') ...[
+                TextFormField(
+                  decoration: const InputDecoration(labelText: 'Nome Atleta'),
+                  validator: (value) => value!.isEmpty ? 'Inserisci il nome' : null,
+                  onSaved: (value) => _athleteName = value,
+                ),
+                TextFormField(
+                  decoration: const InputDecoration(labelText: 'Cognome Atleta'),
+                  validator: (value) => value!.isEmpty ? 'Inserisci il cognome' : null,
+                  onSaved: (value) => _athleteSurname = value,
+                ),
+              ],
+              DropdownButtonFormField<String>(
+                decoration: const InputDecoration(labelText: 'Tipo di Allenamento'),
+                items: [
+                  DropdownMenuItem(value: 'velocità', child: Text('Allenamento di Velocità')),
+                  DropdownMenuItem(value: 'resistenza', child: Text('Allenamento di Resistenza')),
+                  DropdownMenuItem(value: 'forza', child: Text('Allenamento di Forza')),
+                  DropdownMenuItem(value: 'flessibilità', child: Text('Allenamento di Flessibilità e Mobilità')),
+                  DropdownMenuItem(value: 'scherma', child: Text('Allenamento Specifico per la Scherma')),
+                  DropdownMenuItem(value: 'recupero', child: Text('Recupero e Prevenzione degli Infortuni')),
+                ],
+                onChanged: (value) {
+                  setState(() {
+                    _workoutType = value;
+                  });
+                },
+                validator: (value) => value == null ? 'Seleziona un tipo di allenamento' : null,
+              ),
+              TextFormField(
+                decoration: const InputDecoration(labelText: 'Descrizione dell\'Allenamento'),
+                maxLines: 5,
+                validator: (value) => value!.isEmpty ? 'Inserisci la descrizione dell\'allenamento' : null,
+                onSaved: (value) => _workoutDetails = value,
+              ),
+              TextFormField(
+                decoration: const InputDecoration(labelText: 'Data di Termine'),
+                readOnly: true,
+                controller: TextEditingController(
+                  text: _dueDate != null ? DateFormat('dd/MM/yyyy').format(_dueDate!) : '',
+                ),
+                onTap: () async {
+                  final pickedDate = await showDatePicker(
+                    context: context,
+                    initialDate: _dueDate ?? DateTime.now(),
+                    firstDate: DateTime.now(),
+                    lastDate: DateTime.now().add(const Duration(days: 365)),
+                  );
+                  if (pickedDate != null && pickedDate != _dueDate) {
+                    setState(() {
+                      _dueDate = pickedDate;
+                    });
+                  }
+                },
+                validator: (value) => _dueDate == null ? 'Seleziona una data di termine' : null,
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: _submitPreparation,
+                child: const Text('Invia'),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _submitPreparation() async {
+    if (_formKey.currentState!.validate()) {
+      _formKey.currentState!.save();
+      final authService = Provider.of<AuthService>(context, listen: false);
+      final user = authService.currentUser;
+      final userData = await authService.getUserData(user!.uid);
+
+      await FirebaseFirestore.instance.collection('athletic_preparations').add({
+        'coachName': userData['firstName'],
+        'coachSurname': userData['lastName'],
+        'facilityCode': userData['facilityCode'],
+        'athleteType': _athleteType,
+        'athleteName': _athleteName,
+        'athleteSurname': _athleteSurname,
+        'workoutType': _workoutType,
+        'workoutDetails': _workoutDetails,
+        'dueDate': _dueDate,
+        'createdAt': FieldValue.serverTimestamp(),
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Preparazione Atletica Salvata')),
+      );
+
+      Navigator.pop(context);
+    }
+  }
+}
+
+class PreparationListScreen extends StatelessWidget {
+  const PreparationListScreen({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final authService = Provider.of<AuthService>(context, listen: false);
+    final user = authService.currentUser;
+
+    return Scaffold(
+      appBar: AppBar(title: const Text('Elenco Preparazioni')),
+      body: FutureBuilder<DocumentSnapshot>(
+        future: authService.getUserData(user!.uid),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (snapshot.hasError || !snapshot.hasData) {
+            return const Center(child: Text('Error loading user data'));
+          }
+
+          final userData = snapshot.data!.data() as Map<String, dynamic>;
+          final coachName = userData['firstName'];
+          final coachSurname = userData['lastName'];
+
+          return StreamBuilder<QuerySnapshot>(
+            stream: FirebaseFirestore.instance
+                .collection('athletic_preparations')
+                .where('coachName', isEqualTo: coachName)
+                .where('coachSurname', isEqualTo: coachSurname)
+                //.orderBy('createdAt', descending: true)
+                .snapshots(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+
+              if (snapshot.hasError) {
+                return Center(child: Text('Error: ${snapshot.error}'));
+              }
+
+              if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                return const Center(child: Text('Nessuna preparazione atletica trovata'));
+              }
+
+              return ListView.builder(
+                itemCount: snapshot.data!.docs.length,
+                itemBuilder: (context, index) {
+                  final preparation = snapshot.data!.docs[index];
+                  final data = preparation.data() as Map<String, dynamic>;
+
+                  return Card(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '${data['workoutType']} - ${data['athleteType'] == 'all' ? 'Tutti gli atleti' : '${data['athleteName']} ${data['athleteSurname']}'}',
+                            style: Theme.of(context).textTheme.headline6,
+                          ),
+                          const SizedBox(height: 8),
+                          Text(data['workoutDetails']),
+                          const SizedBox(height: 8),
+                          Text(
+                            'Data di termine: ${DateFormat('dd/MM/yyyy').format(data['dueDate'].toDate())}',
+                            style: Theme.of(context).textTheme.caption,
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                },
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+}
+
+class AthletePreparationView extends StatelessWidget {
+  const AthletePreparationView({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final authService = Provider.of<AuthService>(context, listen: false);
+    final user = authService.currentUser;
+
+    return FutureBuilder<DocumentSnapshot>(
+      future: authService.getUserData(user!.uid),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (snapshot.hasError || !snapshot.hasData) {
+          return const Center(child: Text('Error loading user data'));
+        }
+
+        final userData = snapshot.data!.data() as Map<String, dynamic>;
+        final athleteName = userData['firstName'];
+        final athleteSurname = userData['lastName'];
+        final facilityCode = userData['facilityCode'];
+
+        return StreamBuilder<QuerySnapshot>(
+          stream: FirebaseFirestore.instance
+              .collection('athletic_preparations')
+              .where('facilityCode', isEqualTo: facilityCode)
+              //.where('athleteType', whereIn: ['all', 'specific'])
+              .snapshots(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
+
+            if (snapshot.hasError) {
+              return Center(child: Text('Error: ${snapshot.error}'));
+            }
+
+            if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+              return const Center(child: Text('Nessuna preparazione atletica trovata'));
+            }
+
+            final preparations = snapshot.data!.docs.where((doc) {
+              final data = doc.data() as Map<String, dynamic>;
+              return data['athleteType'] == 'all' ||
+                  (data['athleteType'] == 'specific' &&
+                      data['athleteName'] == athleteName &&
+                      data['athleteSurname'] == athleteSurname);
+            }).toList();
+
+            if (preparations.isEmpty) {
+              return const Center(child: Text('Nessuna preparazione atletica trovata per te'));
+            }
+
+            return ListView.builder(
+              itemCount: preparations.length,
+              itemBuilder: (context, index) {
+                final preparation = preparations[index];
+                final data = preparation.data() as Map<String, dynamic>;
+
+                return Card(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          data['workoutType'],
+                          style: Theme.of(context).textTheme.headline6,
+                        ),
+                        const SizedBox(height: 8),
+                        Text(data['workoutDetails']),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Data di termine: ${DateFormat('dd/MM/yyyy').format(data['dueDate'].toDate())}',
+                          style: Theme.of(context).textTheme.caption,
+                        ),
+                      ],
+                    ),
+                  ),
+                );
+              },
+            );
+          },
+        );
+      },
     );
   }
 }
@@ -1489,3 +1856,4 @@ class StaffLessonView extends StatelessWidget {
     return '${date.day}/${date.month}/${date.year}';
   }
 }
+
