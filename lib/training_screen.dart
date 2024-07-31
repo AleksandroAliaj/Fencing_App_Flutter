@@ -58,7 +58,7 @@ class AthleticPreparationTab extends StatelessWidget {
 
         final role = snapshot.data!.toLowerCase();
 
-        if (role == 'allenatore') {
+        if (role == 'allenatore' || role == 'staff') {
           return Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [

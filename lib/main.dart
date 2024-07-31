@@ -39,7 +39,7 @@ class FencingApp extends StatelessWidget {
         ),
       ],
       child: MaterialApp(
-        title: 'Fencing App',
+        title: 'Fencing',
         theme: ThemeData(
           primarySwatch: Colors.blue,
         ),
@@ -105,7 +105,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Fencing App'),
+        //title: const Text('Fencing App'),
         leading: Builder(
           builder: (BuildContext context) {
             return IconButton(
@@ -152,14 +152,14 @@ class _HomeScreenState extends State<HomeScreen> {
             ),
             ListTile(
               leading: const Icon(Icons.new_releases),
-              title: const Text('News'),
+              title: const Text('Elenco utenti'),
               onTap: () {
                 Navigator.pop(context);
               },
             ),
             ListTile(
               leading: const Icon(Icons.settings),
-              title: const Text('Impostazioni'),
+              title: const Text('News'),
               onTap: () {
                 Navigator.pop(context);
               },
