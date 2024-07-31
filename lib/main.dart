@@ -10,6 +10,7 @@ import 'sign_in_screen.dart';
 import 'profile_screen.dart';
 import 'training_screen.dart';
 import 'calendar_screen.dart';
+import 'user_list_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -154,7 +155,11 @@ class _HomeScreenState extends State<HomeScreen> {
               leading: const Icon(Icons.new_releases),
               title: const Text('Elenco utenti'),
               onTap: () {
-                Navigator.pop(context);
+              Navigator.pop(context); 
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const UserListScreen()),
+    );
               },
             ),
             ListTile(

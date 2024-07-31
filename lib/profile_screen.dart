@@ -17,7 +17,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String? _email;
   String? _role;
   String? _facilityCode;
-  String? _userId;
   String? _firstName;
   String? _lastName;
 
@@ -35,7 +34,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _email = userData['email'];
         _role = userData['role'];
         _facilityCode = userData['facilityCode'];
-        _userId = user.uid;
         _firstName = userData['firstName'];
         _lastName = userData['lastName'];
       });
@@ -55,7 +53,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       appBar: AppBar(
         title: const Text('Profile'),
         leading: IconButton(
-          icon: const Icon(Icons.home),
+          icon: const Icon(Icons.arrow_back),
           onPressed: () {
             Navigator.pushAndRemoveUntil(
               context,
@@ -78,22 +76,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
             if (_role != null) Text('Role: $_role'),
             if (_facilityCode != null) Text('Facility Code: $_facilityCode'),
             const SizedBox(height: 20),
-            const Text(
-              'User ID',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 8),
-            if (_userId != null)
-              Row(
-                children: [
-                  Expanded(child: Text('ID: $_userId')),
-                  IconButton(
-                    icon: const Icon(Icons.copy),
-                    onPressed: () => _copyToClipboard(_userId!),
-                    tooltip: 'Copia ID',
-                  ),
-                ],
-              ),
+            
+            
+            
           ],
         ),
       ),
