@@ -25,11 +25,51 @@ class EnterFacilityCodeScreen extends StatefulWidget {
 
 class _EnterFacilityCodeScreenState extends State<EnterFacilityCodeScreen> {
   final TextEditingController _facilityCodeController = TextEditingController();
+  bool _isLoading = false;
 
   @override
   void dispose() {
     _facilityCodeController.dispose();
     super.dispose();
+  }
+
+  void _showLoadingDialog() {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) {
+        return const AlertDialog(
+          content: Row(
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(width: 20),
+              Text('Please wait...'),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showErrorDialog(String message) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Error'),
+          content: Text(message),
+          actions: [
+            TextButton(
+              child: const Text('OK'),
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+            ),
+          ],
+        );
+      },
+    );
   }
 
   @override
@@ -52,6 +92,10 @@ class _EnterFacilityCodeScreenState extends State<EnterFacilityCodeScreen> {
               child: const Text('Register'),
               onPressed: () async {
                 final String facilityCode = _facilityCodeController.text.trim();
+                setState(() {
+                  _isLoading = true;
+                });
+                _showLoadingDialog();
                 try {
                   bool codeExists = await Provider.of<AuthService>(context, listen: false)
                       .checkFacilityCodeExists(facilityCode);
@@ -65,20 +109,22 @@ class _EnterFacilityCodeScreenState extends State<EnterFacilityCodeScreen> {
                           widget.lastName,
                           facilityCode: facilityCode
                         );
+                    Navigator.of(context).pop(); // Close the loading dialog
                     Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(builder: (context) => const ProfileScreen()),
                     );
                   } else {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Invalid facility code')),
-                    );
+                    Navigator.of(context).pop(); // Close the loading dialog
+                    _showErrorDialog('Invalid facility code');
                   }
                 } catch (e) {
-                  print(e);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Registration failed: ${e.toString()}')),
-                  );
+                  Navigator.of(context).pop(); // Close the loading dialog
+                  _showErrorDialog('Registration failed: ${e.toString()}');
+                } finally {
+                  setState(() {
+                    _isLoading = false;
+                  });
                 }
               },
             ),
