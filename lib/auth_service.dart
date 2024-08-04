@@ -1,13 +1,59 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'dart:math';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final GoogleSignIn _googleSignIn = GoogleSignIn(
+       clientId: '99064000925-jnqj4qvon6q346gbeu79nfslsdsitd6e.apps.googleusercontent.com',
+     );
 
   Stream<User?> get user {
     return _auth.authStateChanges();
+  }
+
+  Future<UserCredential> signInWithGoogle() async {
+    // Trigger the authentication flow
+    final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
+
+    // Obtain the auth details from the request
+    final GoogleSignInAuthentication? googleAuth = await googleUser?.authentication;
+
+    // Create a new credential
+    final credential = GoogleAuthProvider.credential(
+      accessToken: googleAuth?.accessToken,
+      idToken: googleAuth?.idToken,
+    );
+
+    // Once signed in, return the UserCredential
+    return await _auth.signInWithCredential(credential);
+  }
+
+  Future<String> registerWithGoogle(String role, {String? facilityCode}) async {
+    UserCredential result = await signInWithGoogle();
+    User? user = result.user;
+    if (user != null) {
+      String userFacilityCode = facilityCode ?? _generateFacilityCode();
+
+      if (facilityCode != null) {
+        bool codeExists = await checkFacilityCodeExists(facilityCode);
+        if (!codeExists) {
+          throw Exception('Invalid facility code');
+        }
+      }
+
+      await _firestore.collection('users').doc(user.uid).set({
+        'email': user.email,
+        'role': role,
+        'facilityCode': userFacilityCode,
+        'firstName': user.displayName?.split(' ').first ?? '',
+        'lastName': user.displayName?.split(' ').last ?? '',
+      });
+      return userFacilityCode;
+    }
+    throw Exception('Failed to register user with Google');
   }
 
   Future<String> registerWithEmailAndPassword(String email, String password, String role, String firstName, String lastName, {String? facilityCode}) async {

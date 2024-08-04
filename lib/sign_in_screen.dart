@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'auth_service.dart';
 import 'register_screen.dart';
 import 'profile_screen.dart';
+import 'google_sign_in.dart';
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
@@ -136,6 +137,39 @@ class _SignInScreenState extends State<SignInScreen> {
                   }
                 } else {
                   _showErrorDialog('Please fix the errors in red before submitting.');
+                }
+              },
+            ),
+            const SizedBox(height: 10),
+            ElevatedButton(
+              child: const Text('Register with Google'),
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (context) => const GoogleSignInScreen()),
+                );
+              },
+            ),
+            const SizedBox(height: 10),
+            ElevatedButton(
+              child: const Text('Sign In with Google'),
+              onPressed: () async {
+                setState(() {
+                  _isLoading = true;
+                });
+                _showLoadingDialog();
+                try {
+                  await Provider.of<AuthService>(context, listen: false).signInWithGoogle();
+                  Navigator.of(context).pop(); // Close the loading dialog
+                  Navigator.of(context).pushReplacement(
+                    MaterialPageRoute(builder: (context) => const ProfileScreen()),
+                  );
+                } catch (e) {
+                  Navigator.of(context).pop(); // Close the loading dialog
+                  _showErrorDialog('Google Sign-In failed: ${e.toString()}');
+                } finally {
+                  setState(() {
+                    _isLoading = false;
+                  });
                 }
               },
             ),
