@@ -139,7 +139,7 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
         'description': _descriptionController.text,
         'userId': widget.userId,
         'facilityCode': widget.facilityCode,
-        'status': 'Pending',
+        'status': 'In riparazione',
         'timestamp': FieldValue.serverTimestamp(),
         'firstName': userData['firstName'],
         'lastName': userData['lastName'],
@@ -275,12 +275,12 @@ class RequestListScreen extends StatelessWidget {
                     title: Text(doc['repair']),
                     subtitle: Text('${doc['description']}\n$firstName $lastName'),
                     trailing: doc['status'] == 'Confirmed'
-                        ? const Text('Confirmed', style: TextStyle(color: Colors.green))
+                        ? const Text('Riparato', style: TextStyle(color: Colors.green))
                         : ElevatedButton(
                             onPressed: () async {
                               await doc.reference.update({'status': 'Confirmed'});
                             },
-                            child: const Text('Conferma'),
+                            child: const Text('Riparato'),
                           ),
                   );
                 },

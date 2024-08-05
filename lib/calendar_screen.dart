@@ -596,7 +596,7 @@ class DeadlineListScreen extends StatelessWidget {
                     title: Text(doc['text']),
                     subtitle: Text('${doc['firstName']} ${doc['lastName']}'),
                     trailing: doc['status'] == 'Confirmed'
-                        ? const Text('Confirmed', style: TextStyle(color: Colors.green))
+                        ? const Text('Confermato', style: TextStyle(color: Colors.green))
                         : ElevatedButton(
                             onPressed: () async {
                               await doc.reference.update({'status': 'Confirmed'});
@@ -665,7 +665,7 @@ class DeadlineList extends StatelessWidget {
                   title: Text(doc['text']),
                   subtitle: Text('${doc['firstName']} ${doc['lastName']}'),
                   trailing: doc['status'] == 'Confirmed'
-                      ? const Text('Confirmed', style: TextStyle(color: Colors.green))
+                      ? const Text('Confermato', style: TextStyle(color: Colors.green))
                       : null,
                 );
               }).toList(),

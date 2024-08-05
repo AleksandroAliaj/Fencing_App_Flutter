@@ -175,6 +175,14 @@ class ProductCategoryScreen extends StatelessWidget {
               return ListTile(
                 title: Text(data['title'] ?? 'No title'),
                 subtitle: Text('${data['price'] ?? 'N/A'} €'),
+                trailing: userRole.toLowerCase() == 'staff'
+                    ? IconButton(
+                        icon: const Icon(Icons.delete),
+                        onPressed: () {
+                          _deleteProduct(context, document.id);
+                        },
+                      )
+                    : null,
                 onTap: () {
                   Navigator.push(
                     context,
@@ -193,24 +201,37 @@ class ProductCategoryScreen extends StatelessWidget {
           );
         },
       ),
-      floatingActionButton: userRole.toLowerCase() == 'staff'
-          ? FloatingActionButton.extended(
-              onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => EditProductsScreen(
-                      category: category,
-                      facilityCode: facilityCode,
-                    ),
-                  ),
-                );
-              },
-              label: const Text('Modifica'),
-              icon: const Icon(Icons.edit),
-            )
-          : null,
+      // floatingActionButton: userRole.toLowerCase() == 'staff'
+      //     ? FloatingActionButton.extended(
+      //         onPressed: () {
+      //           Navigator.push(
+      //             context,
+      //             MaterialPageRoute(
+      //               builder: (context) => EditProductsScreen(
+      //                 category: category,
+      //                 facilityCode: facilityCode,
+      //               ),
+      //             ),
+      //           );
+      //         },
+      //         //label: const Text('Modifica'),
+      //         icon: const Icon(Icons.edit),
+      //       )
+      //    : null,
     );
+  }
+
+  void _deleteProduct(BuildContext context, String productId) async {
+    try {
+      await FirebaseFirestore.instance.collection('products').doc(productId).delete();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Prodotto eliminato con successo')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Errore durante l\'eliminazione del prodotto: $e')),
+      );
+    }
   }
 }
 
@@ -234,15 +255,15 @@ class _EditProductsScreenState extends State<EditProductsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Modifica ${widget.category}'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.delete),
-            onPressed: selectedProducts.isNotEmpty ? _deleteSelectedProducts : null,
-          ),
-        ],
-      ),
+      //appBar: AppBar(
+      //  title: Text('Modifica ${widget.category}'),
+      //  actions: [
+      //    IconButton(
+      //      icon: const Icon(Icons.delete),
+      //      onPressed: selectedProducts.isNotEmpty ? _deleteSelectedProducts : null,
+      //    ),
+      //  ],
+      //),
       body: StreamBuilder<QuerySnapshot>(
         stream: FirebaseFirestore.instance
             .collection('products')
@@ -315,6 +336,7 @@ class _EditProductsScreenState extends State<EditProductsScreen> {
     }
   }
 }
+
 class ProductDetailScreen extends StatelessWidget {
   final String title;
   final String description;
