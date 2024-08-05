@@ -31,30 +31,30 @@ class AuthService {
     return await _auth.signInWithCredential(credential);
   }
 
-  Future<String> registerWithGoogle(String role, {String? facilityCode}) async {
-    UserCredential result = await signInWithGoogle();
-    User? user = result.user;
-    if (user != null) {
-      String userFacilityCode = facilityCode ?? _generateFacilityCode();
+Future<String> registerWithGoogle(String role, {String? facilityCode, required String firstName, required String lastName}) async {
+  UserCredential result = await signInWithGoogle();
+  User? user = result.user;
+  if (user != null) {
+    String userFacilityCode = facilityCode ?? _generateFacilityCode();
 
-      if (facilityCode != null) {
-        bool codeExists = await checkFacilityCodeExists(facilityCode);
-        if (!codeExists) {
-          throw Exception('Invalid facility code');
-        }
+    if (facilityCode != null) {
+      bool codeExists = await checkFacilityCodeExists(facilityCode);
+      if (!codeExists) {
+        throw Exception('Invalid facility code');
       }
-
-      await _firestore.collection('users').doc(user.uid).set({
-        'email': user.email,
-        'role': role,
-        'facilityCode': userFacilityCode,
-        'firstName': user.displayName?.split(' ').first ?? '',
-        'lastName': user.displayName?.split(' ').last ?? '',
-      });
-      return userFacilityCode;
     }
-    throw Exception('Failed to register user with Google');
+
+    await _firestore.collection('users').doc(user.uid).set({
+      'email': user.email,
+      'role': role,
+      'facilityCode': userFacilityCode,
+      'firstName': firstName,
+      'lastName': lastName,
+    });
+    return userFacilityCode;
   }
+  throw Exception('Failed to register user with Google');
+}
 
   Future<String> registerWithEmailAndPassword(String email, String password, String role, String firstName, String lastName, {String? facilityCode}) async {
     UserCredential result = await _auth.createUserWithEmailAndPassword(email: email, password: password);

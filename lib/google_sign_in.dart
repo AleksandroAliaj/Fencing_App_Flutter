@@ -14,12 +14,32 @@ class _GoogleSignInScreenState extends State<GoogleSignInScreen> {
   String _role = 'Staff';
   bool _generateNewCode = true;
   final TextEditingController _facilityCodeController = TextEditingController();
+  final TextEditingController _firstNameController = TextEditingController();
+  final TextEditingController _lastNameController = TextEditingController();
   bool _isLoading = false;
 
   @override
   void dispose() {
     _facilityCodeController.dispose();
+    _firstNameController.dispose();
+    _lastNameController.dispose();
     super.dispose();
+  }
+
+  bool _validateInputs() {
+    if (_firstNameController.text.isEmpty || _lastNameController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Please enter both first and last names.')),
+      );
+      return false;
+    }
+    if ((_role != 'Staff' || !_generateNewCode) && _facilityCodeController.text.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Please enter the facility code.')),
+      );
+      return false;
+    }
+    return true;
   }
 
   @override
@@ -33,6 +53,14 @@ class _GoogleSignInScreenState extends State<GoogleSignInScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
+            TextField(
+              controller: _firstNameController,
+              decoration: const InputDecoration(labelText: 'First Name'),
+            ),
+            TextField(
+              controller: _lastNameController,
+              decoration: const InputDecoration(labelText: 'Last Name'),
+            ),
             DropdownButton<String>(
               value: _role,
               onChanged: (String? newValue) {
@@ -74,24 +102,31 @@ class _GoogleSignInScreenState extends State<GoogleSignInScreen> {
             ElevatedButton(
               child: _isLoading ? CircularProgressIndicator() : const Text('Sign In with Google'),
               onPressed: () async {
-                setState(() {
-                  _isLoading = true;
-                });
-                try {
-                  final authService = Provider.of<AuthService>(context, listen: false);
-                  String? facilityCode = (_role == 'Staff' && _generateNewCode) ? null : _facilityCodeController.text.trim();
-                  String registeredFacilityCode = await authService.registerWithGoogle(_role, facilityCode: facilityCode);
-                  Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(builder: (context) => ProfileScreen()),
-                  );
-                } catch (e) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Error: ${e.toString()}')),
-                  );
-                } finally {
+                if (_validateInputs()) {
                   setState(() {
-                    _isLoading = false;
+                    _isLoading = true;
                   });
+                  try {
+                    final authService = Provider.of<AuthService>(context, listen: false);
+                    String? facilityCode = (_role == 'Staff' && _generateNewCode) ? null : _facilityCodeController.text.trim();
+                    String registeredFacilityCode = await authService.registerWithGoogle(
+                      _role,
+                      firstName: _firstNameController.text.trim(),
+                      lastName: _lastNameController.text.trim(),
+                      facilityCode: facilityCode,
+                    );
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(builder: (context) => ProfileScreen()),
+                    );
+                  } catch (e) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Error: ${e.toString()}')),
+                    );
+                  } finally {
+                    setState(() {
+                      _isLoading = false;
+                    });
+                  }
                 }
               },
             ),
