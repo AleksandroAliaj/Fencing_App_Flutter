@@ -53,6 +53,14 @@ class _ChatScreenState extends State<ChatScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text(_getChatTitle()),
+        actions: widget.chatType == 'private'
+            ? [
+                IconButton(
+                  icon: const Icon(Icons.delete),
+                  onPressed: () => _showDeleteChatDialog(context),
+                ),
+              ]
+            : null,
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -84,6 +92,33 @@ class _ChatScreenState extends State<ChatScreen> {
                 ),
               ],
             ),
+    );
+  }
+
+  void _showDeleteChatDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Elimina chat"),
+          content: const Text("Sei sicuro di voler eliminare questa chat? L'azione sarà irreversibile per entrambi gli utenti."),
+          actions: [
+            TextButton(
+              child: const Text("Annulla"),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            TextButton(
+              child: const Text("Elimina"),
+              onPressed: () async {
+                await FirebaseFirestore.instance.collection('chats').doc(widget.chatId).delete();
+                Navigator.of(context).pop();
+                Navigator.of(context).pop(); // Return to chat selection screen
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Chat eliminata con successo')));
+              },
+            ),
+          ],
+        );
+      },
     );
   }
 
@@ -179,7 +214,7 @@ class PrivateMessagesStream extends StatelessWidget {
   }
 }
 
-// ... (il resto del codice rimane invariato)
+
 
 class MessagesStream extends StatelessWidget {
   final String facilityCode;

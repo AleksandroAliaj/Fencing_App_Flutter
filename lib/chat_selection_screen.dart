@@ -64,16 +64,22 @@ class ChatSelectionScreen extends StatelessWidget {
                   chatOptions.add(ChatOption(
                     chatData['participantEmails'][otherUserId],
                     () => _navigateToChat(context, 'private', chatId: doc.id),
+                    onDelete: () => _deletePrivateChat(context, doc.id),
                   ));
                 }
               }
-
               return ListView.builder(
                 itemCount: chatOptions.length,
                 itemBuilder: (context, index) {
                   return ListTile(
                     title: Text(chatOptions[index].title),
                     onTap: chatOptions[index].onTap,
+                    trailing: chatOptions[index].onDelete != null
+                        ? IconButton(
+                            icon: const Icon(Icons.delete),
+                            onPressed: chatOptions[index].onDelete,
+                          )
+                        : null,
                   );
                 },
               );
@@ -87,6 +93,33 @@ class ChatSelectionScreen extends StatelessWidget {
       ),
     );
   }
+
+  void _deletePrivateChat(BuildContext context, String chatId) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text("Elimina chat"),
+          content: const Text("Sei sicuro di voler eliminare questa chat? L'azione sarà irreversibile per entrambi gli utenti."),
+          actions: [
+            TextButton(
+              child: const Text("Annulla"),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+            TextButton(
+              child: const Text("Elimina"),
+              onPressed: () async {
+                await FirebaseFirestore.instance.collection('chats').doc(chatId).delete();
+                Navigator.of(context).pop();
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Chat eliminata con successo')));
+              },
+            ),
+          ],
+        );
+      },
+    );
+  }
+
 
   void _navigateToChat(BuildContext context, String chatType, {String? chatId}) {
     Navigator.push(
@@ -202,6 +235,7 @@ class ChatSelectionScreen extends StatelessWidget {
 class ChatOption {
   final String title;
   final VoidCallback onTap;
+  final VoidCallback? onDelete;
 
-  ChatOption(this.title, this.onTap);
+  ChatOption(this.title, this.onTap, {this.onDelete});
 }

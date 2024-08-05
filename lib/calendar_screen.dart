@@ -281,9 +281,77 @@ class EventListScreen extends StatelessWidget {
 
               return ListView(
                 children: snapshot.data!.docs.map((doc) {
-                  return ListTile(
-                    title: Text(doc['description']),
-                    subtitle: Text('${doc['date']} - ${doc['time']} @ ${doc['location']}'),
+                  return Dismissible(
+                    key: Key(doc.id),
+                    background: Container(
+                      color: Colors.red,
+                      alignment: Alignment.centerRight,
+                      padding: EdgeInsets.only(right: 20.0),
+                      child: Icon(Icons.delete, color: Colors.white),
+                    ),
+                    direction: DismissDirection.endToStart,
+                    confirmDismiss: (direction) async {
+                      return await showDialog(
+                        context: context,
+                        builder: (BuildContext context) {
+                          return AlertDialog(
+                            title: const Text("Conferma eliminazione"),
+                            content: const Text("Sei sicuro di voler eliminare questo evento?"),
+                            actions: <Widget>[
+                              TextButton(
+                                onPressed: () => Navigator.of(context).pop(false),
+                                child: const Text("Annulla"),
+                              ),
+                              TextButton(
+                                onPressed: () => Navigator.of(context).pop(true),
+                                child: const Text("Elimina"),
+                              ),
+                            ],
+                          );
+                        },
+                      );
+                    },
+                    onDismissed: (direction) {
+                      FirebaseFirestore.instance.collection('events').doc(doc.id).delete();
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Evento eliminato')),
+                      );
+                    },
+                    child: ListTile(
+                      title: Text(doc['description']),
+                      subtitle: Text('${doc['date']} - ${doc['time']} @ ${doc['location']}'),
+                      trailing: IconButton(
+                        icon: Icon(Icons.delete),
+                        onPressed: () async {
+                          bool? confirm = await showDialog<bool>(
+                            context: context,
+                            builder: (BuildContext context) {
+                              return AlertDialog(
+                                title: const Text("Conferma eliminazione"),
+                                content: const Text("Sei sicuro di voler eliminare questo evento?"),
+                                actions: <Widget>[
+                                  TextButton(
+                                    onPressed: () => Navigator.of(context).pop(false),
+                                    child: const Text("Annulla"),
+                                  ),
+                                  TextButton(
+                                    onPressed: () => Navigator.of(context).pop(true),
+                                    child: const Text("Elimina"),
+                                  ),
+                                ],
+                              );
+                            },
+                          );
+
+                          if (confirm == true) {
+                            await FirebaseFirestore.instance.collection('events').doc(doc.id).delete();
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text('Evento eliminato')),
+                            );
+                          }
+                        },
+                      ),
+                    ),
                   );
                 }).toList(),
               );
