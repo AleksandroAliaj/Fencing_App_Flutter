@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
 import 'auth_service.dart';
 import 'package:intl/intl.dart';
+import 'package:multi_select_flutter/multi_select_flutter.dart';
 
 class TrainingScreen extends StatelessWidget {
   const TrainingScreen({Key? key}) : super(key: key);
@@ -1402,6 +1403,8 @@ class StaffAssaltiView extends StatelessWidget {
 
 //Lezione privata
 class PrivateLessonTab extends StatefulWidget {
+  const PrivateLessonTab({Key? key}) : super(key: key);
+
   @override
   _PrivateLessonTabState createState() => _PrivateLessonTabState();
 }
@@ -1479,21 +1482,33 @@ class CreateLessonScreen extends StatefulWidget {
 
 class _CreateLessonScreenState extends State<CreateLessonScreen> {
   final _formKey = GlobalKey<FormState>();
-  DateTime _selectedDate = DateTime.now();
+  List<DateTime> _selectedDates = [];
   TimeOfDay _selectedTime = TimeOfDay.now();
   String _athleteName = '';
   String _athleteSurname = '';
 
-  Future<void> _selectDate(BuildContext context) async {
-    final DateTime? picked = await showDatePicker(
+  Future<void> _selectDates(BuildContext context) async {
+    final List<DateTime>? picked = await showDialog(
       context: context,
-      initialDate: _selectedDate,
-      firstDate: DateTime.now(),
-      lastDate: DateTime.now().add(const Duration(days: 365)),
+      builder: (BuildContext context) {
+        return MultiSelectDialog<DateTime>(
+          items: List<DateTime>.generate(
+            365,
+            (index) => DateTime.now().add(Duration(days: index)),
+          ).map((date) => MultiSelectItem<DateTime>(date, DateFormat('dd/MM/yyyy').format(date))).toList(),
+          initialValue: _selectedDates,
+          onConfirm: (values) {
+            setState(() {
+              _selectedDates = values;
+            });
+          },
+        );
+      },
     );
-    if (picked != null && picked != _selectedDate) {
+
+    if (picked != null) {
       setState(() {
-        _selectedDate = picked;
+        _selectedDates = picked;
       });
     }
   }
@@ -1517,15 +1532,17 @@ class _CreateLessonScreenState extends State<CreateLessonScreen> {
       final user = authService.currentUser;
       final userData = await authService.getUserData(user!.uid);
 
-      await FirebaseFirestore.instance.collection('private_lessons').add({
-        'date': Timestamp.fromDate(_selectedDate),
-        'time': '${_selectedTime.hour}:${_selectedTime.minute}',
-        'athleteName': _athleteName,
-        'athleteSurname': _athleteSurname,
-        'facilityCode': userData['facilityCode'],
-        'coachName': userData['firstName'],
-        'coachSurname': userData['lastName'],
-      });
+      for (var date in _selectedDates) {
+        await FirebaseFirestore.instance.collection('private_lessons').add({
+          'date': Timestamp.fromDate(date),
+          'time': '${_selectedTime.hour}:${_selectedTime.minute}',
+          'athleteName': _athleteName,
+          'athleteSurname': _athleteSurname,
+          'facilityCode': userData['facilityCode'],
+          'coachName': userData['firstName'],
+          'coachSurname': userData['lastName'],
+        });
+      }
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Lezione creata con successo')),
@@ -1564,10 +1581,14 @@ class _CreateLessonScreenState extends State<CreateLessonScreen> {
               onSaved: (value) => _athleteSurname = value!,
             ),
             ListTile(
-              title: const Text('Data'),
-              subtitle: Text("${_selectedDate.toLocal()}".split(' ')[0]),
+              title: const Text('Date'),
+              subtitle: Text(
+                _selectedDates.isEmpty
+                    ? 'Nessuna data selezionata'
+                    : _selectedDates.map((date) => DateFormat('dd/MM/yyyy').format(date)).join(', '),
+              ),
               trailing: const Icon(Icons.calendar_today),
-              onTap: () => _selectDate(context),
+              onTap: () => _selectDates(context),
             ),
             ListTile(
               title: const Text('Ora'),

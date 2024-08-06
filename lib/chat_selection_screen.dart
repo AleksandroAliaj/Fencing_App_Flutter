@@ -1,5 +1,7 @@
 // chat_selection_screen.dart
 
+// ignore_for_file: unnecessary_null_comparison, use_super_parameters, avoid_print, use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
