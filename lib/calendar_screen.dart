@@ -481,6 +481,7 @@ class _AddDeadlineScreenState extends State<AddDeadlineScreen> {
   final TextEditingController _firstNameController = TextEditingController();
   final TextEditingController _lastNameController = TextEditingController();
   final TextEditingController _deadlineController = TextEditingController();
+  DateTime? _selectedDate;
   String? _facilityCode;
 
   @override
@@ -500,14 +501,34 @@ class _AddDeadlineScreenState extends State<AddDeadlineScreen> {
     }
   }
 
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2101),
+    );
+
+    if (pickedDate != null && pickedDate != _selectedDate) {
+      setState(() {
+        _selectedDate = pickedDate;
+      });
+    }
+  }
+
   Future<void> _submitDeadline() async {
-    if (_firstNameController.text.isNotEmpty && _lastNameController.text.isNotEmpty && _deadlineController.text.isNotEmpty && _facilityCode != null) {
+    if (_firstNameController.text.isNotEmpty &&
+        _lastNameController.text.isNotEmpty &&
+        _deadlineController.text.isNotEmpty &&
+        _selectedDate != null &&
+        _facilityCode != null) {
       await FirebaseFirestore.instance.collection('deadlines').add({
         'firstName': _firstNameController.text,
         'lastName': _lastNameController.text,
         'text': _deadlineController.text,
         'status': 'Pending',
         'facilityCode': _facilityCode,
+        'deadlineDate': Timestamp.fromDate(_selectedDate!),  // Aggiungi la data di scadenza come Timestamp
       });
       Navigator.pop(context);
     }
@@ -538,8 +559,22 @@ class _AddDeadlineScreenState extends State<AddDeadlineScreen> {
             TextField(
               controller: _deadlineController,
               decoration: const InputDecoration(
-                labelText: 'Scadenza',
+                labelText: 'Descrizione Scadenza',
               ),
+            ),
+            const SizedBox(height: 20),
+            Row(
+              children: [
+                Expanded(
+                  child: Text(_selectedDate == null
+                      ? 'Seleziona una data'
+                      : 'Data selezionata: ${_selectedDate!.toLocal()}'),
+                ),
+                ElevatedButton(
+                  onPressed: () => _selectDate(context),
+                  child: const Text('Seleziona Data'),
+                ),
+              ],
             ),
             const SizedBox(height: 20),
             ElevatedButton(
@@ -603,8 +638,22 @@ class DeadlineListScreen extends StatelessWidget {
                 return const Center(child: Text('Nessuna scadenza trovata'));
               }
 
+              final now = DateTime.now();
+              final twelveMonthsAgo = now.subtract(Duration(days: 200));
+
+              // Rimuovi scadenze più vecchie 
+              final validDeadlines = snapshot.data!.docs.where((doc) {
+                final deadlineDate = (doc['deadlineDate'] as Timestamp).toDate();
+                if (deadlineDate.isBefore(twelveMonthsAgo)) {
+                  // Elimina la scadenza scaduta
+                  doc.reference.delete();
+                  return false;
+                }
+                return true;
+              }).toList();
+
               return ListView(
-                children: snapshot.data!.docs.map((doc) {
+                children: validDeadlines.map((doc) {
                   return ListTile(
                     title: Text(doc['text']),
                     subtitle: Text('${doc['firstName']} ${doc['lastName']}'),
@@ -672,8 +721,22 @@ class DeadlineList extends StatelessWidget {
               return const Center(child: Text('Nessuna scadenza trovata'));
             }
 
+            final now = DateTime.now();
+            final twelveMonthsAgo = now.subtract(Duration(days: 200));
+
+            // Rimuovi scadenze più vecchie 
+            final validDeadlines = snapshot.data!.docs.where((doc) {
+              final deadlineDate = (doc['deadlineDate'] as Timestamp).toDate();
+              if (deadlineDate.isBefore(twelveMonthsAgo)) {
+                // Elimina la scadenza scaduta
+                doc.reference.delete();
+                return false;
+              }
+              return true;
+            }).toList();
+
             return ListView(
-              children: snapshot.data!.docs.map((doc) {
+              children: validDeadlines.map((doc) {
                 return ListTile(
                   title: Text(doc['text']),
                   subtitle: Text('${doc['firstName']} ${doc['lastName']}'),
