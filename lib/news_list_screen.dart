@@ -161,33 +161,92 @@ class _AddNewsScreenState extends State<AddNewsScreen> {
 class AllNewsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Tutte le News'),
-      ),
-      body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance.collection('news').orderBy('timestamp', descending: true).snapshots(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
-          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return const Center(child: Text('Nessuna news trovata'));
-          }
+    final authService = Provider.of<AuthService>(context, listen: false);
+    final user = authService.currentUser;
 
-          return ListView(
-            children: snapshot.data!.docs.map((doc) {
-              return ListTile(
-                title: Text(doc['title']),
-                subtitle: Text(doc['description']),
-              );
-            }).toList(),
+    return FutureBuilder<String?>(
+      future: authService.getUserRole(user?.uid),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
           );
-        },
-      ),
+        }
+
+        if (snapshot.hasError) {
+          return Scaffold(
+            body: Center(child: Text('Error loading user role: ${snapshot.error}')),
+          );
+        }
+
+        if (!snapshot.hasData || snapshot.data == null) {
+          return const Scaffold(
+            body: Center(child: Text('User role not found')),
+          );
+        }
+
+        final role = snapshot.data!;
+
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('Tutte le News'),
+          ),
+          body: StreamBuilder<QuerySnapshot>(
+            stream: FirebaseFirestore.instance
+                .collection('news')
+                .orderBy('timestamp', descending: true)
+                .snapshots(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              if (snapshot.hasError) {
+                return Center(child: Text('Error: ${snapshot.error}'));
+              }
+              if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                return const Center(child: Text('Nessuna news trovata'));
+              }
+
+              return ListView(
+                children: snapshot.data!.docs.map((doc) {
+                  return ListTile(
+                    title: Text(doc['title']),
+                    subtitle: Text(doc['description']),
+                    trailing: role.toLowerCase() == 'staff'
+                        ? IconButton(
+                            icon: Icon(Icons.delete, color: Colors.red),
+                            onPressed: () async {
+                              final shouldDelete = await showDialog<bool>(
+                                context: context,
+                                builder: (context) => AlertDialog(
+                                  title: const Text('Conferma Eliminazione'),
+                                  content: const Text('Sei sicuro di voler eliminare questa news?'),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () => Navigator.of(context).pop(false),
+                                      child: const Text('Annulla'),
+                                    ),
+                                    TextButton(
+                                      onPressed: () => Navigator.of(context).pop(true),
+                                      child: const Text('Elimina'),
+                                    ),
+                                  ],
+                                ),
+                              );
+
+                              if (shouldDelete == true) {
+                                await doc.reference.delete();
+                              }
+                            },
+                          )
+                        : null,
+                  );
+                }).toList(),
+              );
+            },
+          ),
+        );
+      },
     );
   }
 }
@@ -217,30 +276,75 @@ class NewsList extends StatelessWidget {
         final userData = snapshot.data!;
         final facilityCode = userData['facilityCode'];
 
-        return StreamBuilder<QuerySnapshot>(
-          stream: FirebaseFirestore.instance
-              .collection('news')
-              .where('facilityCode', isEqualTo: facilityCode)
-              .orderBy('timestamp', descending: true)
-              .snapshots(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
+        return FutureBuilder<String?>(
+          future: authService.getUserRole(userId),
+          builder: (context, roleSnapshot) {
+            if (roleSnapshot.connectionState == ConnectionState.waiting) {
               return const Center(child: CircularProgressIndicator());
             }
-            if (snapshot.hasError) {
-              return Center(child: Text('Error: ${snapshot.error}'));
+            if (roleSnapshot.hasError) {
+              return Center(child: Text('Error loading user role: ${roleSnapshot.error}'));
             }
-            if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-              return const Center(child: Text('Nessuna news trovata'));
+            if (!roleSnapshot.hasData || roleSnapshot.data == null) {
+              return const Center(child: Text('User role not found'));
             }
 
-            return ListView(
-              children: snapshot.data!.docs.map((doc) {
-                return ListTile(
-                  title: Text(doc['title']),
-                  subtitle: Text(doc['description']),
+            final role = roleSnapshot.data!;
+
+            return StreamBuilder<QuerySnapshot>(
+              stream: FirebaseFirestore.instance
+                  .collection('news')
+                  .where('facilityCode', isEqualTo: facilityCode)
+                  .orderBy('timestamp', descending: true)
+                  .snapshots(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                if (snapshot.hasError) {
+                  return Center(child: Text('Error: ${snapshot.error}'));
+                }
+                if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                  return const Center(child: Text('Nessuna news trovata'));
+                }
+
+                return ListView(
+                  children: snapshot.data!.docs.map((doc) {
+                    return ListTile(
+                      title: Text(doc['title']),
+                      subtitle: Text(doc['description']),
+                      trailing: role.toLowerCase() == 'staff'
+                          ? IconButton(
+                              icon: Icon(Icons.delete, color: Colors.red),
+                              onPressed: () async {
+                                final shouldDelete = await showDialog<bool>(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                    title: const Text('Conferma Eliminazione'),
+                                    content: const Text('Sei sicuro di voler eliminare questa news?'),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => Navigator.of(context).pop(false),
+                                        child: const Text('Annulla'),
+                                      ),
+                                      TextButton(
+                                        onPressed: () => Navigator.of(context).pop(true),
+                                        child: const Text('Elimina'),
+                                      ),
+                                    ],
+                                  ),
+                                );
+
+                                if (shouldDelete == true) {
+                                  await doc.reference.delete();
+                                }
+                              },
+                            )
+                          : null,
+                    );
+                  }).toList(),
                 );
-              }).toList(),
+              },
             );
           },
         );

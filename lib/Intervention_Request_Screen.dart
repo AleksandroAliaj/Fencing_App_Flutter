@@ -231,64 +231,129 @@ class RequestListScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Elenco Richieste'),
-      ),
-      body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance
-            .collection('intervention_requests')
-            .where('facilityCode', isEqualTo: facilityCode)
-            .orderBy('timestamp', descending: true)
-            .snapshots(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          if (snapshot.hasError) {
-            return Center(child: Text('Error: ${snapshot.error}'));
-          }
-          if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return const Center(child: Text('Nessuna richiesta trovata'));
-          }
+    final authService = Provider.of<AuthService>(context, listen: false);
+    final user = authService.currentUser;
 
-          return ListView(
-            children: snapshot.data!.docs.map((doc) {
-              return FutureBuilder<DocumentSnapshot>(
-                future: FirebaseFirestore.instance.collection('users').doc(doc['userId']).get(),
-                builder: (context, userSnapshot) {
-                  if (userSnapshot.connectionState == ConnectionState.waiting) {
-                    return const ListTile(title: Text('Loading...'));
-                  }
-                  if (userSnapshot.hasError) {
-                    return ListTile(title: Text('Error: ${userSnapshot.error}'));
-                  }
-                  if (!userSnapshot.hasData || !userSnapshot.data!.exists) {
-                    return const ListTile(title: Text('User not found'));
-                  }
-
-                  final userData = userSnapshot.data!;
-                  final firstName = userData['firstName'];
-                  final lastName = userData['lastName'];
-
-                  return ListTile(
-                    title: Text(doc['repair']),
-                    subtitle: Text('${doc['description']}\n$firstName $lastName'),
-                    trailing: doc['status'] == 'Confirmed'
-                        ? const Text('Riparato', style: TextStyle(color: Colors.green))
-                        : ElevatedButton(
-                            onPressed: () async {
-                              await doc.reference.update({'status': 'Confirmed'});
-                            },
-                            child: const Text('Riparato'),
-                          ),
-                  );
-                },
-              );
-            }).toList(),
+    return FutureBuilder<String?>(
+      future: authService.getUserRole(user?.uid),
+      builder: (context, roleSnapshot) {
+        if (roleSnapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
           );
-        },
-      ),
+        }
+
+        if (roleSnapshot.hasError) {
+          return Scaffold(
+            body: Center(child: Text('Error loading user role: ${roleSnapshot.error}')),
+          );
+        }
+
+        if (!roleSnapshot.hasData || roleSnapshot.data == null) {
+          return const Scaffold(
+            body: Center(child: Text('User role not found')),
+          );
+        }
+
+        final role = roleSnapshot.data!;
+
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('Elenco Richieste'),
+          ),
+          body: StreamBuilder<QuerySnapshot>(
+            stream: FirebaseFirestore.instance
+                .collection('intervention_requests')
+                .where('facilityCode', isEqualTo: facilityCode)
+                .orderBy('timestamp', descending: true)
+                .snapshots(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              if (snapshot.hasError) {
+                return Center(child: Text('Error: ${snapshot.error}'));
+              }
+              if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                return const Center(child: Text('Nessuna richiesta trovata'));
+              }
+
+              return ListView(
+                children: snapshot.data!.docs.map((doc) {
+                  return FutureBuilder<DocumentSnapshot>(
+                    future: FirebaseFirestore.instance.collection('users').doc(doc['userId']).get(),
+                    builder: (context, userSnapshot) {
+                      if (userSnapshot.connectionState == ConnectionState.waiting) {
+                        return const ListTile(title: Text('Loading...'));
+                      }
+                      if (userSnapshot.hasError) {
+                        return ListTile(title: Text('Error: ${userSnapshot.error}'));
+                      }
+                      if (!userSnapshot.hasData || !userSnapshot.data!.exists) {
+                        return const ListTile(title: Text('User not found'));
+                      }
+
+                      final userData = userSnapshot.data!;
+                      final firstName = userData['firstName'];
+                      final lastName = userData['lastName'];
+                      final status = doc['status'];
+
+                      return ListTile(
+                        title: Text(doc['repair']),
+                        subtitle: Text('${doc['description']}\n$firstName $lastName'),
+                        trailing: role.toLowerCase() == 'staff'
+                            ? status == 'Riparato'
+                                ? Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        'Riparato',
+                                        style: TextStyle(color: Colors.green),
+                                      ),
+                                      IconButton(
+                                        icon: Icon(Icons.delete, color: Colors.red),
+                                        onPressed: () async {
+                                          final shouldDelete = await showDialog<bool>(
+                                            context: context,
+                                            builder: (context) => AlertDialog(
+                                              title: const Text('Conferma Eliminazione'),
+                                              content: const Text('Sei sicuro di voler eliminare questa richiesta?'),
+                                              actions: [
+                                                TextButton(
+                                                  onPressed: () => Navigator.of(context).pop(false),
+                                                  child: const Text('Annulla'),
+                                                ),
+                                                TextButton(
+                                                  onPressed: () => Navigator.of(context).pop(true),
+                                                  child: const Text('Elimina'),
+                                                ),
+                                              ],
+                                            ),
+                                          );
+
+                                          if (shouldDelete == true) {
+                                            await doc.reference.delete();
+                                          }
+                                        },
+                                      ),
+                                    ],
+                                  )
+                                : ElevatedButton(
+                                    onPressed: () async {
+                                      await doc.reference.update({'status': 'Riparato'});
+                                    },
+                                    child: const Text('Riparato'),
+                                  )
+                            : Text(status),
+                      );
+                    },
+                  );
+                }).toList(),
+              );
+            },
+          ),
+        );
+      },
     );
   }
 }
