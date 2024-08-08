@@ -121,7 +121,7 @@ class _NewPreparationScreenState extends State<NewPreparationScreen> {
             children: [
               DropdownButtonFormField<String>(
                 decoration: const InputDecoration(labelText: 'Seleziona Atleta'),
-                items: [
+                items: const [
                   DropdownMenuItem(value: 'all', child: Text('Tutti gli atleti')),
                   DropdownMenuItem(value: 'specific', child: Text('Atleta specifico')),
                 ],
@@ -146,7 +146,7 @@ class _NewPreparationScreenState extends State<NewPreparationScreen> {
               ],
               DropdownButtonFormField<String>(
                 decoration: const InputDecoration(labelText: 'Tipo di Allenamento'),
-                items: [
+                items: const [
                   DropdownMenuItem(value: 'velocità', child: Text('Allenamento di Velocità')),
                   DropdownMenuItem(value: 'resistenza', child: Text('Allenamento di Resistenza')),
                   DropdownMenuItem(value: 'forza', child: Text('Allenamento di Forza')),
@@ -274,11 +274,30 @@ class PreparationListScreen extends StatelessWidget {
                 return const Center(child: Text('Nessuna preparazione atletica trovata'));
               }
 
+              final now = DateTime.now();
+              final validPreparations = snapshot.data!.docs.where((doc) {
+                final data = doc.data() as Map<String, dynamic>;
+                final dueDate = (data['dueDate'] as Timestamp).toDate();
+                final isExpired = now.isAfter(dueDate.add(const Duration(days: 1)));
+
+                if (isExpired) {
+                  // Elimina la preparazione scaduta
+                  doc.reference.delete();
+                }
+
+                return !isExpired;
+              }).toList();
+
+              if (validPreparations.isEmpty) {
+                return const Center(child: Text('Nessuna preparazione atletica trovata'));
+              }
+
               return ListView.builder(
-                itemCount: snapshot.data!.docs.length,
+                itemCount: validPreparations.length,
                 itemBuilder: (context, index) {
-                  final preparation = snapshot.data!.docs[index];
+                  final preparation = validPreparations[index];
                   final data = preparation.data() as Map<String, dynamic>;
+                  final dueDate = (data['dueDate'] as Timestamp).toDate();
 
                   return Card(
                     child: Padding(
@@ -294,7 +313,7 @@ class PreparationListScreen extends StatelessWidget {
                           Text(data['workoutDetails']),
                           const SizedBox(height: 8),
                           Text(
-                            'Data di termine: ${DateFormat('dd/MM/yyyy').format(data['dueDate'].toDate())}',
+                            'Data di termine: ${DateFormat('dd/MM/yyyy').format(dueDate)}',
                             style: Theme.of(context).textTheme.caption,
                           ),
                         ],
@@ -354,23 +373,33 @@ class AthletePreparationView extends StatelessWidget {
               return const Center(child: Text('Nessuna preparazione atletica trovata'));
             }
 
-            final preparations = snapshot.data!.docs.where((doc) {
+            final now = DateTime.now();
+            final validPreparations = snapshot.data!.docs.where((doc) {
               final data = doc.data() as Map<String, dynamic>;
-              return data['athleteType'] == 'all' ||
+              final dueDate = (data['dueDate'] as Timestamp).toDate();
+              final isExpired = now.isAfter(dueDate.add(const Duration(days: 1)));
+
+              if (isExpired) {
+                // Elimina la preparazione scaduta
+                doc.reference.delete();
+              }
+
+              return !isExpired && (data['athleteType'] == 'all' ||
                   (data['athleteType'] == 'specific' &&
                       data['athleteName'] == athleteName &&
-                      data['athleteSurname'] == athleteSurname);
+                      data['athleteSurname'] == athleteSurname));
             }).toList();
 
-            if (preparations.isEmpty) {
+            if (validPreparations.isEmpty) {
               return const Center(child: Text('Nessuna preparazione atletica trovata per te'));
             }
 
             return ListView.builder(
-              itemCount: preparations.length,
+              itemCount: validPreparations.length,
               itemBuilder: (context, index) {
-                final preparation = preparations[index];
+                final preparation = validPreparations[index];
                 final data = preparation.data() as Map<String, dynamic>;
+                final dueDate = (data['dueDate'] as Timestamp).toDate();
 
                 return Card(
                   child: Padding(
@@ -386,7 +415,7 @@ class AthletePreparationView extends StatelessWidget {
                         Text(data['workoutDetails']),
                         const SizedBox(height: 8),
                         Text(
-                          'Data di termine: ${DateFormat('dd/MM/yyyy').format(data['dueDate'].toDate())}',
+                          'Data di termine: ${DateFormat('dd/MM/yyyy').format(dueDate)}',
                           style: Theme.of(context).textTheme.caption,
                         ),
                       ],
@@ -401,7 +430,6 @@ class AthletePreparationView extends StatelessWidget {
     );
   }
 }
-
 //Assalti
 class AssaltiTab extends StatefulWidget {
   @override
