@@ -47,35 +47,38 @@ class InterventionRequestScreen extends StatelessWidget {
     );
   }
 
-  Widget _buildBody(BuildContext context, String role, String? userId) {
-    switch (role.toLowerCase()) {
-      case 'atleta':
-      case 'allenatore':
-        return Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            ElevatedButton(
-              onPressed: () => _navigateToNewRequest(context, userId!),
-              child: const Text('Nuova Richiesta'),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () => _navigateToMyRequests(context, userId!),
-              child: const Text('Le Mie Richieste'),
-            ),
-          ],
-        );
-      case 'staff':
-        return Center(
-          child: ElevatedButton(
+Widget _buildBody(BuildContext context, String role, String? userId) {
+  switch (role.toLowerCase()) {
+    case 'atleta':
+    case 'allenatore':
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          ElevatedButton(
+            onPressed: () => _navigateToMyRequests(context, userId!),
+            child: const Text('Le Mie Richieste'),
+          ),
+        ],
+      );
+    case 'staff':
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          ElevatedButton(
+            onPressed: () => _navigateToNewRequest(context, userId!),
+            child: const Text('Nuova Richiesta'),
+          ),
+          const SizedBox(height: 20),
+          ElevatedButton(
             onPressed: () => _navigateToRequestList(context),
             child: const Text('Elenco Richieste'),
           ),
-        );
-      default:
-        return Center(child: Text('Ruolo non riconosciuto: $role'));
-    }
+        ],
+      );
+    default:
+      return Center(child: Text('Ruolo non riconosciuto: $role'));
   }
+}
 
   void _navigateToNewRequest(BuildContext context, String userId) async {
     final facilityCode = await _getFacilityCode(context, userId);
@@ -115,8 +118,6 @@ class InterventionRequestScreen extends StatelessWidget {
   }
 }
 
-// Le altre classi (NewRequestScreen, MyRequestsScreen, RequestListScreen) rimangono invariate
-
 class NewRequestScreen extends StatefulWidget {
   final String facilityCode;
   final String userId;
@@ -130,19 +131,40 @@ class NewRequestScreen extends StatefulWidget {
 class _NewRequestScreenState extends State<NewRequestScreen> {
   final TextEditingController _repairController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
+  String? _selectedUserId;
+  List<Map<String, dynamic>> _users = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _loadUsers();
+  }
+
+  Future<void> _loadUsers() async {
+    final snapshot = await FirebaseFirestore.instance.collection('users').get();
+    setState(() {
+      _users = snapshot.docs.map((doc) => {
+        'id': doc.id,
+        'firstName': doc['firstName'],
+        'lastName': doc['lastName'],
+      }).toList();
+    });
+  }
 
   Future<void> _submitRequest() async {
-    if (_repairController.text.isNotEmpty && _descriptionController.text.isNotEmpty) {
+    if (_repairController.text.isNotEmpty && _descriptionController.text.isNotEmpty && _selectedUserId != null) {
       final userData = await Provider.of<AuthService>(context, listen: false).getUserData(widget.userId);
+      final selectedUser = _users.firstWhere((user) => user['id'] == _selectedUserId);
+
       await FirebaseFirestore.instance.collection('intervention_requests').add({
         'repair': _repairController.text,
         'description': _descriptionController.text,
-        'userId': widget.userId,
+        'userId': _selectedUserId,
         'facilityCode': widget.facilityCode,
         'status': 'In riparazione',
         'timestamp': FieldValue.serverTimestamp(),
-        'firstName': userData['firstName'],
-        'lastName': userData['lastName'],
+        'firstName': selectedUser['firstName'],
+        'lastName': selectedUser['lastName'],
       });
       Navigator.pop(context);
     }
@@ -169,6 +191,22 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
               decoration: const InputDecoration(
                 labelText: 'Descrivi il problema',
               ),
+            ),
+            const SizedBox(height: 20),
+            DropdownButton<String>(
+              hint: const Text('Seleziona l\'utente'),
+              value: _selectedUserId,
+              onChanged: (String? newValue) {
+                setState(() {
+                  _selectedUserId = newValue;
+                });
+              },
+              items: _users.map<DropdownMenuItem<String>>((user) {
+                return DropdownMenuItem<String>(
+                  value: user['id'],
+                  child: Text('${user['firstName']} ${user['lastName']}'),
+                );
+              }).toList(),
             ),
             const SizedBox(height: 20),
             ElevatedButton(
