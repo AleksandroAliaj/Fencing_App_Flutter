@@ -147,8 +147,8 @@ class AddEventScreen extends StatefulWidget {
 }
 
 class _AddEventScreenState extends State<AddEventScreen> {
-  final TextEditingController _dateController = TextEditingController();
-  final TextEditingController _timeController = TextEditingController();
+  DateTime? _selectedDate;
+  TimeOfDay? _selectedTime;
   final TextEditingController _locationController = TextEditingController();
   final TextEditingController _descriptionController = TextEditingController();
   String? _facilityCode;
@@ -170,16 +170,65 @@ class _AddEventScreenState extends State<AddEventScreen> {
     }
   }
 
+  Future<void> _selectDate() async {
+    final DateTime? pickedDate = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2000),
+      lastDate: DateTime(2101),
+    );
+    if (pickedDate != null && pickedDate != _selectedDate) {
+      setState(() {
+        _selectedDate = pickedDate;
+      });
+    }
+  }
+
+  Future<void> _selectTime() async {
+    final TimeOfDay? pickedTime = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+    );
+    if (pickedTime != null && pickedTime != _selectedTime) {
+      setState(() {
+        _selectedTime = pickedTime;
+      });
+    }
+  }
+
   Future<void> _submitEvent() async {
-    if (_dateController.text.isNotEmpty && _timeController.text.isNotEmpty && _locationController.text.isNotEmpty && _descriptionController.text.isNotEmpty && _facilityCode != null) {
+    if (_selectedDate != null && _selectedTime != null && _locationController.text.isNotEmpty && _descriptionController.text.isNotEmpty && _facilityCode != null) {
+      final dateTime = DateTime(
+        _selectedDate!.year,
+        _selectedDate!.month,
+        _selectedDate!.day,
+        _selectedTime!.hour,
+        _selectedTime!.minute,
+      );
       await FirebaseFirestore.instance.collection('events').add({
-        'date': _dateController.text,
-        'time': _timeController.text,
+        'date': Timestamp.fromDate(dateTime),
         'location': _locationController.text,
         'description': _descriptionController.text,
         'facilityCode': _facilityCode,
       });
       Navigator.pop(context);
+    } else {
+      // Show an error message if date, time, or other fields are not filled
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text("Errore"),
+            content: const Text("Per favore, completa tutti i campi richiesti."),
+            actions: <Widget>[
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(),
+                child: const Text("OK"),
+              ),
+            ],
+          );
+        },
+      );
     }
   }
 
@@ -193,17 +242,15 @@ class _AddEventScreenState extends State<AddEventScreen> {
         padding: const EdgeInsets.all(16.0),
         child: Column(
           children: [
-            TextField(
-              controller: _dateController,
-              decoration: const InputDecoration(
-                labelText: 'Data',
-              ),
+            ListTile(
+              title: Text(_selectedDate == null ? 'Seleziona Data' : 'Data: ${_selectedDate!.toLocal()}'),
+              trailing: Icon(Icons.calendar_today),
+              onTap: _selectDate,
             ),
-            TextField(
-              controller: _timeController,
-              decoration: const InputDecoration(
-                labelText: 'Ora',
-              ),
+            ListTile(
+              title: Text(_selectedTime == null ? 'Seleziona Ora' : 'Ora: ${_selectedTime!.format(context)}'),
+              trailing: Icon(Icons.access_time),
+              onTap: _selectTime,
             ),
             TextField(
               controller: _locationController,
@@ -225,140 +272,6 @@ class _AddEventScreenState extends State<AddEventScreen> {
           ],
         ),
       ),
-    );
-  }
-}
-
-class EventListScreen extends StatelessWidget {
-  @override
-  Widget build(BuildContext context) {
-    final authService = Provider.of<AuthService>(context, listen: false);
-    final user = authService.currentUser;
-
-    return FutureBuilder<DocumentSnapshot>(
-      future: authService.getUserData(user!.uid),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
-          );
-        }
-
-        if (snapshot.hasError) {
-          return Scaffold(
-            body: Center(child: Text('Error: ${snapshot.error}')),
-          );
-        }
-
-        if (!snapshot.hasData || !snapshot.data!.exists) {
-          return const Scaffold(
-            body: Center(child: Text('User data not found')),
-          );
-        }
-
-        final userData = snapshot.data!;
-        final facilityCode = userData['facilityCode'];
-
-        return Scaffold(
-          appBar: AppBar(
-            title: const Text('Elenco Eventi'),
-          ),
-          body: StreamBuilder<QuerySnapshot>(
-            stream: FirebaseFirestore.instance
-                .collection('events')
-                .where('facilityCode', isEqualTo: facilityCode)
-                .snapshots(),
-            builder: (context, snapshot) {
-              if (snapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              }
-              if (snapshot.hasError) {
-                return Center(child: Text('Error: ${snapshot.error}'));
-              }
-              if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-                return const Center(child: Text('Nessun evento trovato'));
-              }
-
-              return ListView(
-                children: snapshot.data!.docs.map((doc) {
-                  return Dismissible(
-                    key: Key(doc.id),
-                    background: Container(
-                      color: Colors.red,
-                      alignment: Alignment.centerRight,
-                      padding: EdgeInsets.only(right: 20.0),
-                      child: Icon(Icons.delete, color: Colors.white),
-                    ),
-                    direction: DismissDirection.endToStart,
-                    confirmDismiss: (direction) async {
-                      return await showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return AlertDialog(
-                            title: const Text("Conferma eliminazione"),
-                            content: const Text("Sei sicuro di voler eliminare questo evento?"),
-                            actions: <Widget>[
-                              TextButton(
-                                onPressed: () => Navigator.of(context).pop(false),
-                                child: const Text("Annulla"),
-                              ),
-                              TextButton(
-                                onPressed: () => Navigator.of(context).pop(true),
-                                child: const Text("Elimina"),
-                              ),
-                            ],
-                          );
-                        },
-                      );
-                    },
-                    onDismissed: (direction) {
-                      FirebaseFirestore.instance.collection('events').doc(doc.id).delete();
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text('Evento eliminato')),
-                      );
-                    },
-                    child: ListTile(
-                      title: Text(doc['description']),
-                      subtitle: Text('${doc['date']} - ${doc['time']} @ ${doc['location']}'),
-                      trailing: IconButton(
-                        icon: Icon(Icons.delete),
-                        onPressed: () async {
-                          bool? confirm = await showDialog<bool>(
-                            context: context,
-                            builder: (BuildContext context) {
-                              return AlertDialog(
-                                title: const Text("Conferma eliminazione"),
-                                content: const Text("Sei sicuro di voler eliminare questo evento?"),
-                                actions: <Widget>[
-                                  TextButton(
-                                    onPressed: () => Navigator.of(context).pop(false),
-                                    child: const Text("Annulla"),
-                                  ),
-                                  TextButton(
-                                    onPressed: () => Navigator.of(context).pop(true),
-                                    child: const Text("Elimina"),
-                                  ),
-                                ],
-                              );
-                            },
-                          );
-
-                          if (confirm == true) {
-                            await FirebaseFirestore.instance.collection('events').doc(doc.id).delete();
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text('Evento eliminato')),
-                            );
-                          }
-                        },
-                      ),
-                    ),
-                  );
-                }).toList(),
-              );
-            },
-          ),
-        );
-      },
     );
   }
 }
@@ -404,11 +317,67 @@ class EventList extends StatelessWidget {
               return const Center(child: Text('Nessun evento trovato'));
             }
 
+            // Filtra e rimuove gli eventi scaduti
+            final now = DateTime.now();
+            final eventDocuments = snapshot.data!.docs;
+
+            for (final doc in eventDocuments) {
+              final date = (doc['date'] as Timestamp).toDate();
+              if (date.add(Duration(days: 1)).isBefore(now)) {
+                // Elimina l'evento scaduto
+                doc.reference.delete();
+              }
+            }
+
+            // Filtra gli eventi non scaduti per la visualizzazione
+            final validEventDocuments = eventDocuments.where((doc) {
+              final date = (doc['date'] as Timestamp).toDate();
+              return date.add(Duration(days: 1)).isAfter(now);
+            }).toList();
+
             return ListView(
-              children: snapshot.data!.docs.map((doc) {
-                return ListTile(
-                  title: Text(doc['description']),
-                  subtitle: Text('${doc['date']} - ${doc['time']} @ ${doc['location']}'),
+              children: validEventDocuments.map((doc) {
+                final date = (doc['date'] as Timestamp).toDate();
+                return Dismissible(
+                  key: Key(doc.id),
+                  background: Container(
+                    color: Colors.red,
+                    alignment: Alignment.centerRight,
+                    padding: EdgeInsets.only(right: 20.0),
+                    child: Icon(Icons.delete, color: Colors.white),
+                  ),
+                  direction: DismissDirection.endToStart,
+                  confirmDismiss: (direction) async {
+                    return await showDialog(
+                      context: context,
+                      builder: (BuildContext context) {
+                        return AlertDialog(
+                          title: const Text("Conferma eliminazione"),
+                          content: const Text("Sei sicuro di voler eliminare questo evento?"),
+                          actions: <Widget>[
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(false),
+                              child: const Text("Annulla"),
+                            ),
+                            TextButton(
+                              onPressed: () => Navigator.of(context).pop(true),
+                              child: const Text("Elimina"),
+                            ),
+                          ],
+                        );
+                      },
+                    );
+                  },
+                  onDismissed: (direction) {
+                    FirebaseFirestore.instance.collection('events').doc(doc.id).delete();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Evento eliminato')),
+                    );
+                  },
+                  child: ListTile(
+                    title: Text(doc['description']),
+                    subtitle: Text('${date.day}-${date.month}-${date.year} @ ${date.hour}:${date.minute} - ${doc['location']}'),
+                  ),
                 );
               }).toList(),
             );
@@ -419,6 +388,50 @@ class EventList extends StatelessWidget {
   }
 }
 
+class EventListScreen extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    final authService = Provider.of<AuthService>(context, listen: false);
+    final user = authService.currentUser;
+
+    return FutureBuilder<DocumentSnapshot>(
+      future: authService.getUserData(user!.uid),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        if (snapshot.hasError) {
+          return Scaffold(
+            body: Center(child: Text('Error: ${snapshot.error}')),
+          );
+        }
+
+        if (!snapshot.hasData || !snapshot.data!.exists) {
+          return const Scaffold(
+            body: Center(child: Text('User data not found')),
+          );
+        }
+
+        final userData = snapshot.data!;
+        final facilityCode = userData['facilityCode'];
+        final role = userData['role'];
+
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('Elenco Eventi'),
+          ),
+          body: role.toLowerCase() == 'staff'
+              ? EventList(userId: user.uid)
+              : EventList(userId: user.uid),
+        );
+      },
+    );
+  }
+}
+ 
   Widget _buildScadenziarioTab(BuildContext context, String role) {
     if (role.toLowerCase() == 'staff') {
       return Center(
