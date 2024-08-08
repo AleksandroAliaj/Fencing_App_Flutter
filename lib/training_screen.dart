@@ -430,6 +430,7 @@ class AthletePreparationView extends StatelessWidget {
     );
   }
 }
+
 //Assalti
 class AssaltiTab extends StatefulWidget {
   @override
@@ -1168,8 +1169,26 @@ class CombattimentiList extends StatelessWidget {
           return const Center(child: Text('Nessun combattimento programmato'));
         }
 
-        // Group combattimenti by date
-        final groupedCombattimenti = groupCombattimentiByDate(snapshot.data!.docs);
+        final now = DateTime.now();
+        final validCombattimenti = snapshot.data!.docs.where((doc) {
+          final data = doc.data() as Map<String, dynamic>;
+          final combattimentoDate = (data['date'] as Timestamp).toDate();
+          final isExpired = now.isAfter(combattimentoDate.add(const Duration(days: 1)));
+
+          if (isExpired) {
+            // Elimina il combattimento scaduto
+            doc.reference.delete();
+          }
+
+          return !isExpired;
+        }).toList();
+
+        if (validCombattimenti.isEmpty) {
+          return const Center(child: Text('Nessun combattimento programmato'));
+        }
+
+        // Raggruppa i combattimenti per data
+        final groupedCombattimenti = groupCombattimentiByDate(validCombattimenti);
 
         return ListView.builder(
           itemCount: groupedCombattimenti.length,
@@ -1182,9 +1201,8 @@ class CombattimentiList extends StatelessWidget {
               children: combattimenti.map((doc) {
                 final data = doc.data() as Map<String, dynamic>;
                 final athletes = data['athletes'] as List<dynamic>? ?? [];
-                final combattimentoId = doc.id; // Save the document ID
+                final combattimentoId = doc.id;
 
-                // Determine the type of combattimento and set the appropriate detail screen
                 Widget trailingIcon;
                 String? subtitle;
                 if (data['type'] == 'a tema') {
@@ -1258,7 +1276,6 @@ class CombattimentiList extends StatelessWidget {
   }
 }
 
-
 class TeamCombattimentoDetailScreen extends StatelessWidget {
   final String combattimentoId;
 
@@ -1326,7 +1343,6 @@ class TeamCombattimentoDetailScreen extends StatelessWidget {
     return '${date.day}/${date.month}/${date.year}';
   }
 }
-
 
 // Update the CoachCombattimentiListScreen to use the CombattimentiList widget
 class CoachCombattimentiListScreen extends StatelessWidget {
@@ -1688,7 +1704,25 @@ class CoachLessonsScreen extends StatelessWidget {
                 return const Center(child: Text('Nessuna lezione privata programmata'));
               }
 
-              final groupedLessons = _groupLessonsByDate(snapshot.data!.docs);
+              final now = DateTime.now();
+              final validLessons = snapshot.data!.docs.where((doc) {
+                final data = doc.data() as Map<String, dynamic>;
+                final lessonDate = (data['date'] as Timestamp).toDate();
+                final isExpired = now.isAfter(lessonDate.add(const Duration(days: 1)));
+
+                if (isExpired) {
+                  // Elimina la lezione scaduta
+                  doc.reference.delete();
+                }
+
+                return !isExpired;
+              }).toList();
+
+              if (validLessons.isEmpty) {
+                return const Center(child: Text('Nessuna lezione privata programmata'));
+              }
+
+              final groupedLessons = _groupLessonsByDate(validLessons);
 
               return ListView.builder(
                 itemCount: groupedLessons.length,
@@ -1774,8 +1808,25 @@ class AthleteLesson extends StatelessWidget {
               return const Center(child: Text('Nessuna lezione privata programmata'));
             }
 
-            // Group lessons by date
-            final groupedLessons = _groupLessonsByDate(snapshot.data!.docs);
+            final now = DateTime.now();
+            final validLessons = snapshot.data!.docs.where((doc) {
+              final data = doc.data() as Map<String, dynamic>;
+              final lessonDate = (data['date'] as Timestamp).toDate();
+              final isExpired = now.isAfter(lessonDate.add(const Duration(days: 1)));
+
+              if (isExpired) {
+                // Elimina la lezione scaduta
+                doc.reference.delete();
+              }
+
+              return !isExpired;
+            }).toList();
+
+            if (validLessons.isEmpty) {
+              return const Center(child: Text('Nessuna lezione privata programmata'));
+            }
+
+            final groupedLessons = _groupLessonsByDate(validLessons);
 
             return ListView.builder(
               itemCount: groupedLessons.length,
