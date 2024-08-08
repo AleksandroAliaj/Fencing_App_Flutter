@@ -137,32 +137,75 @@ class _ChatScreenState extends State<ChatScreen> {
     }
   }
 
-  void _sendMessage() {
-    final User? user = FirebaseAuth.instance.currentUser;
-    if (user != null && _messageController.text.isNotEmpty) {
-      if (widget.chatType == 'private') {
-        FirebaseFirestore.instance.collection('chats').doc(widget.chatId).collection('messages').add({
-          'text': _messageController.text,
-          'sender': _userEmail,
-          'timestamp': FieldValue.serverTimestamp(),
-        });
-        FirebaseFirestore.instance.collection('chats').doc(widget.chatId).update({
-          'lastMessage': _messageController.text,
-          'lastMessageTimestamp': FieldValue.serverTimestamp(),
-        });
-      } else {
-        FirebaseFirestore.instance.collection('messages').add({
-          'text': _messageController.text,
-          'sender': _userEmail,
-          'timestamp': FieldValue.serverTimestamp(),
-          'facilityCode': _facilityCode,
-          'chatType': widget.chatType,
-          'senderRole': _userRole,
-        });
+  void _sendMessage() async {
+  final User? user = FirebaseAuth.instance.currentUser;
+  if (user != null && _messageController.text.isNotEmpty) {
+    final messageText = _messageController.text;
+    final senderEmail = _userEmail;
+
+    if (widget.chatType == 'private') {
+      final chatRef = FirebaseFirestore.instance.collection('chats').doc(widget.chatId);
+
+      // Aggiungi il messaggio
+      await chatRef.collection('messages').add({
+        'text': messageText,
+        'sender': senderEmail,
+        'timestamp': FieldValue.serverTimestamp(),
+      });
+
+      // Aggiorna l'ultimo messaggio e il timestamp
+      await chatRef.update({
+        'lastMessage': messageText,
+        'lastMessageTimestamp': FieldValue.serverTimestamp(),
+      });
+
+      // Mantieni solo gli ultimi 100 messaggi
+      final messageDocs = (await chatRef.collection('messages')
+        .orderBy('timestamp')
+        .get()).docs;
+
+      if (messageDocs.length > 100) {
+        final messagesToDelete = messageDocs.take(messageDocs.length - 100);
+        for (var doc in messagesToDelete) {
+          await doc.reference.delete();
+        }
       }
-      _messageController.clear();
+    } else {
+      final collectionRef = FirebaseFirestore.instance.collection('messages');
+      
+      // Aggiungi il messaggio
+      await collectionRef.add({
+        'text': messageText,
+        'sender': senderEmail,
+        'timestamp': FieldValue.serverTimestamp(),
+        'facilityCode': _facilityCode,
+        'chatType': widget.chatType,
+        'senderRole': _userRole,
+      });
+
+      // Mantieni solo gli ultimi 100 messaggi
+      final messageQuerySnapshot = await collectionRef
+        .where('facilityCode', isEqualTo: _facilityCode)
+        .where('chatType', isEqualTo: widget.chatType)
+        .orderBy('timestamp', descending: true)
+        .get();
+
+      final messageDocs = messageQuerySnapshot.docs;
+
+      if (messageDocs.length > 100) {
+        final messagesToDelete = messageDocs.take(messageDocs.length - 100);
+        for (var doc in messagesToDelete) {
+          await doc.reference.delete();
+        }
+      }
     }
+
+    _messageController.clear();
   }
+}
+
+
+
 }
 
 class PrivateMessagesStream extends StatelessWidget {
@@ -205,6 +248,15 @@ class PrivateMessagesStream extends StatelessWidget {
 
           messageBubbles.add(messageBubble);
         }
+        
+        // Limita il numero di messaggi a 100
+        if (messages.length > 100) {
+          final messagesToDelete = messages.skip(100);
+          for (var doc in messagesToDelete) {
+            doc.reference.delete();
+          }
+        }
+        
         return ListView(
           reverse: true,
           children: messageBubbles,
@@ -213,8 +265,6 @@ class PrivateMessagesStream extends StatelessWidget {
     );
   }
 }
-
-
 
 class MessagesStream extends StatelessWidget {
   final String facilityCode;
@@ -253,6 +303,15 @@ class MessagesStream extends StatelessWidget {
 
           messageBubbles.add(messageBubble);
         }
+        
+        // Limita il numero di messaggi a 100
+        if (messages.length > 100) {
+          final messagesToDelete = messages.skip(100);
+          for (var doc in messagesToDelete) {
+            doc.reference.delete();
+          }
+        }
+        
         return ListView(
           reverse: true,
           children: messageBubbles,
@@ -267,7 +326,6 @@ class MessagesStream extends StatelessWidget {
         .where('facilityCode', isEqualTo: facilityCode)
         .where('chatType', isEqualTo: chatType);
 
-    // Aggiungi l'ordinamento per timestamp alla fine
     return query.orderBy('timestamp', descending: true).snapshots();
   }
 }
