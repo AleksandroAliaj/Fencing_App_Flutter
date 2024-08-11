@@ -362,15 +362,15 @@ class ProductDetailScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Category: $category', style: Theme.of(context).textTheme.headline6),
+            Text('Category: $category', style: Theme.of(context).textTheme.titleLarge),
             const SizedBox(height: 8),
-            Text('Title: $title', style: Theme.of(context).textTheme.headline5),
+            Text('Title: $title', style: Theme.of(context).textTheme.headlineSmall),
             const SizedBox(height: 8),
-            Text('Description: $description', style: Theme.of(context).textTheme.bodyText1),
+            Text('Description: $description', style: Theme.of(context).textTheme.bodyLarge),
             const SizedBox(height: 8),
-            Text('Price: $price €', style: Theme.of(context).textTheme.bodyText1),
+            Text('Price: $price €', style: Theme.of(context).textTheme.bodyLarge),
             const SizedBox(height: 16),
-            Text('Prodotto disponibile in struttura', style: Theme.of(context).textTheme.bodyText1),
+            Text('Prodotto disponibile in struttura', style: Theme.of(context).textTheme.bodyLarge),
 
           ],
         ),

@@ -774,69 +774,119 @@ class _AgendaTabState extends State<AgendaTab> {
   }
 
   void _loadEvents() async {
-    final authService = Provider.of<AuthService>(context, listen: false);
-    final user = authService.currentUser;
+  final authService = Provider.of<AuthService>(context, listen: false);
+  final user = authService.currentUser;
 
-    if (user != null) {
-      final userData = await authService.getUserData(user.uid);
-      final athleteName = userData['firstName'];
-      final athleteSurname = userData['lastName'];
-      final fullName = '$athleteName $athleteSurname';
+  if (user != null) {
+    final userData = await authService.getUserData(user.uid);
+    final firstName = userData['firstName'];
+    final lastName = userData['lastName'];
+    final fullName = '$firstName $lastName';
 
-      // Load private lessons
-      final lessonsSnapshot = await FirebaseFirestore.instance
-          .collection('private_lessons')
-          .where('athleteName', isEqualTo: athleteName)
-          .where('athleteSurname', isEqualTo: athleteSurname)
-          .get();
+    // Load private lessons
+    final lessonsSnapshot = await FirebaseFirestore.instance
+        .collection('private_lessons')
+        .where('athleteName', isEqualTo: firstName)
+        .where('athleteSurname', isEqualTo: lastName)
+        .get();
 
-      // Load combattimenti
-      final combattimentiSnapshot = await FirebaseFirestore.instance
-          .collection('combattimenti')
-          .where('athletes', arrayContains: fullName)
-          .get();
+    // Load private lessons where the user is the coach
+    final coachLessonsSnapshot = await FirebaseFirestore.instance
+        .collection('private_lessons')
+        .where('coachName', isEqualTo: firstName)
+        .where('coachSurname', isEqualTo: lastName)
+        .get();
 
-      setState(() {
-        // Process private lessons
-        for (var doc in lessonsSnapshot.docs) {
-          final data = doc.data();
-          final date = (data['date'] as Timestamp).toDate();
-          final eventDate = DateTime(date.year, date.month, date.day);
-          final event = Event(
-            title: 'Lezione privata',
-            time: data['time'],
-            coachName: '${data['coachName']} ${data['coachSurname']}',
-            athleteName: '${data['athleteName']} ${data['athleteSurname']}',
-            date: date,
-            type: 'lesson',
-          );
+    // Load combattimenti
+    final combattimentiSnapshot = await FirebaseFirestore.instance
+        .collection('combattimenti')
+        .where('athletes', arrayContains: fullName)
+        .get();
 
-          if (_events[eventDate] == null) _events[eventDate] = [];
-          _events[eventDate]!.add(event);
-        }
+    // Load combattimenti where the user is the coach
+    final coachCombattimentiSnapshot = await FirebaseFirestore.instance
+        .collection('combattimenti')
+        .where('coachName', isEqualTo: firstName)
+        .where('coachSurname', isEqualTo: lastName)
+        .get();
 
-        // Process combattimenti
-        for (var doc in combattimentiSnapshot.docs) {
-          final data = doc.data();
-          final date = (data['date'] as Timestamp).toDate();
-          final eventDate = DateTime(date.year, date.month, date.day);
-          final event = Event(
-            title: 'Combattimento ${data['type']}',
-            time: data['time'],
-            coachName: '${data['coachName']} ${data['coachSurname']}',
-            athleteName: (data['athletes'] as List<dynamic>).join(', '),
-            date: date,
-            type: 'combattimento',
-          );
+    setState(() {
+      // Process athlete's private lessons
+      for (var doc in lessonsSnapshot.docs) {
+        final data = doc.data();
+        final date = (data['date'] as Timestamp).toDate();
+        final eventDate = DateTime(date.year, date.month, date.day);
+        final event = Event(
+          title: 'Lezione privata',
+          time: data['time'],
+          coachName: '${data['coachName']} ${data['coachSurname']}',
+          athleteName: '${data['athleteName']} ${data['athleteSurname']}',
+          date: date,
+          type: 'lesson',
+        );
 
-          if (_events[eventDate] == null) _events[eventDate] = [];
-          _events[eventDate]!.add(event);
-        }
-      });
+        if (_events[eventDate] == null) _events[eventDate] = [];
+        _events[eventDate]!.add(event);
+      }
 
-      _selectedEvents.value = _getEventsForDay(_selectedDay!);
-    }
+      // Process coach's private lessons
+      for (var doc in coachLessonsSnapshot.docs) {
+        final data = doc.data();
+        final date = (data['date'] as Timestamp).toDate();
+        final eventDate = DateTime(date.year, date.month, date.day);
+        final event = Event(
+          title: 'Lezione privata (Allenatore)',
+          time: data['time'],
+          coachName: '${data['coachName']} ${data['coachSurname']}',
+          athleteName: '${data['athleteName']} ${data['athleteSurname']}',
+          date: date,
+          type: 'lesson',
+        );
+
+        if (_events[eventDate] == null) _events[eventDate] = [];
+        _events[eventDate]!.add(event);
+      }
+
+      // Process athlete's combattimenti
+      for (var doc in combattimentiSnapshot.docs) {
+        final data = doc.data();
+        final date = (data['date'] as Timestamp).toDate();
+        final eventDate = DateTime(date.year, date.month, date.day);
+        final event = Event(
+          title: 'Combattimento ${data['type']}',
+          time: data['time'],
+          coachName: '${data['coachName']} ${data['coachSurname']}',
+          athleteName: (data['athletes'] as List<dynamic>).join(', '),
+          date: date,
+          type: 'combattimento',
+        );
+
+        if (_events[eventDate] == null) _events[eventDate] = [];
+        _events[eventDate]!.add(event);
+      }
+
+      // Process coach's combattimenti
+      for (var doc in coachCombattimentiSnapshot.docs) {
+        final data = doc.data();
+        final date = (data['date'] as Timestamp).toDate();
+        final eventDate = DateTime(date.year, date.month, date.day);
+        final event = Event(
+          title: 'Combattimento (Allenatore)',
+          time: data['time'],
+          coachName: '${data['coachName']} ${data['coachSurname']}',
+          athleteName: (data['athletes'] as List<dynamic>).join(', '),
+          date: date,
+          type: 'combattimento',
+        );
+
+        if (_events[eventDate] == null) _events[eventDate] = [];
+        _events[eventDate]!.add(event);
+      }
+    });
+
+    _selectedEvents.value = _getEventsForDay(_selectedDay!);
   }
+}
 
   List<Event> _getEventsForDay(DateTime day) {
     return _events[DateTime(day.year, day.month, day.day)] ?? [];
@@ -956,3 +1006,4 @@ class Event {
     required this.type,
   });
 }
+

@@ -97,7 +97,7 @@ class _SearchScreenState extends State<SearchScreen> {
             SizedBox(height: 16),
             Text(
               'Top 10 Atleti',
-              style: Theme.of(context).textTheme.headline6,
+              style: Theme.of(context).textTheme.titleLarge,
             ),
             SizedBox(height: 8),
             Expanded(

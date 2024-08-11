@@ -307,14 +307,14 @@ class PreparationListScreen extends StatelessWidget {
                         children: [
                           Text(
                             '${data['workoutType']} - ${data['athleteType'] == 'all' ? 'Tutti gli atleti' : '${data['athleteName']} ${data['athleteSurname']}'}',
-                            style: Theme.of(context).textTheme.headline6,
+                            style: Theme.of(context).textTheme.titleLarge,
                           ),
                           const SizedBox(height: 8),
                           Text(data['workoutDetails']),
                           const SizedBox(height: 8),
                           Text(
                             'Data di termine: ${DateFormat('dd/MM/yyyy').format(dueDate)}',
-                            style: Theme.of(context).textTheme.caption,
+                            style: Theme.of(context).textTheme.bodySmall,
                           ),
                         ],
                       ),
@@ -409,14 +409,14 @@ class AthletePreparationView extends StatelessWidget {
                       children: [
                         Text(
                           data['workoutType'],
-                          style: Theme.of(context).textTheme.headline6,
+                          style: Theme.of(context).textTheme.titleLarge,
                         ),
                         const SizedBox(height: 8),
                         Text(data['workoutDetails']),
                         const SizedBox(height: 8),
                         Text(
                           'Data di termine: ${DateFormat('dd/MM/yyyy').format(dueDate)}',
-                          style: Theme.of(context).textTheme.caption,
+                          style: Theme.of(context).textTheme.bodySmall,
                         ),
                       ],
                     ),
@@ -706,21 +706,21 @@ class ThemedCombattimentoDetailScreen extends StatelessWidget {
             children: [
               Text(
                 'Allenatore: ${data['coachName']} ${data['coachSurname']}',
-                style: Theme.of(context).textTheme.headline6,
+                style: Theme.of(context).textTheme.titleLarge,
               ),
               const SizedBox(height: 20),
               Text(
                 'Data: ${formatDate((data['date'] as Timestamp).toDate())}',
-                style: Theme.of(context).textTheme.subtitle1,
+                style: Theme.of(context).textTheme.titleMedium,
               ),
               Text(
                 'Ora: ${data['time']}',
-                style: Theme.of(context).textTheme.subtitle1,
+                style: Theme.of(context).textTheme.titleMedium,
               ),
               const SizedBox(height: 20),
               Text(
                 'Tema: ${data['theme']}',
-                style: Theme.of(context).textTheme.subtitle1,
+                style: Theme.of(context).textTheme.titleMedium,
               ),
               const SizedBox(height: 20),
               ...athletes.map((athlete) => ListTile(title: Text(athlete as String))),
@@ -1304,16 +1304,16 @@ class TeamCombattimentoDetailScreen extends StatelessWidget {
             children: [
               Text(
                 'Allenatore: ${data['coachName']} ${data['coachSurname']}',
-                style: Theme.of(context).textTheme.headline6,
+                style: Theme.of(context).textTheme.titleLarge,
               ),
               const SizedBox(height: 20),
               Text(
                 'Data: ${formatDate((data['date'] as Timestamp).toDate())}',
-                style: Theme.of(context).textTheme.subtitle1,
+                style: Theme.of(context).textTheme.titleMedium,
               ),
               Text(
                 'Ora: ${data['time']}',
-                style: Theme.of(context).textTheme.subtitle1,
+                style: Theme.of(context).textTheme.titleMedium,
               ),
               const SizedBox(height: 20),
               ...teams.map((team) {
@@ -1325,7 +1325,7 @@ class TeamCombattimentoDetailScreen extends StatelessWidget {
                   children: [
                     Text(
                       'Squadra ${teamName.join(', ')}',
-                      style: Theme.of(context).textTheme.headline6,
+                      style: Theme.of(context).textTheme.titleLarge,
                     ),
                     ...teamMembers.map((member) => ListTile(title: Text(member as String))),
                     const SizedBox(height: 20),
