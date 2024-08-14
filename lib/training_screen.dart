@@ -60,28 +60,35 @@ class AthleticPreparationTab extends StatelessWidget {
         final role = snapshot.data!.toLowerCase();
 
         if (role == 'allenatore' || role == 'staff') {
-          return Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const NewPreparationScreen()),
-                  );
-                },
-                child: const Text('Nuova Preparazione'),
-              ),
-              ElevatedButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const PreparationListScreen()),
-                  );
-                },
-                child: const Text('Elenco Preparazioni'),
-              ),
-            ],
+          return Center(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _buildSquareButton(
+                  context: context,
+                  icon: Icons.fitness_center,
+                  label: 'Nuova Preparazione',
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const NewPreparationScreen()),
+                    );
+                  },
+                ),
+                const SizedBox(width: 20), // Spazio tra i due bottoni
+                _buildSquareButton(
+                  context: context,
+                  icon: Icons.list,
+                  label: 'Elenco Preparazioni',
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const PreparationListScreen()),
+                    );
+                  },
+                ),
+              ],
+            ),
           );
         } else if (role == 'atleta') {
           return const AthletePreparationView();
@@ -89,6 +96,43 @@ class AthleticPreparationTab extends StatelessWidget {
           return const Center(child: Text('Ruolo non autorizzato'));
         }
       },
+    );
+  }
+
+  Widget _buildSquareButton({
+    required BuildContext context,
+    required IconData icon,
+    required String label,
+    required VoidCallback onPressed,
+  }) {
+    final double buttonSize = MediaQuery.of(context).size.width * 0.35;
+
+    return Container(
+      width: buttonSize,
+      height: buttonSize,
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.white, // Colore di sfondo bianco
+          side: const BorderSide(color: Colors.black, width: 2), // Bordo nero
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8), // Angoli arrotondati
+          ),
+        ),
+        onPressed: onPressed,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: Colors.black, size: 40), // Icona nera
+            const SizedBox(height: 10),
+            Text(
+              label,
+              style: const TextStyle(color: Colors.black),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
@@ -473,31 +517,76 @@ class _AssaltiTabState extends State<AssaltiTab> {
 class CoachAssaltiView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        ElevatedButton(
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => CreateCombattimentoScreen()),
-            );
-          },
-          child: const Text('Crea Combattimento'),
+    return Center(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          _buildSquareButton(
+            context: context,
+            icon: Icons.sports_martial_arts,
+            label: 'Crea Combattimento',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => CreateCombattimentoScreen()),
+              );
+            },
+          ),
+          const SizedBox(width: 20), // Spazio tra i due bottoni
+          _buildSquareButton(
+            context: context,
+            icon: Icons.list_alt,
+            label: 'Elenco Combattimenti',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => CoachCombattimentiListScreen()),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSquareButton({
+    required BuildContext context,
+    required IconData icon,
+    required String label,
+    required VoidCallback onPressed,
+  }) {
+    final double buttonSize = MediaQuery.of(context).size.width * 0.35;
+
+    return Container(
+      width: buttonSize,
+      height: buttonSize,
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.white, // Colore di sfondo bianco
+          side: const BorderSide(color: Colors.black, width: 2), // Bordo nero
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8), // Angoli arrotondati
+          ),
         ),
-        ElevatedButton(
-          onPressed: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(builder: (context) => CoachCombattimentiListScreen()),
-            );
-          },
-          child: const Text('Elenco Combattimenti'),
+        onPressed: onPressed,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: Colors.black, size: 40), // Icona nera
+            const SizedBox(height: 10),
+            Text(
+              label,
+              style: const TextStyle(color: Colors.black),
+              textAlign: TextAlign.center,
+            ),
+          ],
         ),
-      ],
+      ),
     );
   }
 }
+
 
 class CreateCombattimentoScreen extends StatelessWidget {
   @override
@@ -1475,34 +1564,41 @@ class _PrivateLessonTabState extends State<PrivateLessonTab> {
         final role = snapshot.data!.toLowerCase();
 
         if (role == 'allenatore') {
-          return _showCreateLesson
-              ? CreateLessonScreen(onCancel: () {
+  return _showCreateLesson
+      ? CreateLessonScreen(onCancel: () {
+          setState(() {
+            _showCreateLesson = false;
+          });
+        })
+      : Center(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              _buildSquareButton(
+                context: context,
+                icon: Icons.add,
+                label: 'Aggiungi Lezione',
+                onPressed: () {
                   setState(() {
-                    _showCreateLesson = false;
+                    _showCreateLesson = true;
                   });
-                })
-              : Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    ElevatedButton(
-                      onPressed: () {
-                        setState(() {
-                          _showCreateLesson = true;
-                        });
-                      },
-                      child: const Text('Aggiungi Lezione'),
-                    ),
-                    ElevatedButton(
-                      onPressed: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(builder: (context) => CoachLessonsScreen()),
-                        );
-                      },
-                      child: const Text('Le Mie Lezioni'),
-                    ),
-                  ],
-                );
+                },
+              ),
+              const SizedBox(width: 20), // Spazio tra i due bottoni
+              _buildSquareButton(
+                context: context,
+                icon: Icons.list,
+                label: 'Le Mie Lezioni',
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => CoachLessonsScreen()),
+                  );
+                },
+              ),
+            ],
+          ),
+        );
         } else if (role == 'atleta') {
           return AthleteLesson();
         } else if (role == 'staff') {
@@ -1514,6 +1610,44 @@ class _PrivateLessonTabState extends State<PrivateLessonTab> {
     );
   }
 }
+
+Widget _buildSquareButton({
+  required BuildContext context,
+  required IconData icon,
+  required String label,
+  required VoidCallback onPressed,
+}) {
+  final double buttonSize = MediaQuery.of(context).size.width * 0.35;
+
+  return Container(
+    width: buttonSize,
+    height: buttonSize,
+    child: ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.white, // Colore di sfondo bianco
+        side: const BorderSide(color: Colors.black, width: 2), // Bordo nero
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8), // Angoli arrotondati
+        ),
+      ),
+      onPressed: onPressed,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, color: Colors.black, size: 40), // Icona nera
+          const SizedBox(height: 10),
+          Text(
+            label,
+            style: const TextStyle(color: Colors.black),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
 
 class CreateLessonScreen extends StatefulWidget {
   final VoidCallback onCancel;
