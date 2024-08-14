@@ -41,12 +41,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
       context: context,
       barrierDismissible: false,
       builder: (context) {
-        return const AlertDialog(
+        return AlertDialog(
+          backgroundColor: Colors.white,
           content: Row(
             children: [
-              CircularProgressIndicator(),
+              CircularProgressIndicator(color: Colors.black),
               SizedBox(width: 20),
-              Text('Please wait...'),
+              Text('Caricamento...', style: TextStyle(color: Colors.black)),
             ],
           ),
         );
@@ -60,14 +61,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
       barrierDismissible: true,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Error'),
-          content: Text(message),
+          backgroundColor: Colors.white,
+          title: Text('Errore', style: TextStyle(color: Colors.black)),
+          content: Text(message, style: TextStyle(color: Colors.black)),
           actions: [
             TextButton(
-              child: const Text('OK'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
+              child: Text('OK', style: TextStyle(color: Colors.black)),
+              onPressed: () => Navigator.of(context).pop(),
             ),
           ],
         );
@@ -82,9 +82,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   void _validateInputs() {
     setState(() {
-      _emailError = _validateEmail(_emailController.text) ? null : 'Invalid email format';
-      _passwordError = _passwordController.text.length >= 6 ? null : 'Password must be at least 6 characters';
-      _repeatPasswordError = _passwordController.text == _repeatPasswordController.text ? null : 'Passwords do not match';
+      _emailError = _validateEmail(_emailController.text) ? null : 'Email non valida';
+      _passwordError = _passwordController.text.length >= 6 ? null : 'La password deve essere di almeno 6 caratteri';
+      _repeatPasswordError = _passwordController.text == _repeatPasswordController.text ? null : 'Le password non corrispondono';
     });
   }
 
@@ -96,64 +96,58 @@ class _RegisterScreenState extends State<RegisterScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Register'),
+        title: Text('Registrati', style: TextStyle(color: Colors.black)),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        iconTheme: IconThemeData(color: Colors.black),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            TextField(
-              controller: _firstNameController,
-              decoration: const InputDecoration(labelText: 'First Name'),
-            ),
-            TextField(
-              controller: _lastNameController,
-              decoration: const InputDecoration(labelText: 'Last Name'),
-            ),
-            TextField(
-              controller: _emailController,
-              decoration: InputDecoration(
-                labelText: 'Email',
-                errorText: _emailError,
+            _buildTextField(_firstNameController, 'Nome'),
+            SizedBox(height: 20),
+            _buildTextField(_lastNameController, 'Cognome'),
+            SizedBox(height: 20),
+            _buildTextField(_emailController, 'Email', errorText: _emailError),
+            SizedBox(height: 20),
+            _buildTextField(_passwordController, 'Password', isPassword: true, errorText: _passwordError),
+            SizedBox(height: 20),
+            _buildTextField(_repeatPasswordController, 'Ripeti la password', isPassword: true, errorText: _repeatPasswordError),
+            SizedBox(height: 20),
+            Container(
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.black),
+                borderRadius: BorderRadius.circular(4),
               ),
-              onChanged: (value) => _validateInputs(),
-            ),
-            TextField(
-              controller: _passwordController,
-              decoration: InputDecoration(
-                labelText: 'Password',
-                errorText: _passwordError,
+              padding: EdgeInsets.symmetric(horizontal: 12),
+              child: DropdownButtonHideUnderline(
+                child: DropdownButton<String>(
+                  value: _role,
+                  onChanged: (String? newValue) {
+                    setState(() {
+                      _role = newValue!;
+                    });
+                  },
+                  items: <String>['Staff', 'Allenatore', 'Atleta']
+                      .map<DropdownMenuItem<String>>((String value) {
+                    return DropdownMenuItem<String>(
+                      value: value,
+                      child: Text(value, style: TextStyle(color: Colors.black)),
+                    );
+                  }).toList(),
+                  isExpanded: true,
+                  icon: Icon(Icons.arrow_drop_down, color: Colors.black),
+                  dropdownColor: Colors.white,
+                  style: TextStyle(color: Colors.black),
+                ),
               ),
-              obscureText: true,
-              onChanged: (value) => _validateInputs(),
-            ),
-            TextField(
-              controller: _repeatPasswordController,
-              decoration: InputDecoration(
-                labelText: 'Repeat Password',
-                errorText: _repeatPasswordError,
-              ),
-              obscureText: true,
-              onChanged: (value) => _validateInputs(),
-            ),
-            DropdownButton<String>(
-              value: _role,
-              onChanged: (String? newValue) {
-                setState(() {
-                  _role = newValue!;
-                });
-              },
-              items: <String>['Staff', 'Allenatore', 'Atleta']
-                  .map<DropdownMenuItem<String>>((String value) {
-                return DropdownMenuItem<String>(
-                  value: value,
-                  child: Text(value),
-                );
-              }).toList(),
             ),
             if (_role == 'Staff') ...[
+              SizedBox(height: 20),
               Row(
                 children: [
                   Checkbox(
@@ -163,19 +157,25 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         _generateNewCode = value!;
                       });
                     },
+                    activeColor: Colors.black,
                   ),
-                  const Text('Generate new facility code'),
+                  Text('Genera un nuovo codice struttura', style: TextStyle(color: Colors.black)),
                 ],
               ),
-              if (!_generateNewCode)
-                TextField(
-                  controller: _facilityCodeController,
-                  decoration: const InputDecoration(labelText: 'Existing Facility Code'),
-                ),
+              if (!_generateNewCode) ...[
+                SizedBox(height: 20),  // Aggiunto spazio extra qui
+                _buildTextField(_facilityCodeController, 'Codice Struttura esistente'),
+              ],
             ],
-            const SizedBox(height: 20),
+            SizedBox(height: 30),
             ElevatedButton(
-              child: const Text('Register'),
+              child: _isLoading 
+                ? CircularProgressIndicator(color: Colors.white)
+                : Text('Registrati', style: TextStyle(color: Colors.white)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.black,
+                minimumSize: Size(double.infinity, 50),
+              ),
               onPressed: () async {
                 if (_isFormValid()) {
                   final String email = _emailController.text.trim();
@@ -215,20 +215,47 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     }
                   } catch (e) {
                     Navigator.of(context).pop(); // Close the loading dialog
-                    _showErrorDialog('Registration failed: ${e.toString()}');
+                    _showErrorDialog('Registrazione fallita: ${e.toString()}');
                   } finally {
                     setState(() {
                       _isLoading = false;
                     });
                   }
                 } else {
-                  _showErrorDialog('Please fix the errors in red before submitting.');
+                  _showErrorDialog('Compila correttamente tutti i campi');
                 }
               },
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildTextField(TextEditingController controller, String label, {bool isPassword = false, String? errorText}) {
+    return TextField(
+      controller: controller,
+      decoration: InputDecoration(
+        labelText: label,
+        errorText: errorText,
+        labelStyle: TextStyle(color: Colors.black),
+        errorStyle: TextStyle(color: Colors.red),
+        focusedBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: Colors.black),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: Colors.black),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: Colors.red),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderSide: BorderSide(color: Colors.red),
+        ),
+      ),
+      obscureText: isPassword,
+      style: TextStyle(color: Colors.black),
+      onChanged: (value) => _validateInputs(),
     );
   }
 }

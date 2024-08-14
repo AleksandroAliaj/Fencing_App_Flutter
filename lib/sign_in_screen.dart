@@ -18,6 +18,7 @@ class _SignInScreenState extends State<SignInScreen> {
   bool _isLoading = false;
   String? _emailError;
   String? _passwordError;
+  bool _showGoogleOptions = false;
 
   @override
   void dispose() {
@@ -31,12 +32,13 @@ class _SignInScreenState extends State<SignInScreen> {
       context: context,
       barrierDismissible: false,
       builder: (context) {
-        return const AlertDialog(
+        return AlertDialog(
+          backgroundColor: Colors.white,
           content: Row(
             children: [
-              CircularProgressIndicator(),
+              CircularProgressIndicator(color: Colors.black),
               SizedBox(width: 20),
-              Text('Please wait...'),
+              Text('Caricamento...', style: TextStyle(color: Colors.black)),
             ],
           ),
         );
@@ -50,14 +52,13 @@ class _SignInScreenState extends State<SignInScreen> {
       barrierDismissible: true,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Error'),
-          content: Text(message),
+          backgroundColor: Colors.white,
+          title: Text('Attenzione', style: TextStyle(color: Colors.black)),
+          content: Text(message, style: TextStyle(color: Colors.black)),
           actions: [
             TextButton(
-              child: const Text('OK'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
+              child: Text('OK', style: TextStyle(color: Colors.black)),
+              onPressed: () => Navigator.of(context).pop(),
             ),
           ],
         );
@@ -72,8 +73,8 @@ class _SignInScreenState extends State<SignInScreen> {
 
   void _validateInputs() {
     setState(() {
-      _emailError = _validateEmail(_emailController.text) ? null : 'Invalid email format';
-      _passwordError = _passwordController.text.isNotEmpty ? null : 'Password cannot be empty';
+      _emailError = _validateEmail(_emailController.text) ? null : 'Email non valida';
+      _passwordError = _passwordController.text.isNotEmpty ? null : 'La password non può essere vuota';
     });
   }
 
@@ -85,8 +86,11 @@ class _SignInScreenState extends State<SignInScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Sign In'),
+        title: Text('Fencing', style: TextStyle(color: Colors.black)),
+        backgroundColor: Colors.white,
+        elevation: 0,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -98,28 +102,51 @@ class _SignInScreenState extends State<SignInScreen> {
               decoration: InputDecoration(
                 labelText: 'Email',
                 errorText: _emailError,
+                labelStyle: TextStyle(color: Colors.black),
+                errorStyle: TextStyle(color: Colors.red),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.black),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.black),
+                ),
               ),
+              style: TextStyle(color: Colors.black),
               onChanged: (value) => _validateInputs(),
             ),
+            SizedBox(height: 20),
             TextField(
               controller: _passwordController,
               decoration: InputDecoration(
                 labelText: 'Password',
                 errorText: _passwordError,
+                labelStyle: TextStyle(color: Colors.black),
+                errorStyle: TextStyle(color: Colors.red),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.black),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.black),
+                ),
               ),
               obscureText: true,
+              style: TextStyle(color: Colors.black),
               onChanged: (value) => _validateInputs(),
             ),
-            const SizedBox(height: 20),
+            SizedBox(height: 30),
             ElevatedButton(
-              child: _isLoading ? CircularProgressIndicator() : const Text('Sign In'),
+              child: _isLoading 
+                ? CircularProgressIndicator(color: Colors.white)
+                : Text('Entra', style: TextStyle(color: Colors.white)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.black,
+                minimumSize: Size(double.infinity, 50),
+              ),
               onPressed: () async {
                 if (_isFormValid()) {
                   final String email = _emailController.text.trim();
                   final String password = _passwordController.text.trim();
-                  setState(() {
-                    _isLoading = true;
-                  });
+                  setState(() => _isLoading = true);
                   _showLoadingDialog();
                   try {
                     await Provider.of<AuthService>(context, listen: false).signInWithEmailAndPassword(email, password);
@@ -129,58 +156,90 @@ class _SignInScreenState extends State<SignInScreen> {
                     );
                   } catch (e) {
                     Navigator.of(context).pop(); // Close the loading dialog
-                    _showErrorDialog('Authentication failed: ${e.toString()}');
+                    _showErrorDialog('Autenticazione fallita: ${e.toString()}');
                   } finally {
-                    setState(() {
-                      _isLoading = false;
-                    });
+                    setState(() => _isLoading = false);
                   }
                 } else {
-                  _showErrorDialog('Please fix the errors in red before submitting.');
+                  _showErrorDialog('Correggi gli errori in rosso prima di procedere.');
                 }
               },
             ),
-            const SizedBox(height: 10),
-            ElevatedButton(
-              child: const Text('Register with Google'),
-              onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (context) => const GoogleSignInScreen()),
-                );
-              },
+            SizedBox(height: 20),
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton(
+                    child: Text('Google', style: TextStyle(color: Colors.white)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.black,
+                      minimumSize: Size(0, 50),  // Altezza fissa, larghezza adattiva
+                      padding: EdgeInsets.zero,  // Rimuove il padding interno
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _showGoogleOptions = !_showGoogleOptions;
+                      });
+                    },
+                  ),
+                ),
+                SizedBox(width: 10),
+                Expanded(
+                  child: ElevatedButton(
+                    child: Text('Registrati', style: TextStyle(color: Colors.white)),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.black,
+                      minimumSize: Size(0, 50),  // Altezza fissa, larghezza adattiva
+                      padding: EdgeInsets.zero,  // Rimuove il padding interno
+                    ),
+                    onPressed: () {
+                      Navigator.of(context).push(
+                        MaterialPageRoute(builder: (context) => const RegisterScreen()),
+                      );
+                    },
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 10),
-            ElevatedButton(
-              child: const Text('Sign In with Google'),
-              onPressed: () async {
-                setState(() {
-                  _isLoading = true;
-                });
-                _showLoadingDialog();
-                try {
-                  await Provider.of<AuthService>(context, listen: false).signInWithGoogle();
-                  Navigator.of(context).pop(); // Close the loading dialog
-                  Navigator.of(context).pushReplacement(
-                    MaterialPageRoute(builder: (context) => const ProfileScreen()),
+            if (_showGoogleOptions) ...[
+              SizedBox(height: 20),
+              ElevatedButton(
+                child: Text('Registrati con Google', style: TextStyle(color: Colors.white)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.black,
+                  minimumSize: Size(double.infinity, 50),
+                ),
+                onPressed: () {
+                  Navigator.of(context).push(
+                    MaterialPageRoute(builder: (context) => const GoogleSignInScreen()),
                   );
-                } catch (e) {
-                  Navigator.of(context).pop(); // Close the loading dialog
-                  _showErrorDialog('Google Sign-In failed: ${e.toString()}');
-                } finally {
-                  setState(() {
-                    _isLoading = false;
-                  });
-                }
-              },
-            ),
-            TextButton(
-              child: const Text('Register'),
-              onPressed: () {
-                Navigator.of(context).push(
-                  MaterialPageRoute(builder: (context) => const RegisterScreen()),
-                );
-              },
-            ),
+                },
+              ),
+              SizedBox(height: 10),
+              ElevatedButton(
+                child: Text('Entra con Google', style: TextStyle(color: Colors.white)),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.black,
+                  minimumSize: Size(double.infinity, 50),
+                ),
+                onPressed: () async {
+                  setState(() => _isLoading = true);
+                  _showLoadingDialog();
+                  try {
+                    await Provider.of<AuthService>(context, listen: false).signInWithGoogle();
+                    Navigator.of(context).pop(); // Close the loading dialog
+                    Navigator.of(context).pushReplacement(
+                      MaterialPageRoute(builder: (context) => const ProfileScreen()),
+                    );
+                  } catch (e) {
+                    Navigator.of(context).pop(); // Close the loading dialog
+                    _showErrorDialog('Google Sign-In failed: ${e.toString()}');
+                  } finally {
+                    setState(() => _isLoading = false);
+                  }
+                },
+              ),
+            ],
           ],
         ),
       ),

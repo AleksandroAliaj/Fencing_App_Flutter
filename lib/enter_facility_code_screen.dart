@@ -16,7 +16,7 @@ class EnterFacilityCodeScreen extends StatefulWidget {
     required this.password,
     required this.role,
     required this.firstName,
-    required this.lastName,
+    required this.lastName, 
   });
 
   @override
@@ -38,12 +38,13 @@ class _EnterFacilityCodeScreenState extends State<EnterFacilityCodeScreen> {
       context: context,
       barrierDismissible: false,
       builder: (context) {
-        return const AlertDialog(
+        return AlertDialog(
+          backgroundColor: Colors.white,
           content: Row(
             children: [
-              CircularProgressIndicator(),
+              CircularProgressIndicator(color: Colors.black),
               SizedBox(width: 20),
-              Text('Please wait...'),
+              Text('Caricamento...', style: TextStyle(color: Colors.black)),
             ],
           ),
         );
@@ -57,14 +58,13 @@ class _EnterFacilityCodeScreenState extends State<EnterFacilityCodeScreen> {
       barrierDismissible: true,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Error'),
-          content: Text(message),
+          backgroundColor: Colors.white,
+          title: Text('Errore', style: TextStyle(color: Colors.black)),
+          content: Text(message, style: TextStyle(color: Colors.black)),
           actions: [
             TextButton(
-              child: const Text('OK'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
+              child: Text('OK', style: TextStyle(color: Colors.black)),
+              onPressed: () => Navigator.of(context).pop(),
             ),
           ],
         );
@@ -75,8 +75,12 @@ class _EnterFacilityCodeScreenState extends State<EnterFacilityCodeScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Enter Facility Code'),
+        title: Text('Inserisci il codice struttura', style: TextStyle(color: Colors.black)),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        iconTheme: IconThemeData(color: Colors.black),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -85,11 +89,32 @@ class _EnterFacilityCodeScreenState extends State<EnterFacilityCodeScreen> {
           children: <Widget>[
             TextField(
               controller: _facilityCodeController,
-              decoration: const InputDecoration(labelText: 'Facility Code'),
+              decoration: InputDecoration(
+                labelText: 'Codice struttura',
+                labelStyle: TextStyle(color: Colors.black),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.black),
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.black),
+                ),
+                errorBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.red),
+                ),
+                focusedErrorBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: Colors.red),
+                ),
+              ),
             ),
             const SizedBox(height: 20),
             ElevatedButton(
-              child: const Text('Register'),
+              child: _isLoading 
+                ? CircularProgressIndicator(color: Colors.white)
+                : Text('Registrati', style: TextStyle(color: Colors.white)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.black,
+                minimumSize: Size(double.infinity, 50),
+              ),
               onPressed: () async {
                 final String facilityCode = _facilityCodeController.text.trim();
                 setState(() {
@@ -109,18 +134,18 @@ class _EnterFacilityCodeScreenState extends State<EnterFacilityCodeScreen> {
                           widget.lastName,
                           facilityCode: facilityCode
                         );
-                    Navigator.of(context).pop(); // Close the loading dialog
+                    Navigator.of(context).pop(); // Chiude il dialog di caricamento
                     Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(builder: (context) => const ProfileScreen()),
                     );
                   } else {
-                    Navigator.of(context).pop(); // Close the loading dialog
-                    _showErrorDialog('Invalid facility code');
+                    Navigator.of(context).pop(); // Chiude il dialog di caricamento
+                    _showErrorDialog('Codice struttura non valido');
                   }
                 } catch (e) {
-                  Navigator.of(context).pop(); // Close the loading dialog
-                  _showErrorDialog('Registration failed: ${e.toString()}');
+                  Navigator.of(context).pop(); // Chiude il dialog di caricamento
+                  _showErrorDialog('Registrazione fallita: ${e.toString()}');
                 } finally {
                   setState(() {
                     _isLoading = false;

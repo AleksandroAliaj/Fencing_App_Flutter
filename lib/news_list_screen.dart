@@ -164,8 +164,8 @@ class AllNewsScreen extends StatelessWidget {
     final authService = Provider.of<AuthService>(context, listen: false);
     final user = authService.currentUser;
 
-    return FutureBuilder<String?>(
-      future: authService.getUserRole(user?.uid),
+    return FutureBuilder<DocumentSnapshot>(
+      future: authService.getUserData(user!.uid), // Recupera i dati dell'utente
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
@@ -175,17 +175,18 @@ class AllNewsScreen extends StatelessWidget {
 
         if (snapshot.hasError) {
           return Scaffold(
-            body: Center(child: Text('Error loading user role: ${snapshot.error}')),
+            body: Center(child: Text('Error loading user data: ${snapshot.error}')),
           );
         }
 
         if (!snapshot.hasData || snapshot.data == null) {
           return const Scaffold(
-            body: Center(child: Text('User role not found')),
+            body: Center(child: Text('User data not found')),
           );
         }
 
-        final role = snapshot.data!;
+        final userData = snapshot.data!.data() as Map<String, dynamic>;
+        final facilityCode = userData['facilityCode']; // Recupera il facilityCode dell'utente
 
         return Scaffold(
           appBar: AppBar(
@@ -194,6 +195,7 @@ class AllNewsScreen extends StatelessWidget {
           body: StreamBuilder<QuerySnapshot>(
             stream: FirebaseFirestore.instance
                 .collection('news')
+                .where('facilityCode', isEqualTo: facilityCode) // Filtra per facilityCode
                 .orderBy('timestamp', descending: true)
                 .snapshots(),
             builder: (context, snapshot) {
@@ -212,34 +214,32 @@ class AllNewsScreen extends StatelessWidget {
                   return ListTile(
                     title: Text(doc['title']),
                     subtitle: Text(doc['description']),
-                    trailing: role.toLowerCase() == 'staff'
-                        ? IconButton(
-                            icon: Icon(Icons.delete, color: Colors.red),
-                            onPressed: () async {
-                              final shouldDelete = await showDialog<bool>(
-                                context: context,
-                                builder: (context) => AlertDialog(
-                                  title: const Text('Conferma Eliminazione'),
-                                  content: const Text('Sei sicuro di voler eliminare questa news?'),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () => Navigator.of(context).pop(false),
-                                      child: const Text('Annulla'),
-                                    ),
-                                    TextButton(
-                                      onPressed: () => Navigator.of(context).pop(true),
-                                      child: const Text('Elimina'),
-                                    ),
-                                  ],
-                                ),
-                              );
+                    trailing: IconButton(
+                      icon: const Icon(Icons.delete, color: Colors.red),
+                      onPressed: () async {
+                        final shouldDelete = await showDialog<bool>(
+                          context: context,
+                          builder: (context) => AlertDialog(
+                            title: const Text('Conferma Eliminazione'),
+                            content: const Text('Sei sicuro di voler eliminare questa news?'),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.of(context).pop(false),
+                                child: const Text('Annulla'),
+                              ),
+                              TextButton(
+                                onPressed: () => Navigator.of(context).pop(true),
+                                child: const Text('Elimina'),
+                              ),
+                            ],
+                          ),
+                        );
 
-                              if (shouldDelete == true) {
-                                await doc.reference.delete();
-                              }
-                            },
-                          )
-                        : null,
+                        if (shouldDelete == true) {
+                          await doc.reference.delete();
+                        }
+                      },
+                    ),
                   );
                 }).toList(),
               );

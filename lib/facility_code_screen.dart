@@ -9,25 +9,41 @@ class FacilityCodeScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text('Facility Code'),
+        title: const Text(
+          'Questo è il codice struttura che dovrai comunicare al personale e agli atleti',
+          style: TextStyle(color: Colors.black),
+        ),
+        backgroundColor: Colors.white,
+        elevation: 0,
+        iconTheme: IconThemeData(color: Colors.black),
       ),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             const Text(
-              'Your Facility Code is:',
-              style: TextStyle(fontSize: 20),
+              'Codice struttura:',
+              style: TextStyle(fontSize: 20, color: Colors.black),
             ),
             const SizedBox(height: 20),
             Text(
               facilityCode,
-              style: const TextStyle(fontSize: 30, fontWeight: FontWeight.bold),
+              style: const TextStyle(
+                fontSize: 30,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
             ),
             const SizedBox(height: 40),
             ElevatedButton(
-              child: const Text('Go to Profile'),
+              child: const Text('Vai al profilo', style: TextStyle(color: Colors.white)),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.black,
+                minimumSize: const Size(200, 50), // Specifica la larghezza del bottone
+                padding: const EdgeInsets.symmetric(horizontal: 30),
+              ),
               onPressed: () {
                 Navigator.pushReplacement(
                   context,
