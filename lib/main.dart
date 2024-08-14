@@ -43,12 +43,29 @@ class FencingApp extends StatelessWidget {
         ),
       ],
       child: MaterialApp(
-        title: 'Fencing',
-        theme: ThemeData(
-          primarySwatch: Colors.blue,
-        ),
-        home: const AuthWrapper(),
-      ),
+  title: 'Fencing',
+  theme: ThemeData(
+    primaryColor: Colors.black,
+    scaffoldBackgroundColor: Colors.white,
+    appBarTheme: const AppBarTheme(
+      backgroundColor: Colors.white,
+      iconTheme: IconThemeData(color: Colors.black),
+      titleTextStyle: TextStyle(color: Colors.black, fontSize: 20),
+      elevation: 0, // Rimuove l'ombra sotto l'AppBar
+    ),
+    bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+      backgroundColor: Colors.white,
+      selectedItemColor: Colors.black,
+      unselectedItemColor: Colors.grey,
+    ),
+    textTheme: const TextTheme(
+      bodyLarge: TextStyle(color: Colors.black),
+      bodyMedium: TextStyle(color: Colors.black),
+    ),
+  ),
+  home: const AuthWrapper(),
+),
+
     );
   }
 }
@@ -109,44 +126,44 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        //title: const Text('Fencing App'),
-        leading: Builder(
-          builder: (BuildContext context) {
-            return IconButton(
-              icon: const Icon(Icons.menu),
-              onPressed: () {
-                Scaffold.of(context).openDrawer();
-              },
-            );
-          },
-        ),
-      ),
+  leading: Builder(
+    builder: (BuildContext context) {
+      return IconButton(
+        icon: const Icon(Icons.menu),
+        onPressed: () {
+          Scaffold.of(context).openDrawer();
+        },
+      );
+    },
+  ),
+),
+
       drawer: Drawer(
-        child: ListView(
-          padding: EdgeInsets.zero,
-          children: <Widget>[
-            const DrawerHeader(
-              decoration: BoxDecoration(
-                color: Colors.blue,
-              ),
-              child: Text(
-                'Menu',
-                style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                ),
+        
+      child: ListView(
+        
+        padding: EdgeInsets.zero,
+        children: <Widget>[
+          const DrawerHeader(
+            child: Text(
+              'Menu',
+              style: TextStyle(
+                color: Colors.black,
+                fontSize: 24,
               ),
             ),
-            ListTile(
-              leading: const Icon(Icons.person),
-              title: const Text('Profilo'),
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => const ProfileScreen()),
-                );
-              },
-            ),
+          ),
+          
+      ListTile(
+        leading: const Icon(Icons.person, color: Colors.black),
+        title: const Text('Profilo', style: TextStyle(color: Colors.black)),
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const ProfileScreen()),
+          );
+        },
+      ),
             ListTile(
               leading: const Icon(Icons.people),
               title: const Text('Elenco utenti'),
@@ -179,50 +196,53 @@ class _HomeScreenState extends State<HomeScreen> {
               );
               },
             ),
-            const Divider(), // Separatore opzionale
-            ListTile(
-              leading: const Icon(Icons.logout),
-              title: const Text('Log Out'),
-              onTap: () async {
-                await _logOut();
-                Navigator.of(context).pushReplacement(
-                  MaterialPageRoute(builder: (context) => const SignInScreen()),
-                );
-              },
-            ),
-          ],
-        ),
+            const Divider(color: Colors.black), // Separatore
+      ListTile(
+        leading: const Icon(Icons.logout, color: Colors.black),
+        title: const Text('Log Out', style: TextStyle(color: Colors.black)),
+        onTap: () async {
+          await _logOut();
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (context) => const SignInScreen()),
+          );
+        },
       ),
+    ],
+  ),
+),
       body: Center(
         child: _widgetOptions.elementAt(_selectedIndex),
       ),
       bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.build),
-            label: 'Armeria',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.chat),
-            label: 'Chat',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.fitness_center),
-            label: 'Allenamento',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.star),
-            label: 'Ranking',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.calendar_today),
-            label: 'Calendario',
-          ),
-        ],
-        currentIndex: _selectedIndex,
-        selectedItemColor: Colors.amber[800],
-        onTap: _onItemTapped,
-      ),
+  items: const <BottomNavigationBarItem>[
+    BottomNavigationBarItem(
+      icon: Icon(Icons.build),
+      label: 'Armeria',
+    ),
+    BottomNavigationBarItem(
+      icon: Icon(Icons.chat),
+      label: 'Chat',
+    ),
+    BottomNavigationBarItem(
+      icon: Icon(Icons.fitness_center),
+      label: 'Allenamento',
+    ),
+    BottomNavigationBarItem(
+      icon: Icon(Icons.star),
+      label: 'Ranking',
+    ),
+    BottomNavigationBarItem(
+      icon: Icon(Icons.calendar_today),
+      label: 'Calendario',
+    ),
+  ],
+  currentIndex: _selectedIndex,
+  selectedItemColor: Colors.black, // Colore icona selezionata
+  unselectedItemColor: Colors.grey, // Colore icona non selezionata
+  onTap: _onItemTapped,
+  
+),
+
     );
   }
 }

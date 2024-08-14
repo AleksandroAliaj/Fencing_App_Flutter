@@ -65,17 +65,22 @@ class CalendarScreen extends StatelessWidget {
   Widget _buildEventiTab(BuildContext context, String role) {
     if (role.toLowerCase() == 'staff') {
       return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+        child: Wrap(
+          spacing: 20.0, // Spazio tra i bottoni
+          runSpacing: 20.0, // Spazio tra le righe dei bottoni
+          alignment: WrapAlignment.center, // Allineamento orizzontale
           children: [
-            ElevatedButton(
-              onPressed: () => _navigateToAddEvent(context),
-              child: const Text('Aggiungi Evento'),
+            _buildActionButton(
+              context,
+              'Aggiungi Evento',
+              Icons.add,
+              () => _navigateToAddEvent(context),
             ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () => _navigateToEventList(context),
-              child: const Text('Elenco Eventi'),
+            _buildActionButton(
+              context,
+              'Elenco Eventi',
+              Icons.list,
+              () => _navigateToEventList(context),
             ),
           ],
         ),
@@ -90,17 +95,22 @@ class CalendarScreen extends StatelessWidget {
   Widget _buildScadenziarioTab(BuildContext context, String role) {
     if (role.toLowerCase() == 'staff') {
       return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
+        child: Wrap(
+          spacing: 20.0, // Spazio tra i bottoni
+          runSpacing: 20.0, // Spazio tra le righe dei bottoni
+          alignment: WrapAlignment.center, // Allineamento orizzontale
           children: [
-            ElevatedButton(
-              onPressed: () => _navigateToAddDeadline(context),
-              child: const Text('Inserisci Scadenza'),
+            _buildActionButton(
+              context,
+              'Inserisci Scadenza',
+              Icons.calendar_today,
+              () => _navigateToAddDeadline(context),
             ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () => _navigateToDeadlineList(context),
-              child: const Text('Elenco Scadenze'),
+            _buildActionButton(
+              context,
+              'Elenco Scadenze',
+              Icons.list,
+              () => _navigateToDeadlineList(context),
             ),
           ],
         ),
@@ -110,6 +120,42 @@ class CalendarScreen extends StatelessWidget {
       final user = authService.currentUser;
       return DeadlineList(userId: user?.uid);
     }
+  }
+
+  Widget _buildActionButton(
+    BuildContext context,
+    String title,
+    IconData icon,
+    VoidCallback onPressed,
+  ) {
+    final double buttonSize = MediaQuery.of(context).size.width * 0.35; // Imposta la dimensione del bottone al 40% della larghezza dello schermo
+
+    return Container(
+      width: buttonSize,
+      height: buttonSize,
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.white, // Colore di sfondo bianco
+          side: const BorderSide(color: Colors.black, width: 2), // Bordo nero
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8), // Angoli leggermente arrotondati
+          ),
+        ),
+        onPressed: onPressed,
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: <Widget>[
+            Icon(icon, color: Colors.black, size: 40.0), // Icona nera
+            const SizedBox(height: 8.0), // Spazio tra l'icona e il testo
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: const TextStyle(color: Colors.black),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   void _navigateToAddEvent(BuildContext context) {
@@ -300,6 +346,7 @@ class EventList extends StatelessWidget {
 
         final userData = snapshot.data!;
         final facilityCode = userData['facilityCode'];
+        final role = userData['role'];
 
         return StreamBuilder<QuerySnapshot>(
           stream: FirebaseFirestore.instance
@@ -338,46 +385,37 @@ class EventList extends StatelessWidget {
             return ListView(
               children: validEventDocuments.map((doc) {
                 final date = (doc['date'] as Timestamp).toDate();
-                return Dismissible(
-                  key: Key(doc.id),
-                  background: Container(
-                    color: Colors.red,
-                    alignment: Alignment.centerRight,
-                    padding: EdgeInsets.only(right: 20.0),
-                    child: Icon(Icons.delete, color: Colors.white),
-                  ),
-                  direction: DismissDirection.endToStart,
-                  confirmDismiss: (direction) async {
-                    return await showDialog(
-                      context: context,
-                      builder: (BuildContext context) {
-                        return AlertDialog(
-                          title: const Text("Conferma eliminazione"),
-                          content: const Text("Sei sicuro di voler eliminare questo evento?"),
-                          actions: <Widget>[
-                            TextButton(
-                              onPressed: () => Navigator.of(context).pop(false),
-                              child: const Text("Annulla"),
-                            ),
-                            TextButton(
-                              onPressed: () => Navigator.of(context).pop(true),
-                              child: const Text("Elimina"),
-                            ),
-                          ],
-                        );
-                      },
-                    );
-                  },
-                  onDismissed: (direction) {
-                    FirebaseFirestore.instance.collection('events').doc(doc.id).delete();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text('Evento eliminato')),
-                    );
-                  },
-                  child: ListTile(
-                    title: Text(doc['description']),
-                    subtitle: Text('${date.day}-${date.month}-${date.year} @ ${date.hour}:${date.minute} - ${doc['location']}'),
-                  ),
+                return ListTile(
+                  title: Text(doc['description']),
+                  subtitle: Text('${date.day}-${date.month}-${date.year} @ ${date.hour}:${date.minute} - ${doc['location']}'),
+                  trailing: role.toLowerCase() == 'staff'
+                      ? IconButton(
+                          icon: const Icon(Icons.delete, color: Colors.red),
+                          onPressed: () async {
+                            final shouldDelete = await showDialog<bool>(
+                              context: context,
+                              builder: (context) => AlertDialog(
+                                title: const Text('Conferma Eliminazione'),
+                                content: const Text('Sei sicuro di voler eliminare questo evento?'),
+                                actions: [
+                                  TextButton(
+                                    onPressed: () => Navigator.of(context).pop(false),
+                                    child: const Text('Annulla'),
+                                  ),
+                                  TextButton(
+                                    onPressed: () => Navigator.of(context).pop(true),
+                                    child: const Text('Elimina'),
+                                  ),
+                                ],
+                              ),
+                            );
+
+                            if (shouldDelete == true) {
+                              await doc.reference.delete();
+                            }
+                          },
+                        )
+                      : null,
                 );
               }).toList(),
             );
@@ -416,22 +454,19 @@ class EventListScreen extends StatelessWidget {
         }
 
         final userData = snapshot.data!;
-        final facilityCode = userData['facilityCode'];
         final role = userData['role'];
 
         return Scaffold(
           appBar: AppBar(
             title: const Text('Elenco Eventi'),
           ),
-          body: role.toLowerCase() == 'staff'
-              ? EventList(userId: user.uid)
-              : EventList(userId: user.uid),
+          body: EventList(userId: user.uid),
         );
       },
     );
   }
 }
- 
+
   Widget _buildScadenziarioTab(BuildContext context, String role) {
     if (role.toLowerCase() == 'staff') {
       return Center(
@@ -617,6 +652,7 @@ class DeadlineListScreen extends StatelessWidget {
 
         final userData = snapshot.data!;
         final facilityCode = userData['facilityCode'];
+        final role = userData['role']; // Assuming you have the role information in user data
 
         return Scaffold(
           appBar: AppBar(
@@ -657,14 +693,30 @@ class DeadlineListScreen extends StatelessWidget {
                   return ListTile(
                     title: Text(doc['text']),
                     subtitle: Text('${doc['firstName']} ${doc['lastName']}'),
-                    trailing: doc['status'] == 'Confirmed'
-                        ? const Text('Confermato', style: TextStyle(color: Colors.green))
-                        : ElevatedButton(
-                            onPressed: () async {
-                              await doc.reference.update({'status': 'Confirmed'});
-                            },
-                            child: const Text('Conferma'),
-                          ),
+                    trailing: role.toLowerCase() == 'staff'
+                        ? Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              ElevatedButton(
+                                onPressed: () async {
+                                  await doc.reference.delete();
+                                },
+                                child: const Text('Elimina'),
+                              ),
+                              const SizedBox(width: 8),
+                              doc['status'] == 'Confirmed'
+                                  ? const Text('Confermato', style: TextStyle(color: Colors.green))
+                                  : ElevatedButton(
+                                      onPressed: () async {
+                                        await doc.reference.update({'status': 'Confirmed'});
+                                      },
+                                      child: const Text('Conferma'),
+                                    ),
+                            ],
+                          )
+                        : doc['status'] == 'Confirmed'
+                            ? const Text('Confermato', style: TextStyle(color: Colors.green))
+                            : null,
                   );
                 }).toList(),
               );

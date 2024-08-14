@@ -14,6 +14,8 @@ class AuthService {
     return _auth.authStateChanges();
   }
 
+  
+
   Future<UserCredential> signInWithGoogle() async {
     // Trigger the authentication flow
     final GoogleSignInAccount? googleUser = await _googleSignIn.signIn();
