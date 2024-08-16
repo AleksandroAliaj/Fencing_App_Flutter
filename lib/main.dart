@@ -1,3 +1,5 @@
+// ignore_for_file: library_private_types_in_public_api, avoid_print, use_build_context_synchronously
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
@@ -14,10 +16,11 @@ import 'calendar_screen.dart';
 import 'user_list_screen.dart';
 import 'score_screen.dart';
 
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
+
+  if (Firebase.apps.isEmpty) {
+    await Firebase.initializeApp(
     options: const FirebaseOptions(
       apiKey: "AIzaSyAE5cj4wl19m782QOlz_dm6-zmLXM4PT9M",
       authDomain: "scherma-f2d5e.firebaseapp.com",
@@ -28,7 +31,9 @@ void main() async {
       measurementId: "G-Z4YW4DEWJW",
     ),
   );
-  runApp(const FencingApp());
+  }
+
+  runApp( const FencingApp());
 }
 
 class FencingApp extends StatelessWidget {

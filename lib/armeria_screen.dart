@@ -57,7 +57,7 @@ class ArmeriaScreen extends StatelessWidget {
   }) {
     final double buttonSize = MediaQuery.of(context).size.width * 0.35; // Imposta la dimensione del bottone al 35% della larghezza dello schermo
 
-    return Container(
+    return SizedBox(
       width: buttonSize,
       height: buttonSize,
       child: ElevatedButton(

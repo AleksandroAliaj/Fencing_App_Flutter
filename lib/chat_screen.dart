@@ -1,5 +1,7 @@
 // chat_screen.dart
 
+// ignore_for_file: library_private_types_in_public_api, use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
@@ -10,7 +12,7 @@ class ChatScreen extends StatefulWidget {
   final String chatType;
   final String? chatId;
 
-  const ChatScreen({Key? key, required this.chatType, this.chatId}) : super(key: key);
+  const ChatScreen({super.key, required this.chatType, this.chatId});
 
   @override
   _ChatScreenState createState() => _ChatScreenState();
@@ -211,7 +213,7 @@ class _ChatScreenState extends State<ChatScreen> {
 class PrivateMessagesStream extends StatelessWidget {
   final String chatId;
 
-  const PrivateMessagesStream({Key? key, required this.chatId}) : super(key: key);
+  const PrivateMessagesStream({super.key, required this.chatId});
 
   @override
   Widget build(BuildContext context) {
@@ -238,16 +240,20 @@ class PrivateMessagesStream extends StatelessWidget {
         final messages = snapshot.data!.docs;
         List<MessageBubble> messageBubbles = [];
         for (var message in messages) {
-          final messageText = message['text'];
-          final messageSender = message['sender'];
+        final messageText = message['text'];
+        final messageSender = message['sender'];
 
-          final messageBubble = MessageBubble(
-            sender: messageSender,
-            text: messageText,
-          );
+        final currentUserEmail = Provider.of<AuthService>(context, listen: false).currentUser?.email;
 
-          messageBubbles.add(messageBubble);
-        }
+        final messageBubble = MessageBubble(
+          sender: messageSender,
+          text: messageText,
+          isMe: currentUserEmail == messageSender,
+        );
+
+  messageBubbles.add(messageBubble);
+}
+
         
         // Limita il numero di messaggi a 100
         if (messages.length > 100) {
@@ -271,7 +277,7 @@ class MessagesStream extends StatelessWidget {
   final String chatType;
   final String userRole;
 
-  const MessagesStream({Key? key, required this.facilityCode, required this.chatType, required this.userRole}) : super(key: key);
+  const MessagesStream({super.key, required this.facilityCode, required this.chatType, required this.userRole});
 
   @override
   Widget build(BuildContext context) {
@@ -292,6 +298,7 @@ class MessagesStream extends StatelessWidget {
         
         final messages = snapshot.data!.docs;
         List<MessageBubble> messageBubbles = [];
+        final currentUserEmail = Provider.of<AuthService>(context, listen: false).currentUser?.email;
         for (var message in messages) {
           final messageText = message['text'];
           final messageSender = message['sender'];
@@ -299,6 +306,7 @@ class MessagesStream extends StatelessWidget {
           final messageBubble = MessageBubble(
             sender: messageSender,
             text: messageText,
+            isMe: currentUserEmail == messageSender,
           );
 
           messageBubbles.add(messageBubble);
@@ -331,17 +339,18 @@ class MessagesStream extends StatelessWidget {
 }
 
 class MessageBubble extends StatelessWidget {
-  const MessageBubble({Key? key, required this.sender, required this.text}) : super(key: key);
+  const MessageBubble({super.key, required this.sender, required this.text, required this.isMe});
 
   final String sender;
   final String text;
+  final bool isMe;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.all(10.0),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: isMe ? CrossAxisAlignment.end : CrossAxisAlignment.start,
         children: <Widget>[
           Text(
             sender,
@@ -351,16 +360,32 @@ class MessageBubble extends StatelessWidget {
             ),
           ),
           Material(
-            borderRadius: const BorderRadius.all(Radius.circular(10.0)),
+            borderRadius: BorderRadius.only(
+              topLeft: const Radius.circular(10.0),
+              topRight: const Radius.circular(10.0),
+              bottomLeft: isMe ? const Radius.circular(10.0) : const Radius.circular(0.0),
+              bottomRight: isMe ? const Radius.circular(0.0) : const Radius.circular(10.0),
+            ),
             elevation: 5.0,
-            color: Colors.blueAccent,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
-              child: Text(
-                text,
-                style: const TextStyle(
-                  fontSize: 15.0,
-                  color: Colors.white,
+            color: isMe ? const Color.fromARGB(255, 250, 232, 167) : Colors.white,
+            child: Container(
+              decoration: BoxDecoration(
+                border: Border.all(color: Colors.black), // Contorno nero
+                borderRadius: BorderRadius.only(
+              topLeft: const Radius.circular(10.0),
+              topRight: const Radius.circular(10.0),
+              bottomLeft: isMe ? const Radius.circular(10.0) : const Radius.circular(0.0),
+              bottomRight: isMe ? const Radius.circular(0.0) : const Radius.circular(10.0),
+            ),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 20.0),
+                child: Text(
+                  text,
+                  style: TextStyle(
+                    fontSize: 15.0,
+                    color: isMe ? Colors.black : Colors.black, // Testo bianco per i propri messaggi
+                  ),
                 ),
               ),
             ),
@@ -370,3 +395,4 @@ class MessageBubble extends StatelessWidget {
     );
   }
 }
+  

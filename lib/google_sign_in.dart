@@ -1,3 +1,5 @@
+// ignore_for_file: unused_local_variable, library_private_types_in_public_api, sort_child_properties_last, use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'auth_service.dart';
@@ -29,7 +31,7 @@ class _GoogleSignInScreenState extends State<GoogleSignInScreen> {
   bool _validateInputs() {
     if (_firstNameController.text.isEmpty || _lastNameController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('Inserisci nome e cognome', style: TextStyle(color: Colors.white)),
           backgroundColor: Colors.black,
         ),
@@ -38,7 +40,7 @@ class _GoogleSignInScreenState extends State<GoogleSignInScreen> {
     }
     if ((_role != 'Staff' || !_generateNewCode) && _facilityCodeController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
+        const SnackBar(
           content: Text('Inserisci il codice struttura', style: TextStyle(color: Colors.white)),
           backgroundColor: Colors.black,
         ),
@@ -53,10 +55,10 @@ class _GoogleSignInScreenState extends State<GoogleSignInScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text('Registrati con Google', style: TextStyle(color: Colors.black)),
+        title: const Text('Registrati con Google', style: TextStyle(color: Colors.black)),
         backgroundColor: Colors.white,
         elevation: 0,
-        iconTheme: IconThemeData(color: Colors.black),
+        iconTheme: const IconThemeData(color: Colors.black),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -65,7 +67,7 @@ class _GoogleSignInScreenState extends State<GoogleSignInScreen> {
           children: <Widget>[
             TextField(
               controller: _firstNameController,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'Nome',
                 labelStyle: TextStyle(color: Colors.black),
                 focusedBorder: OutlineInputBorder(
@@ -79,7 +81,7 @@ class _GoogleSignInScreenState extends State<GoogleSignInScreen> {
             const SizedBox(height: 10),
             TextField(
               controller: _lastNameController,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'Cognome',
                 labelStyle: TextStyle(color: Colors.black),
                 focusedBorder: OutlineInputBorder(
@@ -107,7 +109,7 @@ class _GoogleSignInScreenState extends State<GoogleSignInScreen> {
                   .map<DropdownMenuItem<String>>((String value) {
                 return DropdownMenuItem<String>(
                   value: value,
-                  child: Text(value, style: TextStyle(color: Colors.black)),
+                  child: Text(value, style: const TextStyle(color: Colors.black)),
                 );
               }).toList(),
             ),
@@ -130,7 +132,7 @@ class _GoogleSignInScreenState extends State<GoogleSignInScreen> {
             if (_role != 'Staff' || !_generateNewCode)
               TextField(
                 controller: _facilityCodeController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: 'Codice struttura',
                   labelStyle: TextStyle(color: Colors.black),
                   focusedBorder: OutlineInputBorder(
@@ -144,11 +146,11 @@ class _GoogleSignInScreenState extends State<GoogleSignInScreen> {
             const SizedBox(height: 20),
             ElevatedButton(
               child: _isLoading 
-                ? CircularProgressIndicator(color: Colors.white)
+                ? const CircularProgressIndicator(color: Colors.white)
                 : const Text('Entra con Google', style: TextStyle(color: Colors.white)),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.black,
-                minimumSize: Size(double.infinity, 50),
+                minimumSize: const Size(double.infinity, 50),
               ),
               onPressed: () async {
                 if (_validateInputs()) {
@@ -170,7 +172,7 @@ class _GoogleSignInScreenState extends State<GoogleSignInScreen> {
                   } catch (e) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: Text('Errore: ${e.toString()}', style: TextStyle(color: Colors.white)),
+                        content: Text('Errore: ${e.toString()}', style: const TextStyle(color: Colors.white)),
                         backgroundColor: Colors.black,
                       ),
                     );

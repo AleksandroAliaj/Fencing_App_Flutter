@@ -1,3 +1,5 @@
+// ignore_for_file: use_super_parameters, library_private_types_in_public_api
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart' show rootBundle;
 import 'package:csv/csv.dart';
@@ -49,7 +51,7 @@ class _SearchScreenState extends State<SearchScreen> {
     }
 
     String csvData = await rootBundle.loadString('assets/$fileName');
-    List<List<dynamic>> csvTable = CsvToListConverter().convert(csvData, fieldDelimiter: ';');
+    List<List<dynamic>> csvTable = const CsvToListConverter().convert(csvData, fieldDelimiter: ';');
     
     setState(() {
       _athletes = csvTable.skip(1).map((row) {
@@ -88,21 +90,21 @@ class _SearchScreenState extends State<SearchScreen> {
               decoration: InputDecoration(
                 hintText: 'Cerca un atleta',
                 suffixIcon: IconButton(
-                  icon: Icon(Icons.search),
+                  icon: const Icon(Icons.search),
                   onPressed: _onSearch,
                 ),
               ),
               onChanged: (value) => _onSearch(),
             ),
-            SizedBox(height: 16),
+            const SizedBox(height: 16),
             Text(
               'Top 10 Atleti',
               style: Theme.of(context).textTheme.titleLarge,
             ),
-            SizedBox(height: 8),
+            const SizedBox(height: 8),
             Expanded(
               child: _searchResults.isEmpty
-                ? Center(child: Text('Nessun risultato trovato'))
+                ? const Center(child: Text('Nessun risultato trovato'))
                 : ListView.builder(
                     itemCount: _searchController.text.isEmpty ? _top10Athletes.length : _searchResults.length,
                     itemBuilder: (context, index) {

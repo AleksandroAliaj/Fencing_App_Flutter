@@ -1,6 +1,7 @@
+// ignore_for_file: use_super_parameters, library_private_types_in_public_api, use_build_context_synchronously, prefer_final_fields, unnecessary_to_list_in_spreads
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
 import 'auth_service.dart';
 import 'package:intl/intl.dart';
@@ -24,7 +25,7 @@ class TrainingScreen extends StatelessWidget {
             ],
           ),
         ),
-        body: TabBarView(
+        body: const TabBarView(
           children: [
             PrivateLessonTab(),
             AssaltiTab(),
@@ -107,7 +108,7 @@ class AthleticPreparationTab extends StatelessWidget {
   }) {
     final double buttonSize = MediaQuery.of(context).size.width * 0.35;
 
-    return Container(
+    return SizedBox(
       width: buttonSize,
       height: buttonSize,
       child: ElevatedButton(
@@ -477,6 +478,8 @@ class AthletePreparationView extends StatelessWidget {
 
 //Assalti
 class AssaltiTab extends StatefulWidget {
+  const AssaltiTab({super.key});
+
   @override
   _AssaltiTabState createState() => _AssaltiTabState();
 }
@@ -501,11 +504,11 @@ class _AssaltiTabState extends State<AssaltiTab> {
         final role = snapshot.data!.toLowerCase();
 
         if (role == 'allenatore') {
-          return CoachAssaltiView();
+          return const CoachAssaltiView();
         } else if (role == 'atleta') {
-          return AthleteAssaltiView();
+          return const AthleteAssaltiView();
         } else if (role == 'staff') {
-          return StaffAssaltiView();
+          return const StaffAssaltiView();
         } else {
           return const Center(child: Text('Ruolo non riconosciuto'));
         }
@@ -515,6 +518,8 @@ class _AssaltiTabState extends State<AssaltiTab> {
 }
 
 class CoachAssaltiView extends StatelessWidget {
+  const CoachAssaltiView({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Center(
@@ -528,7 +533,7 @@ class CoachAssaltiView extends StatelessWidget {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => CreateCombattimentoScreen()),
+                MaterialPageRoute(builder: (context) => const CreateCombattimentoScreen()),
               );
             },
           ),
@@ -540,7 +545,7 @@ class CoachAssaltiView extends StatelessWidget {
             onPressed: () {
               Navigator.push(
                 context,
-                MaterialPageRoute(builder: (context) => CoachCombattimentiListScreen()),
+                MaterialPageRoute(builder: (context) => const CoachCombattimentiListScreen()),
               );
             },
           ),
@@ -557,7 +562,7 @@ class CoachAssaltiView extends StatelessWidget {
   }) {
     final double buttonSize = MediaQuery.of(context).size.width * 0.35;
 
-    return Container(
+    return SizedBox(
       width: buttonSize,
       height: buttonSize,
       child: ElevatedButton(
@@ -589,6 +594,8 @@ class CoachAssaltiView extends StatelessWidget {
 
 
 class CreateCombattimentoScreen extends StatelessWidget {
+  const CreateCombattimentoScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -599,28 +606,28 @@ class CreateCombattimentoScreen extends StatelessWidget {
             title: const Text('Libero'),
             onTap: () => Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => CreateLiberoCombattimentoScreen()),
+              MaterialPageRoute(builder: (context) => const CreateLiberoCombattimentoScreen()),
             ),
           ),
           ListTile(
             title: const Text('1 vs 1'),
             onTap: () => Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => Create1vs1CombattimentoScreen()),
+              MaterialPageRoute(builder: (context) => const Create1vs1CombattimentoScreen()),
             ),
           ),
           ListTile(
             title: const Text('A squadre'),
             onTap: () => Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => CreateTeamCombattimentoScreen()),
+              MaterialPageRoute(builder: (context) => const CreateTeamCombattimentoScreen()),
             ),
           ),
           ListTile(
             title: const Text('A tema'),
             onTap: () => Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => CreateThemedCombattimentoScreen()),
+              MaterialPageRoute(builder: (context) => const CreateThemedCombattimentoScreen()),
             ),
           ),
         ],
@@ -631,6 +638,8 @@ class CreateCombattimentoScreen extends StatelessWidget {
 
 // combattimento a tema
 class CreateThemedCombattimentoScreen extends StatefulWidget {
+  const CreateThemedCombattimentoScreen({super.key});
+
   @override
   _CreateThemedCombattimentoScreenState createState() => _CreateThemedCombattimentoScreenState();
 }
@@ -828,6 +837,8 @@ class ThemedCombattimentoDetailScreen extends StatelessWidget {
 
 // combattimento a squadre
 class CreateTeamCombattimentoScreen extends StatefulWidget {
+  const CreateTeamCombattimentoScreen({super.key});
+
   @override
   _CreateTeamCombattimentoScreenState createState() => _CreateTeamCombattimentoScreenState();
 }
@@ -837,7 +848,6 @@ class _CreateTeamCombattimentoScreenState extends State<CreateTeamCombattimentoS
   DateTime _selectedDate = DateTime.now();
   TimeOfDay _selectedTime = TimeOfDay.now();
   List<Map<String, List<String>>> _teams = [];
-  String _newTeamName = '';
   String _newAthleteName = '';
   String _newAthleteSurname = '';
   int _currentTeamIndex = 0;
@@ -983,6 +993,8 @@ class _CreateTeamCombattimentoScreenState extends State<CreateTeamCombattimentoS
 
 // 1 vs 1
 class Create1vs1CombattimentoScreen extends StatefulWidget {
+  const Create1vs1CombattimentoScreen({super.key});
+
   @override
   _Create1vs1CombattimentoScreenState createState() => _Create1vs1CombattimentoScreenState();
 }
@@ -1104,6 +1116,8 @@ class _Create1vs1CombattimentoScreenState extends State<Create1vs1CombattimentoS
 
 // combattimento libero
 class CreateLiberoCombattimentoScreen extends StatefulWidget {
+  const CreateLiberoCombattimentoScreen({super.key});
+
   @override
   _CreateLiberoCombattimentoScreenState createState() => _CreateLiberoCombattimentoScreenState();
 }
@@ -1231,7 +1245,7 @@ class _CreateLiberoCombattimentoScreenState extends State<CreateLiberoCombattime
 
 extension StringExtension on String {
   String capitalize() {
-    return "${this[0].toUpperCase()}${this.substring(1)}";
+    return "${this[0].toUpperCase()}${substring(1)}";
   }
 }
 
@@ -1335,7 +1349,7 @@ class CombattimentiList extends StatelessWidget {
 
                 return ListTile(
                   title: Text('${data['type'].toString().capitalize()} - ${data['time']}'),
-                  subtitle: Text(subtitle ?? ''),
+                  subtitle: Text(subtitle),
                   trailing: trailingIcon,
                 );
               }).toList(),
@@ -1435,6 +1449,8 @@ class TeamCombattimentoDetailScreen extends StatelessWidget {
 
 // Update the CoachCombattimentiListScreen to use the CombattimentiList widget
 class CoachCombattimentiListScreen extends StatelessWidget {
+  const CoachCombattimentiListScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     final authService = Provider.of<AuthService>(context, listen: false);
@@ -1472,6 +1488,8 @@ class CoachCombattimentiListScreen extends StatelessWidget {
 
 // Update the AthleteAssaltiView to use the CombattimentiList widget
 class AthleteAssaltiView extends StatelessWidget {
+  const AthleteAssaltiView({super.key});
+
   @override
   Widget build(BuildContext context) {
     final authService = Provider.of<AuthService>(context, listen: false);
@@ -1504,6 +1522,8 @@ class AthleteAssaltiView extends StatelessWidget {
 
 // Update the StaffAssaltiView to use the CombattimentiList widget
 class StaffAssaltiView extends StatelessWidget {
+  const StaffAssaltiView({super.key});
+
   @override
   Widget build(BuildContext context) {
     final authService = Provider.of<AuthService>(context, listen: false);
@@ -1592,7 +1612,7 @@ class _PrivateLessonTabState extends State<PrivateLessonTab> {
                 onPressed: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => CoachLessonsScreen()),
+                    MaterialPageRoute(builder: (context) => const CoachLessonsScreen()),
                   );
                 },
               ),
@@ -1600,9 +1620,9 @@ class _PrivateLessonTabState extends State<PrivateLessonTab> {
           ),
         );
         } else if (role == 'atleta') {
-          return AthleteLesson();
+          return const AthleteLesson();
         } else if (role == 'staff') {
-          return StaffLessonView();
+          return const StaffLessonView();
         } else {
           return const Center(child: Text('Ruolo non riconosciuto'));
         }
@@ -1619,7 +1639,7 @@ Widget _buildSquareButton({
 }) {
   final double buttonSize = MediaQuery.of(context).size.width * 0.35;
 
-  return Container(
+  return SizedBox(
     width: buttonSize,
     height: buttonSize,
     child: ElevatedButton(
@@ -1652,7 +1672,7 @@ Widget _buildSquareButton({
 class CreateLessonScreen extends StatefulWidget {
   final VoidCallback onCancel;
 
-  const CreateLessonScreen({required this.onCancel});
+  const CreateLessonScreen({super.key, required this.onCancel});
 
   @override
   _CreateLessonScreenState createState() => _CreateLessonScreenState();
@@ -1795,6 +1815,8 @@ class _CreateLessonScreenState extends State<CreateLessonScreen> {
 }
 
 class CoachLessonsScreen extends StatelessWidget {
+  const CoachLessonsScreen({super.key});
+
   @override
   Widget build(BuildContext context) {
     final authService = Provider.of<AuthService>(context, listen: false);
@@ -1903,6 +1925,8 @@ class CoachLessonsScreen extends StatelessWidget {
 }
 
 class AthleteLesson extends StatelessWidget {
+  const AthleteLesson({super.key});
+
   @override
   Widget build(BuildContext context) {
     final authService = Provider.of<AuthService>(context, listen: false);
@@ -2006,6 +2030,8 @@ class AthleteLesson extends StatelessWidget {
 }
 
 class StaffLessonView extends StatelessWidget {
+  const StaffLessonView({super.key});
+
   @override
   Widget build(BuildContext context) {
     final authService = Provider.of<AuthService>(context, listen: false);

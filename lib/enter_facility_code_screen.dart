@@ -1,3 +1,5 @@
+// ignore_for_file: library_private_types_in_public_api, sort_child_properties_last, use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'auth_service.dart';
@@ -38,7 +40,7 @@ class _EnterFacilityCodeScreenState extends State<EnterFacilityCodeScreen> {
       context: context,
       barrierDismissible: false,
       builder: (context) {
-        return AlertDialog(
+        return const AlertDialog(
           backgroundColor: Colors.white,
           content: Row(
             children: [
@@ -59,11 +61,11 @@ class _EnterFacilityCodeScreenState extends State<EnterFacilityCodeScreen> {
       builder: (context) {
         return AlertDialog(
           backgroundColor: Colors.white,
-          title: Text('Errore', style: TextStyle(color: Colors.black)),
-          content: Text(message, style: TextStyle(color: Colors.black)),
+          title: const Text('Errore', style: TextStyle(color: Colors.black)),
+          content: Text(message, style: const TextStyle(color: Colors.black)),
           actions: [
             TextButton(
-              child: Text('OK', style: TextStyle(color: Colors.black)),
+              child: const Text('OK', style: TextStyle(color: Colors.black)),
               onPressed: () => Navigator.of(context).pop(),
             ),
           ],
@@ -77,10 +79,10 @@ class _EnterFacilityCodeScreenState extends State<EnterFacilityCodeScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text('Inserisci il codice struttura', style: TextStyle(color: Colors.black)),
+        title: const Text('Inserisci il codice struttura', style: TextStyle(color: Colors.black)),
         backgroundColor: Colors.white,
         elevation: 0,
-        iconTheme: IconThemeData(color: Colors.black),
+        iconTheme: const IconThemeData(color: Colors.black),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -89,7 +91,7 @@ class _EnterFacilityCodeScreenState extends State<EnterFacilityCodeScreen> {
           children: <Widget>[
             TextField(
               controller: _facilityCodeController,
-              decoration: InputDecoration(
+              decoration: const InputDecoration(
                 labelText: 'Codice struttura',
                 labelStyle: TextStyle(color: Colors.black),
                 focusedBorder: OutlineInputBorder(
@@ -109,11 +111,11 @@ class _EnterFacilityCodeScreenState extends State<EnterFacilityCodeScreen> {
             const SizedBox(height: 20),
             ElevatedButton(
               child: _isLoading 
-                ? CircularProgressIndicator(color: Colors.white)
-                : Text('Registrati', style: TextStyle(color: Colors.white)),
+                ? const CircularProgressIndicator(color: Colors.white)
+                : const Text('Registrati', style: TextStyle(color: Colors.white)),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.black,
-                minimumSize: Size(double.infinity, 50),
+                minimumSize: const Size(double.infinity, 50),
               ),
               onPressed: () async {
                 final String facilityCode = _facilityCodeController.text.trim();

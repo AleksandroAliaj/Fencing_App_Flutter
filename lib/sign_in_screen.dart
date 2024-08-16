@@ -1,3 +1,5 @@
+// ignore_for_file: library_private_types_in_public_api, sort_child_properties_last, use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'auth_service.dart';
@@ -32,7 +34,7 @@ class _SignInScreenState extends State<SignInScreen> {
       context: context,
       barrierDismissible: false,
       builder: (context) {
-        return AlertDialog(
+        return const AlertDialog(
           backgroundColor: Colors.white,
           content: Row(
             children: [
@@ -53,11 +55,11 @@ class _SignInScreenState extends State<SignInScreen> {
       builder: (context) {
         return AlertDialog(
           backgroundColor: Colors.white,
-          title: Text('Attenzione', style: TextStyle(color: Colors.black)),
-          content: Text(message, style: TextStyle(color: Colors.black)),
+          title: const Text('Attenzione', style: TextStyle(color: Colors.black)),
+          content: Text(message, style: const TextStyle(color: Colors.black)),
           actions: [
             TextButton(
-              child: Text('OK', style: TextStyle(color: Colors.black)),
+              child: const Text('OK', style: TextStyle(color: Colors.black)),
               onPressed: () => Navigator.of(context).pop(),
             ),
           ],
@@ -88,7 +90,7 @@ class _SignInScreenState extends State<SignInScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text('Fencing', style: TextStyle(color: Colors.black)),
+        title: const Text('Fencing', style: TextStyle(color: Colors.black)),
         backgroundColor: Colors.white,
         elevation: 0,
       ),
@@ -102,45 +104,45 @@ class _SignInScreenState extends State<SignInScreen> {
               decoration: InputDecoration(
                 labelText: 'Email',
                 errorText: _emailError,
-                labelStyle: TextStyle(color: Colors.black),
-                errorStyle: TextStyle(color: Colors.red),
-                focusedBorder: OutlineInputBorder(
+                labelStyle: const TextStyle(color: Colors.black),
+                errorStyle: const TextStyle(color: Colors.red),
+                focusedBorder: const OutlineInputBorder(
                   borderSide: BorderSide(color: Colors.black),
                 ),
-                enabledBorder: OutlineInputBorder(
+                enabledBorder: const OutlineInputBorder(
                   borderSide: BorderSide(color: Colors.black),
                 ),
               ),
-              style: TextStyle(color: Colors.black),
+              style: const TextStyle(color: Colors.black),
               onChanged: (value) => _validateInputs(),
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             TextField(
               controller: _passwordController,
               decoration: InputDecoration(
                 labelText: 'Password',
                 errorText: _passwordError,
-                labelStyle: TextStyle(color: Colors.black),
-                errorStyle: TextStyle(color: Colors.red),
-                focusedBorder: OutlineInputBorder(
+                labelStyle: const TextStyle(color: Colors.black),
+                errorStyle: const TextStyle(color: Colors.red),
+                focusedBorder: const OutlineInputBorder(
                   borderSide: BorderSide(color: Colors.black),
                 ),
-                enabledBorder: OutlineInputBorder(
+                enabledBorder: const OutlineInputBorder(
                   borderSide: BorderSide(color: Colors.black),
                 ),
               ),
               obscureText: true,
-              style: TextStyle(color: Colors.black),
+              style: const TextStyle(color: Colors.black),
               onChanged: (value) => _validateInputs(),
             ),
-            SizedBox(height: 30),
+            const SizedBox(height: 30),
             ElevatedButton(
               child: _isLoading 
-                ? CircularProgressIndicator(color: Colors.white)
-                : Text('Entra', style: TextStyle(color: Colors.white)),
+                ? const CircularProgressIndicator(color: Colors.white)
+                : const Text('Entra', style: TextStyle(color: Colors.white)),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.black,
-                minimumSize: Size(double.infinity, 50),
+                minimumSize: const Size(double.infinity, 50),
               ),
               onPressed: () async {
                 if (_isFormValid()) {
@@ -165,15 +167,15 @@ class _SignInScreenState extends State<SignInScreen> {
                 }
               },
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             Row(
               children: [
                 Expanded(
                   child: ElevatedButton(
-                    child: Text('Google', style: TextStyle(color: Colors.white)),
+                    child: const Text('Google', style: TextStyle(color: Colors.white)),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.black,
-                      minimumSize: Size(0, 50),  // Altezza fissa, larghezza adattiva
+                      minimumSize: const Size(0, 50),  // Altezza fissa, larghezza adattiva
                       padding: EdgeInsets.zero,  // Rimuove il padding interno
                     ),
                     onPressed: () {
@@ -183,13 +185,13 @@ class _SignInScreenState extends State<SignInScreen> {
                     },
                   ),
                 ),
-                SizedBox(width: 10),
+                const SizedBox(width: 10),
                 Expanded(
                   child: ElevatedButton(
-                    child: Text('Registrati', style: TextStyle(color: Colors.white)),
+                    child: const Text('Registrati', style: TextStyle(color: Colors.white)),
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.black,
-                      minimumSize: Size(0, 50),  // Altezza fissa, larghezza adattiva
+                      minimumSize: const Size(0, 50),  // Altezza fissa, larghezza adattiva
                       padding: EdgeInsets.zero,  // Rimuove il padding interno
                     ),
                     onPressed: () {
@@ -202,12 +204,12 @@ class _SignInScreenState extends State<SignInScreen> {
               ],
             ),
             if (_showGoogleOptions) ...[
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               ElevatedButton(
-                child: Text('Registrati con Google', style: TextStyle(color: Colors.white)),
+                child: const Text('Registrati con Google', style: TextStyle(color: Colors.white)),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.black,
-                  minimumSize: Size(double.infinity, 50),
+                  minimumSize: const Size(double.infinity, 50),
                 ),
                 onPressed: () {
                   Navigator.of(context).push(
@@ -215,12 +217,12 @@ class _SignInScreenState extends State<SignInScreen> {
                   );
                 },
               ),
-              SizedBox(height: 10),
+              const SizedBox(height: 10),
               ElevatedButton(
-                child: Text('Entra con Google', style: TextStyle(color: Colors.white)),
+                child: const Text('Entra con Google', style: TextStyle(color: Colors.white)),
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.black,
-                  minimumSize: Size(double.infinity, 50),
+                  minimumSize: const Size(double.infinity, 50),
                 ),
                 onPressed: () async {
                   setState(() => _isLoading = true);

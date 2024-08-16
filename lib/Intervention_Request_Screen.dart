@@ -1,5 +1,7 @@
 // intervention_request_screen.dart
 
+// ignore_for_file: file_names, use_super_parameters, avoid_print, use_build_context_synchronously, library_private_types_in_public_api
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
@@ -51,33 +53,69 @@ Widget _buildBody(BuildContext context, String role, String? userId) {
   switch (role.toLowerCase()) {
     case 'atleta':
     case 'allenatore':
-      return Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          ElevatedButton(
-            onPressed: () => _navigateToMyRequests(context, userId!),
-            child: const Text('Le Mie Richieste'),
-          ),
-        ],
+      return Center(
+        child: _buildStyledButton(
+          context,
+          'Le Mie Richieste',
+          Icons.list,
+          () => _navigateToMyRequests(context, userId!),
+        ),
       );
     case 'staff':
-      return Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          ElevatedButton(
-            onPressed: () => _navigateToNewRequest(context, userId!),
-            child: const Text('Nuova Richiesta'),
-          ),
-          const SizedBox(height: 20),
-          ElevatedButton(
-            onPressed: () => _navigateToRequestList(context),
-            child: const Text('Elenco Richieste'),
-          ),
-        ],
+      return Center(
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            _buildStyledButton(
+              context,
+              'Nuova Richiesta',
+              Icons.add_circle_outline,
+              () => _navigateToNewRequest(context, userId!),
+            ),
+            _buildStyledButton(
+              context,
+              'Elenco Richieste',
+              Icons.view_list,
+              () => _navigateToRequestList(context),
+            ),
+          ],
+        ),
       );
     default:
       return Center(child: Text('Ruolo non riconosciuto: $role'));
   }
+}
+
+Widget _buildStyledButton(BuildContext context, String title, IconData icon, VoidCallback onPressed) {
+  final double buttonSize = MediaQuery.of(context).size.width * 0.30;
+
+  return Container(
+    margin: const EdgeInsets.all(8.0),
+    width: buttonSize,
+    height: buttonSize,
+    child: ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.white,
+        side: const BorderSide(color: Colors.black, width: 2),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
+      onPressed: onPressed,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: <Widget>[
+          Icon(icon, color: Colors.black, size: 35.0),
+          const SizedBox(height: 6.0),
+          Text(
+            title,
+            textAlign: TextAlign.center,
+            style: const TextStyle(color: Colors.black),
+          ),
+        ],
+      ),
+    ),
+  );
 }
 
   void _navigateToNewRequest(BuildContext context, String userId) async {
@@ -153,7 +191,6 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
 
   Future<void> _submitRequest() async {
     if (_repairController.text.isNotEmpty && _descriptionController.text.isNotEmpty && _selectedUserId != null) {
-      final userData = await Provider.of<AuthService>(context, listen: false).getUserData(widget.userId);
       final selectedUser = _users.firstWhere((user) => user['id'] == _selectedUserId);
 
       await FirebaseFirestore.instance.collection('intervention_requests').add({
@@ -344,12 +381,12 @@ class RequestListScreen extends StatelessWidget {
                                 ? Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      Text(
+                                      const Text(
                                         'Riparato',
                                         style: TextStyle(color: Colors.green),
                                       ),
                                       IconButton(
-                                        icon: Icon(Icons.delete, color: Colors.red),
+                                        icon: const Icon(Icons.delete, color: Colors.red),
                                         onPressed: () async {
                                           final shouldDelete = await showDialog<bool>(
                                             context: context,

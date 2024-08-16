@@ -1,3 +1,5 @@
+// ignore_for_file: use_super_parameters, avoid_print, use_key_in_widget_constructors, library_private_types_in_public_api, use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
@@ -315,7 +317,7 @@ class NewsList extends StatelessWidget {
                       subtitle: Text(doc['description']),
                       trailing: role.toLowerCase() == 'staff'
                           ? IconButton(
-                              icon: Icon(Icons.delete, color: Colors.red),
+                              icon: const Icon(Icons.delete, color: Colors.red),
                               onPressed: () async {
                                 final shouldDelete = await showDialog<bool>(
                                   context: context,

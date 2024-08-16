@@ -1,6 +1,7 @@
+// ignore_for_file: use_super_parameters, avoid_print, use_build_context_synchronously, library_private_types_in_public_api, unnecessary_const
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:provider/provider.dart';
 import 'auth_service.dart';
 
@@ -311,30 +312,6 @@ class _EditProductsScreenState extends State<EditProductsScreen> {
     );
   }
 
-  void _deleteSelectedProducts() async {
-    try {
-      WriteBatch batch = FirebaseFirestore.instance.batch();
-
-      for (String productId in selectedProducts) {
-        DocumentReference productRef = FirebaseFirestore.instance.collection('products').doc(productId);
-        batch.delete(productRef);
-      }
-
-      await batch.commit();
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Prodotti eliminati con successo')),
-      );
-
-      setState(() {
-        selectedProducts.clear();
-      });
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Errore durante l\'eliminazione dei prodotti: $e')),
-      );
-    }
-  }
 }
 
 class ProductDetailScreen extends StatelessWidget {
@@ -362,16 +339,63 @@ class ProductDetailScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text('Category: $category', style: Theme.of(context).textTheme.titleLarge),
-            const SizedBox(height: 8),
-            Text('Title: $title', style: Theme.of(context).textTheme.headlineSmall),
-            const SizedBox(height: 8),
-            Text('Description: $description', style: Theme.of(context).textTheme.bodyLarge),
-            const SizedBox(height: 8),
-            Text('Price: $price €', style: Theme.of(context).textTheme.bodyLarge),
+            Text(
+              category,
+              style: Theme.of(context).textTheme.titleLarge!.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey[700],
+                  ),
+            ),
             const SizedBox(height: 16),
-            Text('Prodotto disponibile in struttura', style: Theme.of(context).textTheme.bodyLarge),
-
+            Text(
+              title,
+              style: Theme.of(context).textTheme.headlineSmall!.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+            ),
+            const Divider(height: 32, thickness: 2),
+            Text(
+              'Description:',
+              style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey[800],
+                  ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              description,
+              style: Theme.of(context).textTheme.bodyLarge!.copyWith(
+                    color: Colors.black87,
+                    height: 1.5,
+                  ),
+            ),
+            const Divider(height: 32, thickness: 2),
+            Text(
+              'Price:',
+              style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey[800],
+                  ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              '$price €',
+              style: Theme.of(context).textTheme.headlineSmall!.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.green[700],
+                  ),
+            ),
+            const SizedBox(height: 16),
+            const Center(
+              child: const Text('Prodotto disponibile in struttura'),
+              // child: ElevatedButton(
+              //   onPressed: () {
+              //     // Logica per l'acquisto del prodotto
+              //   },
+              //   child: const Text('Compra Ora'),
+              // ),
+            ),
           ],
         ),
       ),

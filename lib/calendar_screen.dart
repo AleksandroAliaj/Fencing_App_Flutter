@@ -1,3 +1,5 @@
+// ignore_for_file: avoid_print, library_private_types_in_public_api, use_build_context_synchronously, use_super_parameters, use_key_in_widget_constructors, unused_element, prefer_final_fields
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:provider/provider.dart';
@@ -5,7 +7,7 @@ import 'package:table_calendar/table_calendar.dart';
 import 'auth_service.dart';
 
 class CalendarScreen extends StatelessWidget {
-  const CalendarScreen({Key? key}) : super(key: key);
+  const CalendarScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -130,7 +132,7 @@ class CalendarScreen extends StatelessWidget {
   ) {
     final double buttonSize = MediaQuery.of(context).size.width * 0.35; // Imposta la dimensione del bottone al 40% della larghezza dello schermo
 
-    return Container(
+    return SizedBox(
       width: buttonSize,
       height: buttonSize,
       child: ElevatedButton(
@@ -161,7 +163,7 @@ class CalendarScreen extends StatelessWidget {
   void _navigateToAddEvent(BuildContext context) {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => AddEventScreen()),
+      MaterialPageRoute(builder: (context) => const AddEventScreen()),
     );
   }
 
@@ -188,6 +190,8 @@ class CalendarScreen extends StatelessWidget {
 }
 
 class AddEventScreen extends StatefulWidget {
+  const AddEventScreen({super.key});
+
   @override
   _AddEventScreenState createState() => _AddEventScreenState();
 }
@@ -290,12 +294,12 @@ class _AddEventScreenState extends State<AddEventScreen> {
           children: [
             ListTile(
               title: Text(_selectedDate == null ? 'Seleziona Data' : 'Data: ${_selectedDate!.toLocal()}'),
-              trailing: Icon(Icons.calendar_today),
+              trailing: const Icon(Icons.calendar_today),
               onTap: _selectDate,
             ),
             ListTile(
               title: Text(_selectedTime == null ? 'Seleziona Ora' : 'Ora: ${_selectedTime!.format(context)}'),
-              trailing: Icon(Icons.access_time),
+              trailing: const Icon(Icons.access_time),
               onTap: _selectTime,
             ),
             TextField(
@@ -370,7 +374,7 @@ class EventList extends StatelessWidget {
 
             for (final doc in eventDocuments) {
               final date = (doc['date'] as Timestamp).toDate();
-              if (date.add(Duration(days: 1)).isBefore(now)) {
+              if (date.add(const Duration(days: 1)).isBefore(now)) {
                 // Elimina l'evento scaduto
                 doc.reference.delete();
               }
@@ -379,7 +383,7 @@ class EventList extends StatelessWidget {
             // Filtra gli eventi non scaduti per la visualizzazione
             final validEventDocuments = eventDocuments.where((doc) {
               final date = (doc['date'] as Timestamp).toDate();
-              return date.add(Duration(days: 1)).isAfter(now);
+              return date.add(const Duration(days: 1)).isAfter(now);
             }).toList();
 
             return ListView(
@@ -453,8 +457,6 @@ class EventListScreen extends StatelessWidget {
           );
         }
 
-        final userData = snapshot.data!;
-        final role = userData['role'];
 
         return Scaffold(
           appBar: AppBar(
@@ -675,7 +677,7 @@ class DeadlineListScreen extends StatelessWidget {
               }
 
               final now = DateTime.now();
-              final twelveMonthsAgo = now.subtract(Duration(days: 200));
+              final twelveMonthsAgo = now.subtract(const Duration(days: 200));
 
               // Rimuovi scadenze più vecchie 
               final validDeadlines = snapshot.data!.docs.where((doc) {
@@ -774,7 +776,7 @@ class DeadlineList extends StatelessWidget {
             }
 
             final now = DateTime.now();
-            final twelveMonthsAgo = now.subtract(Duration(days: 200));
+            final twelveMonthsAgo = now.subtract(const Duration(days: 200));
 
             // Rimuovi scadenze più vecchie 
             final validDeadlines = snapshot.data!.docs.where((doc) {
@@ -964,7 +966,7 @@ class _AgendaTabState extends State<AgendaTab> {
           calendarFormat: _calendarFormat,
           eventLoader: _getEventsForDay,
           startingDayOfWeek: StartingDayOfWeek.monday,
-          calendarStyle: CalendarStyle(
+          calendarStyle: const CalendarStyle(
             outsideDaysVisible: false,
             markerDecoration: BoxDecoration(
               color: Colors.green,
@@ -1032,7 +1034,7 @@ class _AgendaTabState extends State<AgendaTab> {
         ),
         actions: [
           TextButton(
-            child: Text('Chiudi'),
+            child: const Text('Chiudi'),
             onPressed: () => Navigator.of(context).pop(),
           ),
         ],

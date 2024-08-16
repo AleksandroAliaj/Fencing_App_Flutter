@@ -1,3 +1,5 @@
+// ignore_for_file: library_private_types_in_public_api, sort_child_properties_last, use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'auth_service.dart';
@@ -41,7 +43,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       context: context,
       barrierDismissible: false,
       builder: (context) {
-        return AlertDialog(
+        return const AlertDialog(
           backgroundColor: Colors.white,
           content: Row(
             children: [
@@ -62,11 +64,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
       builder: (context) {
         return AlertDialog(
           backgroundColor: Colors.white,
-          title: Text('Errore', style: TextStyle(color: Colors.black)),
-          content: Text(message, style: TextStyle(color: Colors.black)),
+          title: const Text('Errore', style: TextStyle(color: Colors.black)),
+          content: Text(message, style: const TextStyle(color: Colors.black)),
           actions: [
             TextButton(
-              child: Text('OK', style: TextStyle(color: Colors.black)),
+              child: const Text('OK', style: TextStyle(color: Colors.black)),
               onPressed: () => Navigator.of(context).pop(),
             ),
           ],
@@ -98,10 +100,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text('Registrati', style: TextStyle(color: Colors.black)),
+        title: const Text('Registrati', style: TextStyle(color: Colors.black)),
         backgroundColor: Colors.white,
         elevation: 0,
-        iconTheme: IconThemeData(color: Colors.black),
+        iconTheme: const IconThemeData(color: Colors.black),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
@@ -109,21 +111,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
             _buildTextField(_firstNameController, 'Nome'),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             _buildTextField(_lastNameController, 'Cognome'),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             _buildTextField(_emailController, 'Email', errorText: _emailError),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             _buildTextField(_passwordController, 'Password', isPassword: true, errorText: _passwordError),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             _buildTextField(_repeatPasswordController, 'Ripeti la password', isPassword: true, errorText: _repeatPasswordError),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             Container(
               decoration: BoxDecoration(
                 border: Border.all(color: Colors.black),
                 borderRadius: BorderRadius.circular(4),
               ),
-              padding: EdgeInsets.symmetric(horizontal: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 12),
               child: DropdownButtonHideUnderline(
                 child: DropdownButton<String>(
                   value: _role,
@@ -136,18 +138,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       .map<DropdownMenuItem<String>>((String value) {
                     return DropdownMenuItem<String>(
                       value: value,
-                      child: Text(value, style: TextStyle(color: Colors.black)),
+                      child: Text(value, style: const TextStyle(color: Colors.black)),
                     );
                   }).toList(),
                   isExpanded: true,
-                  icon: Icon(Icons.arrow_drop_down, color: Colors.black),
+                  icon: const Icon(Icons.arrow_drop_down, color: Colors.black),
                   dropdownColor: Colors.white,
-                  style: TextStyle(color: Colors.black),
+                  style: const TextStyle(color: Colors.black),
                 ),
               ),
             ),
             if (_role == 'Staff') ...[
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               Row(
                 children: [
                   Checkbox(
@@ -159,22 +161,22 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     },
                     activeColor: Colors.black,
                   ),
-                  Text('Genera un nuovo codice struttura', style: TextStyle(color: Colors.black)),
+                  const Text('Genera un nuovo codice struttura', style: TextStyle(color: Colors.black)),
                 ],
               ),
               if (!_generateNewCode) ...[
-                SizedBox(height: 20),  // Aggiunto spazio extra qui
+                const SizedBox(height: 20),  // Aggiunto spazio extra qui
                 _buildTextField(_facilityCodeController, 'Codice Struttura esistente'),
               ],
             ],
-            SizedBox(height: 30),
+            const SizedBox(height: 30),
             ElevatedButton(
               child: _isLoading 
-                ? CircularProgressIndicator(color: Colors.white)
-                : Text('Registrati', style: TextStyle(color: Colors.white)),
+                ? const CircularProgressIndicator(color: Colors.white)
+                : const Text('Registrati', style: TextStyle(color: Colors.white)),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.black,
-                minimumSize: Size(double.infinity, 50),
+                minimumSize: const Size(double.infinity, 50),
               ),
               onPressed: () async {
                 if (_isFormValid()) {
@@ -238,23 +240,23 @@ class _RegisterScreenState extends State<RegisterScreen> {
       decoration: InputDecoration(
         labelText: label,
         errorText: errorText,
-        labelStyle: TextStyle(color: Colors.black),
-        errorStyle: TextStyle(color: Colors.red),
-        focusedBorder: OutlineInputBorder(
+        labelStyle: const TextStyle(color: Colors.black),
+        errorStyle: const TextStyle(color: Colors.red),
+        focusedBorder: const OutlineInputBorder(
           borderSide: BorderSide(color: Colors.black),
         ),
-        enabledBorder: OutlineInputBorder(
+        enabledBorder: const OutlineInputBorder(
           borderSide: BorderSide(color: Colors.black),
         ),
-        errorBorder: OutlineInputBorder(
+        errorBorder: const OutlineInputBorder(
           borderSide: BorderSide(color: Colors.red),
         ),
-        focusedErrorBorder: OutlineInputBorder(
+        focusedErrorBorder: const OutlineInputBorder(
           borderSide: BorderSide(color: Colors.red),
         ),
       ),
       obscureText: isPassword,
-      style: TextStyle(color: Colors.black),
+      style: const TextStyle(color: Colors.black),
       onChanged: (value) => _validateInputs(),
     );
   }

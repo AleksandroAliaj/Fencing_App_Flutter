@@ -1,6 +1,6 @@
 // chat_selection_screen.dart
 
-// ignore_for_file: unnecessary_null_comparison, use_super_parameters, avoid_print, use_build_context_synchronously
+// ignore_for_file: unnecessary_null_comparison, use_super_parameters, avoid_print, use_build_context_synchronously, library_private_types_in_public_api
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -8,8 +8,15 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'auth_service.dart';
 import 'chat_screen.dart';
 
-class ChatSelectionScreen extends StatelessWidget {
+class ChatSelectionScreen extends StatefulWidget {
   const ChatSelectionScreen({Key? key}) : super(key: key);
+
+  @override
+  _ChatSelectionScreenState createState() => _ChatSelectionScreenState();
+}
+
+class _ChatSelectionScreenState extends State<ChatSelectionScreen> {
+  bool _isEditMode = false; // Aggiungi questa variabile per gestire la modalità modifica
 
   @override
   Widget build(BuildContext context) {
@@ -57,7 +64,7 @@ class ChatSelectionScreen extends StatelessWidget {
                 chatOptions.add(ChatOption('Chat Atleti', () => _navigateToChat(context, 'athletes')));
               }
 
-              // Add private chats
+              // Aggiungi le chat private
               if (chatSnapshot.hasData) {
                 for (var doc in chatSnapshot.data!.docs) {
                   final chatData = doc.data() as Map<String, dynamic>;
@@ -66,10 +73,11 @@ class ChatSelectionScreen extends StatelessWidget {
                   chatOptions.add(ChatOption(
                     chatData['participantEmails'][otherUserId],
                     () => _navigateToChat(context, 'private', chatId: doc.id),
-                    onDelete: () => _deletePrivateChat(context, doc.id),
+                    onDelete: _isEditMode ? () => _deletePrivateChat(context, doc.id) : null, // Mostra il tasto elimina solo in modalità modifica
                   ));
                 }
               }
+
               return ListView.builder(
                 itemCount: chatOptions.length,
                 itemBuilder: (context, index) {
@@ -89,11 +97,33 @@ class ChatSelectionScreen extends StatelessWidget {
           );
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => _showCreateChatDialog(context),
-        child: const Icon(Icons.add),
+      floatingActionButton: Stack(
+        children: [
+          Positioned(
+            bottom: 0,
+            left: 60, // Posiziona il bottone modifica a sinistra
+            child: FloatingActionButton(
+              onPressed: _toggleEditMode, // Cambia modalità modifica
+              child: const Icon(Icons.edit), // Icona per il bottone modifica
+            ),
+          ),
+          Positioned(
+            bottom: 0,
+            right: 30, // Posiziona il bottone aggiungi a destra
+            child: FloatingActionButton(
+              onPressed: () => _showCreateChatDialog(context),
+              child: const Icon(Icons.add),
+            ),
+          ),
+        ],
       ),
     );
+  }
+
+  void _toggleEditMode() {
+    setState(() {
+      _isEditMode = !_isEditMode; // Cambia lo stato di modifica
+    });
   }
 
   void _deletePrivateChat(BuildContext context, String chatId) {
@@ -121,7 +151,6 @@ class ChatSelectionScreen extends StatelessWidget {
       },
     );
   }
-
 
   void _navigateToChat(BuildContext context, String chatType, {String? chatId}) {
     Navigator.push(
@@ -178,7 +207,7 @@ class ChatSelectionScreen extends StatelessWidget {
       final currentUserName = userData['firstName'];
       final currentUserSurname = userData['lastName'];
 
-      // Check if the other user is the same as the current user
+      // Controlla se l'altro utente è lo stesso utente corrente
       if (otherFirstName == currentUserName && otherLastName == currentUserSurname) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text('Non puoi creare una chat con te stesso, digita il nome e cognome di un\'altra persona.'),
@@ -186,7 +215,7 @@ class ChatSelectionScreen extends StatelessWidget {
         return;
       }
 
-      // Check if the other user exists
+      // Controlla se l'altro utente esiste
       final otherUserQuery = await FirebaseFirestore.instance
           .collection('users')
           .where('firstName', isEqualTo: otherFirstName)
@@ -201,7 +230,7 @@ class ChatSelectionScreen extends StatelessWidget {
       final otherUserDoc = otherUserQuery.docs.first;
       final otherUserId = otherUserDoc.id;
 
-      // Check if a private chat already exists
+      // Controlla se una chat privata esiste già
       final existingChat = await FirebaseFirestore.instance
           .collection('chats')
           .where('participants', arrayContains: currentUser.uid)
@@ -217,7 +246,7 @@ class ChatSelectionScreen extends StatelessWidget {
         return;
       }
 
-      // Create a new chat
+      // Crea una nuova chat
       await FirebaseFirestore.instance.collection('chats').add({
         'participants': [currentUser.uid, otherUserId],
         'participantEmails': {
