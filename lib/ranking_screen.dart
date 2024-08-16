@@ -11,7 +11,7 @@ class RankingScreen extends StatelessWidget {
     return GridView.count(
       crossAxisCount: 2,
       padding: const EdgeInsets.all(16.0),
-      childAspectRatio: 1.5, // Cambiato a 1.5 per ridurre la larghezza rispetto all'altezza
+      childAspectRatio: 1, // Mantiene i bottoni quadrati
       children: <Widget>[
         _buildCategoryButton(context, 'Fioretto Femminile', Icons.woman),
         _buildCategoryButton(context, 'Fioretto Maschile', Icons.man),
@@ -24,12 +24,12 @@ class RankingScreen extends StatelessWidget {
   }
 
   Widget _buildCategoryButton(BuildContext context, String title, IconData icon) {
-    final double buttonSize = MediaQuery.of(context).size.width * 0.50; // Imposta la dimensione del bottone al 40% della larghezza dello schermo
+    final double buttonSize = MediaQuery.of(context).size.width * 0.30; // Imposta la dimensione del bottone al 30% della larghezza dello schermo
 
     return Container(
       margin: const EdgeInsets.all(8.0),
       width: buttonSize,
-      height: buttonSize * 0.66, // Riduce l'altezza rispetto alla larghezza per un aspetto più rettangolare
+      height: buttonSize,
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
           backgroundColor: Colors.white, // Colore di sfondo bianco
@@ -49,12 +49,12 @@ class RankingScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Icon(icon, color: Colors.black, size: 30.0), // Icona nera
+            Icon(icon, color: Colors.black, size: 35.0), // Icona nera
             const SizedBox(height: 6.0), // Spazio tra l'icona e il testo
             Text(
               title,
               textAlign: TextAlign.center,
-              style: const TextStyle(color: Colors.black, fontSize: 14.0), // Ridotto il fontSize
+              style: const TextStyle(color: Colors.black),
             ),
           ],
         ),

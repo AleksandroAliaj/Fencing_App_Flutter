@@ -16,12 +16,14 @@ import 'calendar_screen.dart';
 import 'user_list_screen.dart';
 import 'score_screen.dart';
 
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
   if (Firebase.apps.isEmpty) {
     await Firebase.initializeApp(
-    options: const FirebaseOptions(
+      name: 'scherma',
+      options: const FirebaseOptions(
       apiKey: "AIzaSyAE5cj4wl19m782QOlz_dm6-zmLXM4PT9M",
       authDomain: "scherma-f2d5e.firebaseapp.com",
       projectId: "scherma-f2d5e",
