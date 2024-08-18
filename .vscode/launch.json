@@ -8,21 +8,21 @@
             "name": "scherma",
             "request": "launch",
             "type": "dart",
-            "deviceId": "iPhone 15 Pro Max" // Specifica il dispositivo di destinazione
+            //"deviceId": "iPhone 15 Pro Max" // Specifica il dispositivo di destinazione
         },
         {
             "name": "scherma (profile mode)",
             "request": "launch",
             "type": "dart",
             "flutterMode": "profile",
-            "deviceId": "iPhone 15 Pro Max" // Specifica il dispositivo di destinazione
+            //"deviceId": "iPhone 15 Pro Max" // Specifica il dispositivo di destinazione
         },
         {
             "name": "scherma (release mode)",
             "request": "launch",
             "type": "dart",
             "flutterMode": "release",
-            "deviceId": "iPhone 15 Pro Max" // Specifica il dispositivo di destinazione
+            //"deviceId": "iPhone 15 Pro Max" // Specifica il dispositivo di destinazione
         }
     ]
 }
