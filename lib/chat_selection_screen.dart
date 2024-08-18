@@ -99,14 +99,14 @@ class _ChatSelectionScreenState extends State<ChatSelectionScreen> {
       ),
       floatingActionButton: Stack(
         children: [
-          Positioned(
-            bottom: 0,
-            left: 60, // Posiziona il bottone modifica a sinistra
-            child: FloatingActionButton(
-              onPressed: _toggleEditMode, // Cambia modalità modifica
-              child: const Icon(Icons.edit), // Icona per il bottone modifica
-            ),
-          ),
+          // Positioned(
+          //   bottom: 0,
+          //   left: 60, // Posiziona il bottone modifica a sinistra
+          //   child: FloatingActionButton(
+          //     onPressed: _toggleEditMode, // Cambia modalità modifica
+          //     child: const Icon(Icons.edit), // Icona per il bottone modifica
+          //   ),
+          // ),
           Positioned(
             bottom: 0,
             right: 30, // Posiziona il bottone aggiungi a destra

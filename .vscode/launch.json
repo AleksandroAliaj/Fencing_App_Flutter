@@ -4,24 +4,25 @@
     // Per altre informazioni, visitare: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
-        
-
         {
             "name": "scherma",
             "request": "launch",
-            "type": "dart"
+            "type": "dart",
+            "deviceId": "iPhone 15 Pro Max" // Specifica il dispositivo di destinazione
         },
         {
             "name": "scherma (profile mode)",
             "request": "launch",
             "type": "dart",
-            "flutterMode": "profile"
+            "flutterMode": "profile",
+            "deviceId": "iPhone 15 Pro Max" // Specifica il dispositivo di destinazione
         },
         {
             "name": "scherma (release mode)",
             "request": "launch",
             "type": "dart",
-            "flutterMode": "release"
+            "flutterMode": "release",
+            "deviceId": "iPhone 15 Pro Max" // Specifica il dispositivo di destinazione
         }
     ]
 }
