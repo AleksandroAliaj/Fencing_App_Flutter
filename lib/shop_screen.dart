@@ -175,7 +175,9 @@ class ProductCategoryScreen extends StatelessWidget {
 
               return ListTile(
                 title: Text(data['title'] ?? 'No title'),
-                subtitle: Text('${data['price'] ?? 'N/A'} €'),
+                //subtitle: Text('${data['price'] ?? 'N/A'} €'),
+                subtitle: Text('${(data['price'] as num).toDouble()} €'),
+
                 trailing: userRole.toLowerCase() == 'staff'
                     ? IconButton(
                         icon: const Icon(Icons.delete),
@@ -191,7 +193,8 @@ class ProductCategoryScreen extends StatelessWidget {
                       builder: (context) => ProductDetailScreen(
                         title: data['title'] ?? 'No title',
                         description: data['description'] ?? 'No description',
-                        price: data['price'] ?? 'N/A',
+                        //price: data['price'] ?? 'N/A',
+                        price: (data['price'] as num).toDouble(),
                         category: category,
                       ),
                     ),
@@ -293,7 +296,9 @@ class _EditProductsScreenState extends State<EditProductsScreen> {
 
               return CheckboxListTile(
                 title: Text(data['title'] ?? 'No title'),
-                subtitle: Text('${data['price'] ?? 'N/A'} €'),
+                //subtitle: Text('${data['price'] ?? 'N/A'} €'),
+                subtitle: Text('${(data['price'] as num).toDouble()} €'),
+
                 value: selectedProducts.contains(productId),
                 onChanged: (bool? value) {
                   setState(() {
@@ -477,7 +482,8 @@ class _AddProductDialogState extends State<AddProductDialog> {
                   }
                   return null;
                 },
-                onSaved: (value) => _price = double.parse(value!),
+                //onSaved: (value) => _price = double.parse(value!),
+                onSaved: (value) => _price = double.parse(value!).toDouble(),
               ),
               DropdownButtonFormField<String>(
                 value: _category,
