@@ -21,7 +21,7 @@ class TrainingScreen extends StatelessWidget {
             tabs: [
               Tab(text: 'Lezione privata'),
               Tab(text: 'Assalti'),
-              Tab(text: 'Preparazione atletica'),
+              Tab(text: 'Prep. atletica'),
             ],
           ),
         ),
@@ -529,7 +529,7 @@ class CoachAssaltiView extends StatelessWidget {
           _buildSquareButton(
             context: context,
             icon: Icons.sports_martial_arts,
-            label: 'Crea Combattimento',
+            label: 'Crea \nAssalto',
             onPressed: () {
               Navigator.push(
                 context,
@@ -541,7 +541,7 @@ class CoachAssaltiView extends StatelessWidget {
           _buildSquareButton(
             context: context,
             icon: Icons.list_alt,
-            label: 'Elenco Combattimenti',
+            label: 'Elenco \nAssalti',
             onPressed: () {
               Navigator.push(
                 context,
@@ -1756,7 +1756,7 @@ class _CreateLessonScreenState extends State<CreateLessonScreen> {
       padding: const EdgeInsets.all(16.0),
       child: Form(
         key: _formKey,
-        child: Column(
+        child: ListView(
           children: [
             TextFormField(
               decoration: const InputDecoration(labelText: 'Nome Atleta'),

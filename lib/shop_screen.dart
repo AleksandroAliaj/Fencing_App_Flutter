@@ -337,7 +337,7 @@ class ProductDetailScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Product Detail'),
+        title: const Text('Dettaglio Prodotto'),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -361,7 +361,7 @@ class ProductDetailScreen extends StatelessWidget {
             ),
             const Divider(height: 32, thickness: 2),
             Text(
-              'Description:',
+              'Descrizione:',
               style: Theme.of(context).textTheme.titleMedium!.copyWith(
                     fontWeight: FontWeight.bold,
                     color: Colors.grey[800],
@@ -377,7 +377,7 @@ class ProductDetailScreen extends StatelessWidget {
             ),
             const Divider(height: 32, thickness: 2),
             Text(
-              'Price:',
+              'Prezzo:',
               style: Theme.of(context).textTheme.titleMedium!.copyWith(
                     fontWeight: FontWeight.bold,
                     color: Colors.grey[800],
