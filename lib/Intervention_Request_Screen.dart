@@ -179,14 +179,25 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
   }
 
   Future<void> _loadUsers() async {
-    final snapshot = await FirebaseFirestore.instance.collection('users').get();
-    setState(() {
-      _users = snapshot.docs.map((doc) => {
-        'id': doc.id,
-        'firstName': doc['firstName'],
-        'lastName': doc['lastName'],
-      }).toList();
-    });
+    final userId = widget.userId; // Ottieni l'userId dall'oggetto widget
+    final userDoc = await FirebaseFirestore.instance.collection('users').doc(userId).get();
+  
+    if (userDoc.exists) {
+      final facilityCode = userDoc['facilityCode'];
+    
+      final snapshot = await FirebaseFirestore.instance
+        .collection('users')
+        .where('facilityCode', isEqualTo: facilityCode)
+        .get();
+    
+      setState(() {
+        _users = snapshot.docs.map((doc) => {
+          'id': doc.id,
+          'firstName': doc['firstName'],
+          'lastName': doc['lastName'],
+        }).toList();
+      });
+    }
   }
 
   Future<void> _submitRequest() async {
