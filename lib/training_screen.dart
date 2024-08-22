@@ -610,10 +610,10 @@ class CreateCombattimentoScreen extends StatelessWidget {
             ),
           ),
           ListTile(
-            title: const Text('1 vs 1'),
+            title: const Text('Simulazione Gara'),
             onTap: () => Navigator.push(
               context,
-              MaterialPageRoute(builder: (context) => const Create1vs1CombattimentoScreen()),
+              MaterialPageRoute(builder: (context) => const CreateSimulazioneGaraScreen()),
             ),
           ),
           ListTile(
@@ -1114,7 +1114,7 @@ class _Create1vs1CombattimentoScreenState extends State<Create1vs1CombattimentoS
   }
 }
 
-// combattimento libero
+// simulazione gara
 class CreateLiberoCombattimentoScreen extends StatefulWidget {
   const CreateLiberoCombattimentoScreen({super.key});
 
@@ -1248,6 +1248,138 @@ extension StringExtension on String {
     return "${this[0].toUpperCase()}${substring(1)}";
   }
 }
+
+
+// combattimento libero
+class CreateSimulazioneGaraScreen extends StatefulWidget {
+  const CreateSimulazioneGaraScreen({super.key});
+
+  @override
+  _SimulazioneGaraScreenState createState() => _SimulazioneGaraScreenState();
+}
+
+class _SimulazioneGaraScreenState extends State<CreateSimulazioneGaraScreen> {
+  final _formKey = GlobalKey<FormState>();
+  DateTime _selectedDate = DateTime.now();
+  TimeOfDay _selectedTime = TimeOfDay.now();
+  List<String> _athletes = [];
+  String _newAthleteName = '';
+  String _newAthleteSurname = '';
+
+  Future<void> _selectDate(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _selectedDate,
+      firstDate: DateTime.now(),
+      lastDate: DateTime.now().add(const Duration(days: 365)),
+    );
+    if (picked != null && picked != _selectedDate) {
+      setState(() {
+        _selectedDate = picked;
+      });
+    }
+  }
+
+  Future<void> _selectTime(BuildContext context) async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: _selectedTime,
+    );
+    if (picked != null && picked != _selectedTime) {
+      setState(() {
+        _selectedTime = picked;
+      });
+    }
+  }
+
+  void _addAthlete() {
+    if (_newAthleteName.isNotEmpty && _newAthleteSurname.isNotEmpty) {
+      setState(() {
+        _athletes.add('$_newAthleteName $_newAthleteSurname');
+        _newAthleteName = '';
+        _newAthleteSurname = '';
+      });
+    }
+  }
+
+  Future<void> _submitCombattimento() async {
+    if (_formKey.currentState!.validate() && _athletes.isNotEmpty) {
+      final authService = Provider.of<AuthService>(context, listen: false);
+      final user = authService.currentUser;
+      final userData = await authService.getUserData(user!.uid);
+
+      await FirebaseFirestore.instance.collection('combattimenti').add({
+        'type': 'simulazione gara',
+        'date': Timestamp.fromDate(_selectedDate),
+        'time': '${_selectedTime.hour}:${_selectedTime.minute}',
+        'athletes': _athletes,
+        'facilityCode': userData['facilityCode'],
+        'coachName': userData['firstName'],
+        'coachSurname': userData['lastName'],
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Combattimento creato con successo')),
+      );
+
+      Navigator.pop(context);
+    } else if (_athletes.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Aggiungi almeno un atleta')),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Crea Combattimento Libero')),
+      body: Form(
+        key: _formKey,
+        child: ListView(
+          padding: const EdgeInsets.all(16.0),
+          children: [
+            ListTile(
+              title: const Text('Data'),
+              subtitle: Text("${_selectedDate.toLocal()}".split(' ')[0]),
+              trailing: const Icon(Icons.calendar_today),
+              onTap: () => _selectDate(context),
+            ),
+            ListTile(
+              title: const Text('Ora'),
+              subtitle: Text(_selectedTime.format(context)),
+              trailing: const Icon(Icons.access_time),
+              onTap: () => _selectTime(context),
+            ),
+            const SizedBox(height: 20),
+            const Text('Atleti:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            ..._athletes.map((athlete) => ListTile(title: Text(athlete))).toList(),
+            const SizedBox(height: 20),
+            TextFormField(
+              decoration: const InputDecoration(labelText: 'Nome Atleta'),
+              onChanged: (value) => _newAthleteName = value,
+            ),
+            TextFormField(
+              decoration: const InputDecoration(labelText: 'Cognome Atleta'),
+              onChanged: (value) => _newAthleteSurname = value,
+            ),
+            ElevatedButton(
+              onPressed: _addAthlete,
+              child: const Text('Aggiungi Atleta'),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              onPressed: _submitCombattimento,
+              child: const Text('Crea Combattimento'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+
 
 // Helper widget to display a list of combattimenti
 class CombattimentiList extends StatelessWidget {

@@ -43,6 +43,7 @@ class FencingApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    
     return MultiProvider(
       providers: [
         Provider<AuthService>(
@@ -51,6 +52,7 @@ class FencingApp extends StatelessWidget {
       ],
       child: MaterialApp(
   title: 'Fencing',
+  debugShowCheckedModeBanner: false,
   theme: ThemeData(
     primaryColor: Colors.black,
     scaffoldBackgroundColor: Colors.white,

@@ -818,6 +818,7 @@ class _AgendaTabState extends State<AgendaTab> {
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
   Map<DateTime, List<Event>> _events = {};
+  String _userRole = '';
 
   @override
   void initState() {
@@ -828,119 +829,134 @@ class _AgendaTabState extends State<AgendaTab> {
   }
 
   void _loadEvents() async {
-  final authService = Provider.of<AuthService>(context, listen: false);
-  final user = authService.currentUser;
+    final authService = Provider.of<AuthService>(context, listen: false);
+    final user = authService.currentUser;
 
-  if (user != null) {
-    final userData = await authService.getUserData(user.uid);
-    final firstName = userData['firstName'];
-    final lastName = userData['lastName'];
-    final fullName = '$firstName $lastName';
+    if (user != null) {
+      final userData = await authService.getUserData(user.uid);
+      final firstName = userData['firstName'];
+      final lastName = userData['lastName'];
+      final fullName = '$firstName $lastName';
+      final role = userData['role'];
+      final facilityCode = userData['facilityCode'];
 
-    // Load private lessons
+      setState(() {
+        _userRole = role; // Store the user's role
+      });
+
+      if (role.toLowerCase() == 'staff') {
+        // Load all events for the facility
+        await _loadFacilityEvents(facilityCode);
+      } else {
+        // Load personal events for non-staff users
+        await _loadPersonalEvents(firstName, lastName, fullName);
+      }
+
+      setState(() {
+        _selectedEvents.value = _getEventsForDay(_selectedDay!);
+      });
+    }
+  }
+
+  Future<void> _loadFacilityEvents(String facilityCode) async {
+    // Load private lessons for the facility
+    final lessonsSnapshot = await FirebaseFirestore.instance
+        .collection('private_lessons')
+        .where('facilityCode', isEqualTo: facilityCode)
+        .get();
+
+    // Load combattimenti for the facility
+    final combattimentiSnapshot = await FirebaseFirestore.instance
+        .collection('combattimenti')
+        .where('facilityCode', isEqualTo: facilityCode)
+        .get();
+
+    // Load events for the facility
+    final eventsSnapshot = await FirebaseFirestore.instance
+        .collection('events')
+        .where('facilityCode', isEqualTo: facilityCode)
+        .get();
+
+    _processEvents(lessonsSnapshot, 'lesson');
+    _processEvents(combattimentiSnapshot, 'combattimento');
+    _processEvents(eventsSnapshot, 'event');
+  }
+
+  Future<void> _loadPersonalEvents(String firstName, String lastName, String fullName) async {
+    // Load private lessons (as athlete or coach)
     final lessonsSnapshot = await FirebaseFirestore.instance
         .collection('private_lessons')
         .where('athleteName', isEqualTo: firstName)
         .where('athleteSurname', isEqualTo: lastName)
         .get();
 
-    // Load private lessons where the user is the coach
     final coachLessonsSnapshot = await FirebaseFirestore.instance
         .collection('private_lessons')
         .where('coachName', isEqualTo: firstName)
         .where('coachSurname', isEqualTo: lastName)
         .get();
 
-    // Load combattimenti
+    // Load combattimenti (as athlete or coach)
     final combattimentiSnapshot = await FirebaseFirestore.instance
         .collection('combattimenti')
         .where('athletes', arrayContains: fullName)
         .get();
 
-    // Load combattimenti where the user is the coach
     final coachCombattimentiSnapshot = await FirebaseFirestore.instance
         .collection('combattimenti')
         .where('coachName', isEqualTo: firstName)
         .where('coachSurname', isEqualTo: lastName)
         .get();
 
-    setState(() {
-      // Process athlete's private lessons
-      for (var doc in lessonsSnapshot.docs) {
-        final data = doc.data();
-        final date = (data['date'] as Timestamp).toDate();
-        final eventDate = DateTime(date.year, date.month, date.day);
-        final event = Event(
-          title: 'Lezione privata',
-          time: data['time'],
-          coachName: '${data['coachName']} ${data['coachSurname']}',
-          athleteName: '${data['athleteName']} ${data['athleteSurname']}',
-          date: date,
-          type: 'lesson',
-        );
-
-        if (_events[eventDate] == null) _events[eventDate] = [];
-        _events[eventDate]!.add(event);
-      }
-
-      // Process coach's private lessons
-      for (var doc in coachLessonsSnapshot.docs) {
-        final data = doc.data();
-        final date = (data['date'] as Timestamp).toDate();
-        final eventDate = DateTime(date.year, date.month, date.day);
-        final event = Event(
-          title: 'Lezione privata (Allenatore)',
-          time: data['time'],
-          coachName: '${data['coachName']} ${data['coachSurname']}',
-          athleteName: '${data['athleteName']} ${data['athleteSurname']}',
-          date: date,
-          type: 'lesson',
-        );
-
-        if (_events[eventDate] == null) _events[eventDate] = [];
-        _events[eventDate]!.add(event);
-      }
-
-      // Process athlete's combattimenti
-      for (var doc in combattimentiSnapshot.docs) {
-        final data = doc.data();
-        final date = (data['date'] as Timestamp).toDate();
-        final eventDate = DateTime(date.year, date.month, date.day);
-        final event = Event(
-          title: 'Combattimento ${data['type']}',
-          time: data['time'],
-          coachName: '${data['coachName']} ${data['coachSurname']}',
-          athleteName: (data['athletes'] as List<dynamic>).join(', '),
-          date: date,
-          type: 'combattimento',
-        );
-
-        if (_events[eventDate] == null) _events[eventDate] = [];
-        _events[eventDate]!.add(event);
-      }
-
-      // Process coach's combattimenti
-      for (var doc in coachCombattimentiSnapshot.docs) {
-        final data = doc.data();
-        final date = (data['date'] as Timestamp).toDate();
-        final eventDate = DateTime(date.year, date.month, date.day);
-        final event = Event(
-          title: 'Combattimento (Allenatore)',
-          time: data['time'],
-          coachName: '${data['coachName']} ${data['coachSurname']}',
-          athleteName: (data['athletes'] as List<dynamic>).join(', '),
-          date: date,
-          type: 'combattimento',
-        );
-
-        if (_events[eventDate] == null) _events[eventDate] = [];
-        _events[eventDate]!.add(event);
-      }
-    });
-
-    _selectedEvents.value = _getEventsForDay(_selectedDay!);
+    _processEvents(lessonsSnapshot, 'lesson');
+    _processEvents(coachLessonsSnapshot, 'lesson');
+    _processEvents(combattimentiSnapshot, 'combattimento');
+    _processEvents(coachCombattimentiSnapshot, 'combattimento');
   }
-}
+
+  void _processEvents(QuerySnapshot snapshot, String eventType) {
+    for (var doc in snapshot.docs) {
+      final data = doc.data() as Map<String, dynamic>;
+      final date = (data['date'] as Timestamp).toDate();
+      final eventDate = DateTime(date.year, date.month, date.day);
+
+      final event = Event(
+        title: _getEventTitle(eventType, data),
+        time: data['time'] ?? '',
+        coachName: _getCoachName(data),
+        athleteName: _getAthleteName(data),
+        date: date,
+        type: eventType,
+      );
+
+      if (_events[eventDate] == null) _events[eventDate] = [];
+      _events[eventDate]!.add(event);
+    }
+  }
+
+  String _getEventTitle(String eventType, Map<String, dynamic> data) {
+    switch (eventType) {
+      case 'lesson':
+        return 'Lezione privata';
+      case 'combattimento':
+        return 'Combattimento ${data['type'] ?? ''}';
+      case 'event':
+        return data['description'] ?? 'Evento';
+      default:
+        return 'Evento';
+    }
+  }
+
+  String _getCoachName(Map<String, dynamic> data) {
+    return '${data['coachName'] ?? ''} ${data['coachSurname'] ?? ''}';
+  }
+
+  String _getAthleteName(Map<String, dynamic> data) {
+    if (data['athletes'] != null) {
+      return (data['athletes'] as List<dynamic>).join(', ');
+    }
+    return '${data['athleteName'] ?? ''} ${data['athleteSurname'] ?? ''}';
+  }
 
   List<Event> _getEventsForDay(DateTime day) {
     return _events[DateTime(day.year, day.month, day.day)] ?? [];
@@ -1005,7 +1021,9 @@ class _AgendaTabState extends State<AgendaTab> {
                     child: ListTile(
                       onTap: () => _showEventDetails(context, events[index]),
                       title: Text(events[index].title),
-                      subtitle: Text('Ora: ${events[index].time}\nAllenatore: ${events[index].coachName}\nAtleta: ${events[index].athleteName}'),
+                      subtitle: _userRole.toLowerCase() != 'staff'
+                          ? Text('Ora: ${events[index].time}\nAllenatore: ${events[index].coachName}\nAtleta: ${events[index].athleteName}')
+                          : null,
                     ),
                   );
                 },
@@ -1022,16 +1040,18 @@ class _AgendaTabState extends State<AgendaTab> {
       context: context,
       builder: (context) => AlertDialog(
         title: Text(event.title),
-        content: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text('Data: ${event.date.day}/${event.date.month}/${event.date.year}'),
-            Text('Ora: ${event.time}'),
-            Text('Allenatore: ${event.coachName}'),
-            Text('Atleta: ${event.athleteName}'),
-          ],
-        ),
+        content: _userRole.toLowerCase() != 'null'
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text('Data: ${event.date.day}/${event.date.month}/${event.date.year}'),
+                  Text('Ora: ${event.time}'),
+                  Text('Allenatore: ${event.coachName}'),
+                  Text('Atleta: ${event.athleteName}'),
+                ],
+              )
+            : null,
         actions: [
           TextButton(
             child: const Text('Chiudi'),
