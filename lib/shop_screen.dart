@@ -41,35 +41,53 @@ class ShopScreen extends StatelessWidget {
           appBar: AppBar(
             title: const Text('Shop'),
           ),
-          body: ListView(
-            children: <Widget>[
-              ListTile(
-                title: const Text('Abbigliamento e Equipaggiamento di Base'),
-                onTap: () => _navigateToCategory(context, 'Abbigliamento e Equipaggiamento di Base'),
+          body: GridView.count(
+            crossAxisCount: 2,
+            padding: const EdgeInsets.all(16),
+            mainAxisSpacing: 16,
+            crossAxisSpacing: 16,
+            children: [
+              _buildCategoryButton(
+                context: context,
+                icon: Icons.checkroom,
+                label: 'Abbigliamento e Equipaggiamento di Base',
+                onPressed: () => _navigateToCategory(context, 'Abbigliamento e Equipaggiamento di Base'),
               ),
-              ListTile(
-                title: const Text('Armi'),
-                onTap: () => _navigateToCategory(context, 'Armi'),
+              _buildCategoryButton(
+                context: context,
+                icon: Icons.security,
+                label: 'Armi',
+                onPressed: () => _navigateToCategory(context, 'Armi'),
               ),
-              ListTile(
-                title: const Text('Accessori per le Armi'),
-                onTap: () => _navigateToCategory(context, 'Accessori per le Armi'),
+              _buildCategoryButton(
+                context: context,
+                icon: Icons.build,
+                label: 'Accessori per le Armi',
+                onPressed: () => _navigateToCategory(context, 'Accessori per le Armi'),
               ),
-              ListTile(
-                title: const Text('Protezioni e Accessori di Sicurezza'),
-                onTap: () => _navigateToCategory(context, 'Protezioni e Accessori di Sicurezza'),
+              _buildCategoryButton(
+                context: context,
+                icon: Icons.shield,
+                label: 'Protezioni e Accessori di Sicurezza',
+                onPressed: () => _navigateToCategory(context, 'Protezioni e Accessori di Sicurezza'),
               ),
-              ListTile(
-                title: const Text('Borse e Custodie'),
-                onTap: () => _navigateToCategory(context, 'Borse e Custodie'),
+              _buildCategoryButton(
+                context: context,
+                icon: Icons.work,
+                label: 'Borse e Custodie',
+                onPressed: () => _navigateToCategory(context, 'Borse e Custodie'),
               ),
-              ListTile(
-                title: const Text('Prodotti per la Cura e la Manutenzione'),
-                onTap: () => _navigateToCategory(context, 'Prodotti per la Cura e la Manutenzione'),
+              _buildCategoryButton(
+                context: context,
+                icon: Icons.cleaning_services,
+                label: 'Prodotti per la Cura e la Manutenzione',
+                onPressed: () => _navigateToCategory(context, 'Prodotti per la Cura e la Manutenzione'),
               ),
-              ListTile(
-                title: const Text('Gadget'),
-                onTap: () => _navigateToCategory(context, 'Gadget'),
+              _buildCategoryButton(
+                context: context,
+                icon: Icons.emoji_objects,
+                label: 'Gadget',
+                onPressed: () => _navigateToCategory(context, 'Gadget'),
               ),
             ],
           ),
@@ -81,6 +99,38 @@ class ShopScreen extends StatelessWidget {
               : null,
         );
       },
+    );
+  }
+
+  Widget _buildCategoryButton({
+    required BuildContext context,
+    required IconData icon,
+    required String label,
+    required VoidCallback onPressed,
+  }) {
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.white,
+        side: const BorderSide(color: Colors.black, width: 2),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+      ),
+      onPressed: onPressed,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, color: Colors.black, size: 40),
+          const SizedBox(height: 8),
+          Text(
+            label,
+            style: const TextStyle(color: Colors.black, fontSize: 12),
+            textAlign: TextAlign.center,
+            maxLines: 2,
+            overflow: TextOverflow.ellipsis,
+          ),
+        ],
+      ),
     );
   }
 

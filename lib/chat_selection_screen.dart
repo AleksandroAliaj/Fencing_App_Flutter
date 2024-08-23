@@ -16,7 +16,7 @@ class ChatSelectionScreen extends StatefulWidget {
 }
 
 class _ChatSelectionScreenState extends State<ChatSelectionScreen> {
-  bool _isEditMode = false; // Aggiungi questa variabile per gestire la modalità modifica
+  bool _isEditMode = false;
 
   @override
   Widget build(BuildContext context) {
@@ -24,6 +24,15 @@ class _ChatSelectionScreenState extends State<ChatSelectionScreen> {
     final user = authService.currentUser;
 
     return Scaffold(
+      appBar: AppBar(
+        title: const Text('Chat'),
+        // actions: [
+        //   IconButton(
+        //     icon: Icon(_isEditMode ? Icons.done : Icons.edit),
+        //     onPressed: _toggleEditMode,
+        //   ),
+        // ],
+      ),
       body: FutureBuilder<String?>(
         future: authService.getUserRole(user?.uid),
         builder: (context, snapshot) {
@@ -53,18 +62,17 @@ class _ChatSelectionScreenState extends State<ChatSelectionScreen> {
               }
 
               List<ChatOption> chatOptions = [
-                ChatOption('Chat Globale', () => _navigateToChat(context, 'global')),
+                ChatOption('Chat Globale', Icons.public, () => _navigateToChat(context, 'global')),
               ];
 
               if (role.toLowerCase() == 'atleta' || role.toLowerCase() == 'allenatore') {
-                chatOptions.add(ChatOption('Chat Atleti e Allenatori', () => _navigateToChat(context, 'athletes_coaches')));
+                chatOptions.add(ChatOption('Chat Atleti e Allenatori', Icons.group, () => _navigateToChat(context, 'athletes_coaches')));
               }
 
               if (role.toLowerCase() == 'atleta') {
-                chatOptions.add(ChatOption('Chat Atleti', () => _navigateToChat(context, 'athletes')));
+                chatOptions.add(ChatOption('Chat Atleti', Icons.sports, () => _navigateToChat(context, 'athletes')));
               }
 
-              // Aggiungi le chat private
               if (chatSnapshot.hasData) {
                 for (var doc in chatSnapshot.data!.docs) {
                   final chatData = doc.data() as Map<String, dynamic>;
@@ -72,8 +80,9 @@ class _ChatSelectionScreenState extends State<ChatSelectionScreen> {
                       .firstWhere((id) => id != user?.uid);
                   chatOptions.add(ChatOption(
                     chatData['participantEmails'][otherUserId],
+                    Icons.person,
                     () => _navigateToChat(context, 'private', chatId: doc.id),
-                    onDelete: _isEditMode ? () => _deletePrivateChat(context, doc.id) : null, // Mostra il tasto elimina solo in modalità modifica
+                    onDelete: _isEditMode ? () => _deletePrivateChat(context, doc.id) : null,
                   ));
                 }
               }
@@ -81,15 +90,15 @@ class _ChatSelectionScreenState extends State<ChatSelectionScreen> {
               return ListView.builder(
                 itemCount: chatOptions.length,
                 itemBuilder: (context, index) {
-                  return ListTile(
-                    title: Text(chatOptions[index].title),
-                    onTap: chatOptions[index].onTap,
-                    trailing: chatOptions[index].onDelete != null
-                        ? IconButton(
-                            icon: const Icon(Icons.delete),
-                            onPressed: chatOptions[index].onDelete,
-                          )
-                        : null,
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: _buildChatButton(
+                      context: context,
+                      icon: chatOptions[index].icon,
+                      label: chatOptions[index].title,
+                      onPressed: chatOptions[index].onTap,
+                      onDelete: chatOptions[index].onDelete,
+                    ),
                   );
                 },
               );
@@ -97,24 +106,45 @@ class _ChatSelectionScreenState extends State<ChatSelectionScreen> {
           );
         },
       ),
-      floatingActionButton: Stack(
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _showCreateChatDialog(context),
+        child: const Icon(Icons.add),
+      ),
+    );
+  }
+
+  Widget _buildChatButton({
+    required BuildContext context,
+    required IconData icon,
+    required String label,
+    required VoidCallback onPressed,
+    VoidCallback? onDelete,
+  }) {
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.white,
+        side: const BorderSide(color: Colors.black, width: 2),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+      ),
+      onPressed: onPressed,
+      child: Row(
         children: [
-          // Positioned(
-          //   bottom: 0,
-          //   left: 60, // Posiziona il bottone modifica a sinistra
-          //   child: FloatingActionButton(
-          //     onPressed: _toggleEditMode, // Cambia modalità modifica
-          //     child: const Icon(Icons.edit), // Icona per il bottone modifica
-          //   ),
-          // ),
-          Positioned(
-            bottom: 0,
-            right: 30, // Posiziona il bottone aggiungi a destra
-            child: FloatingActionButton(
-              onPressed: () => _showCreateChatDialog(context),
-              child: const Icon(Icons.add),
+          Icon(icon, color: Colors.black, size: 24),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Text(
+              label,
+              style: const TextStyle(color: Colors.black, fontSize: 16),
             ),
           ),
+          if (onDelete != null)
+            IconButton(
+              icon: const Icon(Icons.delete, color: Colors.red),
+              onPressed: onDelete,
+            ),
         ],
       ),
     );
@@ -265,8 +295,9 @@ class _ChatSelectionScreenState extends State<ChatSelectionScreen> {
 
 class ChatOption {
   final String title;
+  final IconData icon;
   final VoidCallback onTap;
   final VoidCallback? onDelete;
 
-  ChatOption(this.title, this.onTap, {this.onDelete});
+  ChatOption(this.title, this.icon, this.onTap, {this.onDelete});
 }

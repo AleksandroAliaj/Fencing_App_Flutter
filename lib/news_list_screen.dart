@@ -53,14 +53,23 @@ class NewsListScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            ElevatedButton(
-              onPressed: () => _navigateToAddNews(context),
-              child: const Text('Aggiungi News'),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              onPressed: () => _navigateToNewsList(context),
-              child: const Text('Tutte le News'),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                _buildSquareButton(
+                  context: context,
+                  icon: Icons.add,
+                  label: 'Aggiungi News',
+                  onPressed: () => _navigateToAddNews(context),
+                ),
+                const SizedBox(width: 20),
+                _buildSquareButton(
+                  context: context,
+                  icon: Icons.list,
+                  label: 'Tutte le News',
+                  onPressed: () => _navigateToNewsList(context),
+                ),
+              ],
             ),
           ],
         ),
@@ -70,6 +79,43 @@ class NewsListScreen extends StatelessWidget {
       final user = authService.currentUser;
       return NewsList(userId: user?.uid);
     }
+  }
+
+  Widget _buildSquareButton({
+    required BuildContext context,
+    required IconData icon,
+    required String label,
+    required VoidCallback onPressed,
+  }) {
+    final double buttonSize = MediaQuery.of(context).size.width * 0.35;
+
+    return SizedBox(
+      width: buttonSize,
+      height: buttonSize,
+      child: ElevatedButton(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.white,
+          side: const BorderSide(color: Colors.black, width: 2),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+        onPressed: onPressed,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: Colors.black, size: 40),
+            const SizedBox(height: 10),
+            Text(
+              label,
+              style: const TextStyle(color: Colors.black),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   void _navigateToAddNews(BuildContext context) {

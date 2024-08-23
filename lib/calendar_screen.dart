@@ -386,44 +386,105 @@ class EventList extends StatelessWidget {
               return date.add(const Duration(days: 1)).isAfter(now);
             }).toList();
 
-            return ListView(
-              children: validEventDocuments.map((doc) {
-                final date = (doc['date'] as Timestamp).toDate();
-                return ListTile(
-                  title: Text(doc['description']),
-                  subtitle: Text('${date.day}-${date.month}-${date.year} @ ${date.hour}:${date.minute} - ${doc['location']}'),
-                  trailing: role.toLowerCase() == 'staff'
-                      ? IconButton(
-                          icon: const Icon(Icons.delete, color: Colors.red),
-                          onPressed: () async {
-                            final shouldDelete = await showDialog<bool>(
-                              context: context,
-                              builder: (context) => AlertDialog(
-                                title: const Text('Conferma Eliminazione'),
-                                content: const Text('Sei sicuro di voler eliminare questo evento?'),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () => Navigator.of(context).pop(false),
-                                    child: const Text('Annulla'),
-                                  ),
-                                  TextButton(
-                                    onPressed: () => Navigator.of(context).pop(true),
-                                    child: const Text('Elimina'),
-                                  ),
-                                ],
-                              ),
-                            );
-
-                            if (shouldDelete == true) {
-                              await doc.reference.delete();
-                            }
-                          },
-                        )
-                      : null,
-                );
-              }).toList(),
+            return Padding(
+              padding: const EdgeInsets.only(top: 16.0),  // Aggiunge spazio in alto
+              child: ListView.builder(
+                itemCount: validEventDocuments.length,
+                itemBuilder: (context, index) {
+                  final doc = validEventDocuments[index];
+                  final date = (doc['date'] as Timestamp).toDate();
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: _buildEventButton(
+                      context: context,
+                      icon: Icons.event,
+                      title: doc['description'],
+                      subtitle: '${date.day}-${date.month}-${date.year} @ ${date.hour}:${date.minute}\n${doc['location']}',
+                      onPressed: () {
+                        // Azione quando si preme il bottone dell'evento
+                        // Potresti voler navigare a una schermata di dettaglio dell'evento
+                      },
+                      onDelete: role.toLowerCase() == 'staff'
+                          ? () => _showDeleteConfirmation(context, doc)
+                          : null,
+                    ),
+                  );
+                },
+              ),
             );
           },
+        );
+      },
+    );
+  }
+
+  Widget _buildEventButton({
+    required BuildContext context,
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required VoidCallback onPressed,
+    VoidCallback? onDelete,
+  }) {
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.white,
+        side: const BorderSide(color: Colors.black, width: 2),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+      ),
+      onPressed: onPressed,
+      child: Row(
+        children: [
+          Icon(icon, color: Colors.black, size: 24),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(color: Colors.black, fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  subtitle,
+                  style: const TextStyle(color: Colors.black, fontSize: 14),
+                ),
+              ],
+            ),
+          ),
+          if (onDelete != null)
+            IconButton(
+              icon: const Icon(Icons.delete, color: Colors.red),
+              onPressed: onDelete,
+            ),
+        ],
+      ),
+    );
+  }
+
+  void _showDeleteConfirmation(BuildContext context, DocumentSnapshot doc) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Conferma Eliminazione'),
+          content: const Text('Sei sicuro di voler eliminare questo evento?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Annulla'),
+            ),
+            TextButton(
+              onPressed: () async {
+                await doc.reference.delete();
+                Navigator.of(context).pop();
+              },
+              child: const Text('Elimina'),
+            ),
+          ],
         );
       },
     );
@@ -756,6 +817,7 @@ class DeadlineList extends StatelessWidget {
         final firstName = userData['firstName'];
         final lastName = userData['lastName'];
         final facilityCode = userData['facilityCode'];
+        final role = userData['role'];
 
         return StreamBuilder<QuerySnapshot>(
           stream: FirebaseFirestore.instance
@@ -789,24 +851,130 @@ class DeadlineList extends StatelessWidget {
               return true;
             }).toList();
 
-            return ListView(
-              children: validDeadlines.map((doc) {
-                return ListTile(
-                  title: Text(doc['text']),
-                  subtitle: Text('${doc['firstName']} ${doc['lastName']}'),
-                  trailing: doc['status'] == 'Confirmed'
-                      ? const Text('Confermato', style: TextStyle(color: Colors.green))
-                      : null,
-                );
-              }).toList(),
+            return Padding(
+              padding: const EdgeInsets.only(top: 16.0),
+              child: ListView.builder(
+                itemCount: validDeadlines.length,
+                itemBuilder: (context, index) {
+                  final doc = validDeadlines[index];
+                  final deadlineDate = (doc['deadlineDate'] as Timestamp).toDate();
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                    child: _buildDeadlineButton(
+                      context: context,
+                      icon: Icons.event_note,
+                      title: doc['text'],
+                      subtitle: '${doc['firstName']} ${doc['lastName']}\n${deadlineDate.day}-${deadlineDate.month}-${deadlineDate.year}',
+                      status: doc['status'],
+                      onPressed: () {
+                        // Azione quando si preme il bottone della scadenza
+                        // Potresti voler navigare a una schermata di dettaglio della scadenza
+                      },
+                      onDelete: role.toLowerCase() == 'staff'
+                          ? () => _showDeleteConfirmation(context, doc)
+                          : null,
+                      onConfirm: role.toLowerCase() == 'staff' && doc['status'] != 'Confirmed'
+                          ? () => _confirmDeadline(context, doc)
+                          : null,
+                    ),
+                  );
+                },
+              ),
             );
           },
         );
       },
     );
   }
-}
 
+  Widget _buildDeadlineButton({
+    required BuildContext context,
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required String status,
+    required VoidCallback onPressed,
+    VoidCallback? onDelete,
+    VoidCallback? onConfirm,
+  }) {
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.white,
+        side: const BorderSide(color: Colors.black, width: 2),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+      ),
+      onPressed: onPressed,
+      child: Row(
+        children: [
+          Icon(icon, color: Colors.black, size: 24),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(color: Colors.black, fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  subtitle,
+                  style: const TextStyle(color: Colors.black, fontSize: 14),
+                ),
+                if (status == 'Confirmed')
+                  const Text(
+                    'Confermato',
+                    style: TextStyle(color: Colors.green, fontSize: 14, fontWeight: FontWeight.bold),
+                  ),
+              ],
+            ),
+          ),
+          if (onDelete != null)
+            IconButton(
+              icon: const Icon(Icons.delete, color: Colors.red),
+              onPressed: onDelete,
+            ),
+          if (onConfirm != null)
+            IconButton(
+              icon: const Icon(Icons.check, color: Colors.green),
+              onPressed: onConfirm,
+            ),
+        ],
+      ),
+    );
+  }
+
+  void _showDeleteConfirmation(BuildContext context, DocumentSnapshot doc) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Conferma Eliminazione'),
+          content: const Text('Sei sicuro di voler eliminare questa scadenza?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Annulla'),
+            ),
+            TextButton(
+              onPressed: () async {
+                await doc.reference.delete();
+                Navigator.of(context).pop();
+              },
+              child: const Text('Elimina'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _confirmDeadline(BuildContext context, DocumentSnapshot doc) async {
+    await doc.reference.update({'status': 'Confirmed'});
+  }
+}
 class AgendaTab extends StatefulWidget {
   @override
   _AgendaTabState createState() => _AgendaTabState();
