@@ -975,6 +975,7 @@ class DeadlineList extends StatelessWidget {
     await doc.reference.update({'status': 'Confirmed'});
   }
 }
+
 class AgendaTab extends StatefulWidget {
   @override
   _AgendaTabState createState() => _AgendaTabState();

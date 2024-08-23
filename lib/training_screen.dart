@@ -1,4 +1,4 @@
-// ignore_for_file: use_super_parameters, library_private_types_in_public_api, use_build_context_synchronously, prefer_final_fields, unnecessary_to_list_in_spreads
+// ignore_for_file: use_super_parameters, library_private_types_in_public_api, use_build_context_synchronously, prefer_final_fields, unnecessary_to_list_in_spreads, prefer_const_constructors
 
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
@@ -326,7 +326,6 @@ class PreparationListScreen extends StatelessWidget {
                 final isExpired = now.isAfter(dueDate.add(const Duration(days: 1)));
 
                 if (isExpired) {
-                  // Elimina la preparazione scaduta
                   doc.reference.delete();
                 }
 
@@ -337,35 +336,57 @@ class PreparationListScreen extends StatelessWidget {
                 return const Center(child: Text('Nessuna preparazione atletica trovata'));
               }
 
-              return ListView.builder(
-                itemCount: validPreparations.length,
-                itemBuilder: (context, index) {
-                  final preparation = validPreparations[index];
-                  final data = preparation.data() as Map<String, dynamic>;
-                  final dueDate = (data['dueDate'] as Timestamp).toDate();
+              return Padding(
+                padding: const EdgeInsets.all(8.0), // Spazio attorno al ListView
+                child: ListView.builder(
+                  itemCount: validPreparations.length,
+                  itemBuilder: (context, index) {
+                    final preparation = validPreparations[index];
+                    final data = preparation.data() as Map<String, dynamic>;
+                    final dueDate = (data['dueDate'] as Timestamp).toDate();
 
-                  return Card(
-                    child: Padding(
-                      padding: const EdgeInsets.all(16.0),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            '${data['workoutType']} - ${data['athleteType'] == 'all' ? 'Tutti gli atleti' : '${data['athleteName']} ${data['athleteSurname']}'}',
-                            style: Theme.of(context).textTheme.titleLarge,
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0), // Spazio verticale tra le card
+                      child: Card(
+                        shape: RoundedRectangleBorder(
+                          side: BorderSide(color: Colors.black, width: 1), // Bordo nero
+                          borderRadius: BorderRadius.circular(8), // Angoli arrotondati
+                        ),
+                        color: Colors.white, // Sfondo bianco
+                        elevation: 3,
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '${data['workoutType']} - ${data['athleteType'] == 'all' ? 'Tutti gli atleti' : '${data['athleteName']} ${data['athleteSurname']}'}',
+                                style: TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                data['workoutDetails'],
+                                style: TextStyle(color: Colors.black),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Data di termine: ${DateFormat('dd/MM/yyyy').format(dueDate)}',
+                                style: TextStyle(
+                                  color: Colors.black54,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
                           ),
-                          const SizedBox(height: 8),
-                          Text(data['workoutDetails']),
-                          const SizedBox(height: 8),
-                          Text(
-                            'Data di termine: ${DateFormat('dd/MM/yyyy').format(dueDate)}',
-                            style: Theme.of(context).textTheme.bodySmall,
-                          ),
-                        ],
+                        ),
                       ),
-                    ),
-                  );
-                },
+                    );
+                  },
+                ),
               );
             },
           );
@@ -403,7 +424,6 @@ class AthletePreparationView extends StatelessWidget {
           stream: FirebaseFirestore.instance
               .collection('athletic_preparations')
               .where('facilityCode', isEqualTo: facilityCode)
-              //.where('athleteType', whereIn: ['all', 'specific'])
               .snapshots(),
           builder: (context, snapshot) {
             if (snapshot.connectionState == ConnectionState.waiting) {
@@ -425,7 +445,6 @@ class AthletePreparationView extends StatelessWidget {
               final isExpired = now.isAfter(dueDate.add(const Duration(days: 1)));
 
               if (isExpired) {
-                // Elimina la preparazione scaduta
                 doc.reference.delete();
               }
 
@@ -439,35 +458,57 @@ class AthletePreparationView extends StatelessWidget {
               return const Center(child: Text('Nessuna preparazione atletica trovata per te'));
             }
 
-            return ListView.builder(
-              itemCount: validPreparations.length,
-              itemBuilder: (context, index) {
-                final preparation = validPreparations[index];
-                final data = preparation.data() as Map<String, dynamic>;
-                final dueDate = (data['dueDate'] as Timestamp).toDate();
+            return Padding(
+              padding: const EdgeInsets.all(8.0), // Spazio attorno al ListView
+              child: ListView.builder(
+                itemCount: validPreparations.length,
+                itemBuilder: (context, index) {
+                  final preparation = validPreparations[index];
+                  final data = preparation.data() as Map<String, dynamic>;
+                  final dueDate = (data['dueDate'] as Timestamp).toDate();
 
-                return Card(
-                  child: Padding(
-                    padding: const EdgeInsets.all(16.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          data['workoutType'],
-                          style: Theme.of(context).textTheme.titleLarge,
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0), // Spazio verticale tra le card
+                    child: Card(
+                      shape: RoundedRectangleBorder(
+                        side: BorderSide(color: Colors.black, width: 1), // Bordo nero
+                        borderRadius: BorderRadius.circular(8), // Angoli arrotondati
+                      ),
+                      color: Colors.white, // Sfondo bianco
+                      elevation: 3,
+                      child: Padding(
+                        padding: const EdgeInsets.all(16.0),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              data['workoutType'],
+                              style: TextStyle(
+                                color: Colors.black,
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              data['workoutDetails'],
+                              style: TextStyle(color: Colors.black),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              'Data di termine: ${DateFormat('dd/MM/yyyy').format(dueDate)}',
+                              style: TextStyle(
+                                color: Colors.black54,
+                                fontSize: 14,
+                              ),
+                            ),
+                          ],
                         ),
-                        const SizedBox(height: 8),
-                        Text(data['workoutDetails']),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Data di termine: ${DateFormat('dd/MM/yyyy').format(dueDate)}',
-                          style: Theme.of(context).textTheme.bodySmall,
-                        ),
-                      ],
+                      ),
                     ),
-                  ),
-                );
-              },
+                  );
+                },
+              ),
             );
           },
         );
@@ -588,6 +629,72 @@ class CoachAssaltiView extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class AthleteAssaltiView extends StatelessWidget {
+  const AthleteAssaltiView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final authService = Provider.of<AuthService>(context, listen: false);
+    final user = authService.currentUser;
+
+    return FutureBuilder<DocumentSnapshot>(
+      future: authService.getUserData(user!.uid),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (snapshot.hasError || !snapshot.hasData) {
+          return const Center(child: Text('Error loading user data'));
+        }
+
+        final userData = snapshot.data!.data() as Map<String, dynamic>;
+        final athleteName = '${userData['firstName']} ${userData['lastName']}';
+
+        return CombattimentiList(
+          stream: FirebaseFirestore.instance
+              .collection('combattimenti')
+              .where('athletes', arrayContains: athleteName)
+              .snapshots(),
+        );
+      },
+    );
+  }
+}
+
+class StaffAssaltiView extends StatelessWidget {
+  const StaffAssaltiView({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final authService = Provider.of<AuthService>(context, listen: false);
+    final user = authService.currentUser;
+
+    return FutureBuilder<DocumentSnapshot>(
+      future: authService.getUserData(user!.uid),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
+
+        if (snapshot.hasError || !snapshot.hasData) {
+          return const Center(child: Text('Error loading user data'));
+        }
+
+        final userData = snapshot.data!.data() as Map<String, dynamic>;
+        final facilityCode = userData['facilityCode'];
+
+        return CombattimentiList(
+          stream: FirebaseFirestore.instance
+              .collection('combattimenti')
+              .where('facilityCode', isEqualTo: facilityCode)
+              .snapshots(),
+        );
+      },
     );
   }
 }
@@ -1425,68 +1532,82 @@ class CombattimentiList extends StatelessWidget {
         // Raggruppa i combattimenti per data
         final groupedCombattimenti = groupCombattimentiByDate(validCombattimenti);
 
-        return ListView.builder(
-          itemCount: groupedCombattimenti.length,
-          itemBuilder: (context, index) {
-            final date = groupedCombattimenti.keys.elementAt(index);
-            final combattimenti = groupedCombattimenti[date]!;
+        return Padding(
+          padding: const EdgeInsets.all(8.0), // Spazio attorno al ListView
+          child: ListView.builder(
+            itemCount: groupedCombattimenti.length,
+            itemBuilder: (context, index) {
+              final date = groupedCombattimenti.keys.elementAt(index);
+              final combattimenti = groupedCombattimenti[date]!;
 
-            return ExpansionTile(
-              title: Text(formatDate(date)),
-              children: combattimenti.map((doc) {
-                final data = doc.data() as Map<String, dynamic>;
-                final athletes = data['athletes'] as List<dynamic>? ?? [];
-                final combattimentoId = doc.id;
+              return Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8.0), // Spazio verticale tra le card
+                child: ExpansionTile(
+                  title: Text(formatDate(date)),
+                  children: combattimenti.map((doc) {
+                    final data = doc.data() as Map<String, dynamic>;
+                    final athletes = data['athletes'] as List<dynamic>? ?? [];
+                    final combattimentoId = doc.id;
 
-                Widget trailingIcon;
-                String? subtitle;
-                if (data['type'] == 'a tema') {
-                  trailingIcon = IconButton(
-                    icon: const Icon(Icons.info),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => ThemedCombattimentoDetailScreen(
-                            combattimentoId: combattimentoId,
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: Card(
+                        shape: RoundedRectangleBorder(
+                          side: BorderSide(color: Colors.black, width: 1), // Bordo nero
+                          borderRadius: BorderRadius.circular(8), // Angoli arrotondati
+                        ),
+                        color: Colors.white, // Sfondo bianco
+                        elevation: 3,
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '${data['type'].toString().capitalize()} - ${data['time']}',
+                                style: TextStyle(
+                                  color: Colors.black,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              Text(
+                                'Allenatore: ${data['coachName']} ${data['coachSurname']}\n'
+                                'Atleti: ${athletes.join(', ')}',
+                                style: TextStyle(color: Colors.black),
+                              ),
+                              if (data['type'] == 'a tema' || data['type'] == 'squadre')
+                                Align(
+                                  alignment: Alignment.centerRight,
+                                  child: IconButton(
+                                    icon: const Icon(Icons.info),
+                                    onPressed: () {
+                                      final route = data['type'] == 'a tema'
+                                          ? MaterialPageRoute(
+                                              builder: (context) => ThemedCombattimentoDetailScreen(
+                                                combattimentoId: combattimentoId,
+                                              ),
+                                            )
+                                          : MaterialPageRoute(
+                                              builder: (context) => TeamCombattimentoDetailScreen(
+                                                combattimentoId: combattimentoId,
+                                              ),
+                                            );
+                                      Navigator.push(context, route);
+                                    },
+                                  ),
+                                ),
+                            ],
                           ),
                         ),
-                      );
-                    },
-                  );
-                  subtitle = 'Tema: ${data['theme']}\n'
-                             'Allenatore: ${data['coachName']} ${data['coachSurname']}\n'
-                             'Atleti: ${athletes.join(', ')}';
-                } else if (data['type'] == 'squadre') {
-                  trailingIcon = IconButton(
-                    icon: const Icon(Icons.info),
-                    onPressed: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => TeamCombattimentoDetailScreen(
-                            combattimentoId: combattimentoId,
-                          ),
-                        ),
-                      );
-                    },
-                  );
-                  subtitle = 'Allenatore: ${data['coachName']} ${data['coachSurname']}\n'
-                             'Atleti: ${athletes.join(', ')}';
-                } else {
-                  trailingIcon = const SizedBox.shrink();
-                  subtitle = 'Allenatore: ${data['coachName']} ${data['coachSurname']}\n'
-                             'Atleti: ${athletes.join(', ')}';
-                }
-
-                return ListTile(
-                  title: Text('${data['type'].toString().capitalize()} - ${data['time']}'),
-                  subtitle: Text(subtitle),
-                  trailing: trailingIcon,
-                );
-              }).toList(),
-            );
-          },
+                      ),
+                    );
+                  }).toList(),
+                ),
+              );
+            },
+          ),
         );
       }
     );
@@ -1618,73 +1739,6 @@ class CoachCombattimentiListScreen extends StatelessWidget {
   }
 }
 
-// Update the AthleteAssaltiView to use the CombattimentiList widget
-class AthleteAssaltiView extends StatelessWidget {
-  const AthleteAssaltiView({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final authService = Provider.of<AuthService>(context, listen: false);
-    final user = authService.currentUser;
-
-    return FutureBuilder<DocumentSnapshot>(
-      future: authService.getUserData(user!.uid),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        if (snapshot.hasError || !snapshot.hasData) {
-          return const Center(child: Text('Error loading user data'));
-        }
-
-        final userData = snapshot.data!.data() as Map<String, dynamic>;
-        final athleteName = '${userData['firstName']} ${userData['lastName']}';
-
-        return CombattimentiList(
-          stream: FirebaseFirestore.instance
-              .collection('combattimenti')
-              .where('athletes', arrayContains: athleteName)
-              .snapshots(),
-        );
-      },
-    );
-  }
-}
-
-// Update the StaffAssaltiView to use the CombattimentiList widget
-class StaffAssaltiView extends StatelessWidget {
-  const StaffAssaltiView({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    final authService = Provider.of<AuthService>(context, listen: false);
-    final user = authService.currentUser;
-
-    return FutureBuilder<DocumentSnapshot>(
-      future: authService.getUserData(user!.uid),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        }
-
-        if (snapshot.hasError || !snapshot.hasData) {
-          return const Center(child: Text('Error loading user data'));
-        }
-
-        final userData = snapshot.data!.data() as Map<String, dynamic>;
-        final facilityCode = userData['facilityCode'];
-
-        return CombattimentiList(
-          stream: FirebaseFirestore.instance
-              .collection('combattimenti')
-              .where('facilityCode', isEqualTo: facilityCode)
-              .snapshots(),
-        );
-      },
-    );
-  }
-}
 
 //Lezione privata
 class PrivateLessonTab extends StatefulWidget {
@@ -2012,23 +2066,57 @@ class CoachLessonsScreen extends StatelessWidget {
 
               final groupedLessons = _groupLessonsByDate(validLessons);
 
-              return ListView.builder(
-                itemCount: groupedLessons.length,
-                itemBuilder: (context, index) {
-                  final date = groupedLessons.keys.elementAt(index);
-                  final lessons = groupedLessons[date]!;
+              return Padding(
+                padding: const EdgeInsets.all(8.0), // Spazio attorno al ListView
+                child: ListView.builder(
+                  itemCount: groupedLessons.length,
+                  itemBuilder: (context, index) {
+                    final date = groupedLessons.keys.elementAt(index);
+                    final lessons = groupedLessons[date]!;
 
-                  return ExpansionTile(
-                    title: Text(_formatDate(date)),
-                    children: lessons.map((doc) {
-                      final data = doc.data() as Map<String, dynamic>;
-                      return ListTile(
-                        title: Text('Lezione privata - ${data['time']}'),
-                        subtitle: Text('Atleta: ${data['athleteName']} ${data['athleteSurname']}'),
-                      );
-                    }).toList(),
-                  );
-                },
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0), // Spazio verticale tra le card
+                      child: ExpansionTile(
+                        title: Text(_formatDate(date)),
+                        children: lessons.map((doc) {
+                          final data = doc.data() as Map<String, dynamic>;
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8.0),
+                            child: Card(
+                              shape: RoundedRectangleBorder(
+                                side: BorderSide(color: Colors.black, width: 1), // Bordo nero
+                                borderRadius: BorderRadius.circular(8), // Angoli arrotondati
+                              ),
+                              color: Colors.white, // Sfondo bianco
+                              elevation: 3,
+                              child: Padding(
+                                padding: const EdgeInsets.all(16.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Lezione privata - ${data['time']}',
+                                      style: TextStyle(
+                                        color: Colors.black,
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      'Atleta: ${data['athleteName']} ${data['athleteSurname']}',
+                                      style: TextStyle(color: Colors.black),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        }).toList(),
+                      ),
+                    );
+                  },
+                ),
               );
             },
           ),
@@ -2118,23 +2206,57 @@ class AthleteLesson extends StatelessWidget {
 
             final groupedLessons = _groupLessonsByDate(validLessons);
 
-            return ListView.builder(
-              itemCount: groupedLessons.length,
-              itemBuilder: (context, index) {
-                final date = groupedLessons.keys.elementAt(index);
-                final lessons = groupedLessons[date]!;
+            return Padding(
+              padding: const EdgeInsets.all(8.0), // Spazio attorno al ListView
+              child: ListView.builder(
+                itemCount: groupedLessons.length,
+                itemBuilder: (context, index) {
+                  final date = groupedLessons.keys.elementAt(index);
+                  final lessons = groupedLessons[date]!;
 
-                return ExpansionTile(
-                  title: Text(_formatDate(date)),
-                  children: lessons.map((doc) {
-                    final data = doc.data() as Map<String, dynamic>;
-                    return ListTile(
-                      title: Text('Lezione privata - ${data['time']}'),
-                      subtitle: Text('Coach: ${data['coachName']} ${data['coachSurname']}'),
-                    );
-                  }).toList(),
-                );
-              },
+                  return Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 8.0), // Spazio verticale tra le card
+                    child: ExpansionTile(
+                      title: Text(_formatDate(date)),
+                      children: lessons.map((doc) {
+                        final data = doc.data() as Map<String, dynamic>;
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 8.0),
+                          child: Card(
+                            shape: RoundedRectangleBorder(
+                              side: BorderSide(color: Colors.black, width: 1), // Bordo nero
+                              borderRadius: BorderRadius.circular(8), // Angoli arrotondati
+                            ),
+                            color: Colors.white, // Sfondo bianco
+                            elevation: 3,
+                            child: Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Lezione privata - ${data['time']}',
+                                    style: TextStyle(
+                                      color: Colors.black,
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 8),
+                                  Text(
+                                    'Coach: ${data['coachName']} ${data['coachSurname']}',
+                                    style: TextStyle(color: Colors.black),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      }).toList(),
+                    ),
+                  );
+                },
+              ),
             );
           },
         );
@@ -2183,48 +2305,85 @@ class StaffLessonView extends StatelessWidget {
         final userData = snapshot.data!.data() as Map<String, dynamic>;
         final facilityCode = userData['facilityCode'];
 
-        return StreamBuilder<QuerySnapshot>(
-          stream: FirebaseFirestore.instance
-              .collection('private_lessons')
-              .where('facilityCode', isEqualTo: facilityCode)
-              .snapshots(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            }
+        return Scaffold(
+          // appBar: AppBar(
+          //   //title: const Text('Lezioni Private - Staff'),
+          // ),
+          body: StreamBuilder<QuerySnapshot>(
+            stream: FirebaseFirestore.instance
+                .collection('private_lessons')
+                .where('facilityCode', isEqualTo: facilityCode)
+                .snapshots(),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
 
-            if (snapshot.hasError) {
-              return Center(child: Text('Error: ${snapshot.error}'));
-            }
+              if (snapshot.hasError) {
+                return Center(child: Text('Error: ${snapshot.error}'));
+              }
 
-            if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-              return const Center(child: Text('Nessuna lezione privata programmata'));
-            }
+              if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
+                return const Center(child: Text('Nessuna lezione privata programmata'));
+              }
 
-            final groupedLessons = _groupLessonsByDate(snapshot.data!.docs);
+              final groupedLessons = _groupLessonsByDate(snapshot.data!.docs);
 
-            return ListView.builder(
-              itemCount: groupedLessons.length,
-              itemBuilder: (context, index) {
-                final date = groupedLessons.keys.elementAt(index);
-                final lessons = groupedLessons[date]!;
+              return Padding(
+                padding: const EdgeInsets.all(8.0), // Spazio attorno al ListView
+                child: ListView.builder(
+                  itemCount: groupedLessons.length,
+                  itemBuilder: (context, index) {
+                    final date = groupedLessons.keys.elementAt(index);
+                    final lessons = groupedLessons[date]!;
 
-                return ExpansionTile(
-                  title: Text(_formatDate(date)),
-                  children: lessons.map((doc) {
-                    final data = doc.data() as Map<String, dynamic>;
-                    return ListTile(
-                      title: Text('Lezione privata - ${data['time']}'),
-                      subtitle: Text(
-                        'Atleta: ${data['athleteName']} ${data['athleteSurname']}\n'
-                        'Coach: ${data['coachName']} ${data['coachSurname']}'
+                    return Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0), // Spazio verticale tra le card
+                      child: ExpansionTile(
+                        title: Text(_formatDate(date)),
+                        children: lessons.map((doc) {
+                          final data = doc.data() as Map<String, dynamic>;
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 8.0),
+                            child: Card(
+                              shape: RoundedRectangleBorder(
+                                side: BorderSide(color: Colors.black, width: 1), // Bordo nero
+                                borderRadius: BorderRadius.circular(8), // Angoli arrotondati
+                              ),
+                              color: Colors.white, // Sfondo bianco
+                              elevation: 3,
+                              child: Padding(
+                                padding: const EdgeInsets.all(16.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Lezione privata - ${data['time']}',
+                                      style: TextStyle(
+                                        color: Colors.black,
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    Text(
+                                      'Atleta: ${data['athleteName']} ${data['athleteSurname']}\n'
+                                      'Coach: ${data['coachName']} ${data['coachSurname']}',
+                                      style: TextStyle(color: Colors.black),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        }).toList(),
                       ),
                     );
-                  }).toList(),
-                );
-              },
-            );
-          },
+                  },
+                ),
+              );
+            },
+          ),
         );
       },
     );

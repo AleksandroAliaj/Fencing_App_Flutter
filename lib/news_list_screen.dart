@@ -356,45 +356,104 @@ class NewsList extends StatelessWidget {
                   return const Center(child: Text('Nessuna news trovata'));
                 }
 
-                return ListView(
-                  children: snapshot.data!.docs.map((doc) {
-                    return ListTile(
-                      title: Text(doc['title']),
-                      subtitle: Text(doc['description']),
-                      trailing: role.toLowerCase() == 'staff'
-                          ? IconButton(
-                              icon: const Icon(Icons.delete, color: Colors.red),
-                              onPressed: () async {
-                                final shouldDelete = await showDialog<bool>(
-                                  context: context,
-                                  builder: (context) => AlertDialog(
-                                    title: const Text('Conferma Eliminazione'),
-                                    content: const Text('Sei sicuro di voler eliminare questa news?'),
-                                    actions: [
-                                      TextButton(
-                                        onPressed: () => Navigator.of(context).pop(false),
-                                        child: const Text('Annulla'),
-                                      ),
-                                      TextButton(
-                                        onPressed: () => Navigator.of(context).pop(true),
-                                        child: const Text('Elimina'),
-                                      ),
-                                    ],
-                                  ),
-                                );
-
-                                if (shouldDelete == true) {
-                                  await doc.reference.delete();
-                                }
-                              },
-                            )
-                          : null,
-                    );
-                  }).toList(),
+                return Padding(
+                  padding: const EdgeInsets.only(top: 16.0),
+                  child: ListView.builder(
+                    itemCount: snapshot.data!.docs.length,
+                    itemBuilder: (context, index) {
+                      final doc = snapshot.data!.docs[index];
+                      final timestamp = (doc['timestamp'] as Timestamp).toDate();
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        child: _buildNewsButton(
+                          context: context,
+                          icon: Icons.article,
+                          title: doc['title'],
+                          subtitle: '${doc['description']}\n${timestamp.day}-${timestamp.month}-${timestamp.year}',
+                          onDelete: role.toLowerCase() == 'staff'
+                              ? () => _showDeleteConfirmation(context, doc)
+                              : null,
+                        ),
+                      );
+                    },
+                  ),
                 );
               },
             );
           },
+        );
+      },
+    );
+  }
+
+  Widget _buildNewsButton({
+    required BuildContext context,
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    VoidCallback? onDelete,
+  }) {
+    return ElevatedButton(
+      style: ElevatedButton.styleFrom(
+        backgroundColor: Colors.white,
+        side: const BorderSide(color: Colors.black, width: 2),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
+        ),
+        padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
+      ),
+      onPressed: () {
+        // Azione quando si preme il bottone della news
+      },
+      child: Row(
+        children: [
+          Icon(icon, color: Colors.black, size: 24),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  title,
+                  style: const TextStyle(color: Colors.black, fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                Text(
+                  subtitle,
+                  style: const TextStyle(color: Colors.black, fontSize: 14),
+                ),
+              ],
+            ),
+          ),
+          if (onDelete != null)
+            IconButton(
+              icon: const Icon(Icons.delete, color: Colors.red),
+              onPressed: onDelete,
+            ),
+        ],
+      ),
+    );
+  }
+
+  void _showDeleteConfirmation(BuildContext context, DocumentSnapshot doc) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Conferma Eliminazione'),
+          content: const Text('Sei sicuro di voler eliminare questa news?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Annulla'),
+            ),
+            TextButton(
+              onPressed: () async {
+                await doc.reference.delete();
+                Navigator.of(context).pop();
+              },
+              child: const Text('Elimina'),
+            ),
+          ],
         );
       },
     );
