@@ -715,7 +715,7 @@ class DeadlineListScreen extends StatelessWidget {
 
         final userData = snapshot.data!;
         final facilityCode = userData['facilityCode'];
-        final role = userData['role']; // Assuming you have the role information in user data
+        final role = userData['role'];
 
         return Scaffold(
           appBar: AppBar(
@@ -740,54 +740,143 @@ class DeadlineListScreen extends StatelessWidget {
               final now = DateTime.now();
               final twelveMonthsAgo = now.subtract(const Duration(days: 200));
 
-              // Rimuovi scadenze più vecchie 
               final validDeadlines = snapshot.data!.docs.where((doc) {
                 final deadlineDate = (doc['deadlineDate'] as Timestamp).toDate();
                 if (deadlineDate.isBefore(twelveMonthsAgo)) {
-                  // Elimina la scadenza scaduta
                   doc.reference.delete();
                   return false;
                 }
                 return true;
               }).toList();
 
-              return ListView(
-                children: validDeadlines.map((doc) {
-                  return ListTile(
-                    title: Text(doc['text']),
-                    subtitle: Text('${doc['firstName']} ${doc['lastName']}'),
-                    trailing: role.toLowerCase() == 'staff'
-                        ? Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              ElevatedButton(
-                                onPressed: () async {
-                                  await doc.reference.delete();
-                                },
-                                child: const Text('Elimina'),
-                              ),
-                              const SizedBox(width: 8),
-                              doc['status'] == 'Confirmed'
-                                  ? const Text('Confermato', style: TextStyle(color: Colors.green))
-                                  : ElevatedButton(
-                                      onPressed: () async {
-                                        await doc.reference.update({'status': 'Confirmed'});
-                                      },
-                                      child: const Text('Conferma'),
-                                    ),
-                            ],
-                          )
-                        : doc['status'] == 'Confirmed'
-                            ? const Text('Confermato', style: TextStyle(color: Colors.green))
-                            : null,
+              return ListView.builder(
+                itemCount: validDeadlines.length,
+                itemBuilder: (context, index) {
+                  final doc = validDeadlines[index];
+                  return _buildDeadlineCard(
+                    context: context,
+                    text: doc['text'],
+                    name: '${doc['firstName']} ${doc['lastName']}',
+                    date: (doc['deadlineDate'] as Timestamp).toDate(),
+                    status: doc['status'],
+                    role: role,
+                    onDelete: role.toLowerCase() == 'staff'
+                        ? () => _showDeleteConfirmation(context, doc)
+                        : null,
+                    onConfirm: role.toLowerCase() == 'staff' && doc['status'] != 'Confirmed'
+                        ? () => _confirmDeadline(context, doc)
+                        : null,
                   );
-                }).toList(),
+                },
               );
             },
           ),
         );
       },
     );
+  }
+
+  Widget _buildDeadlineCard({
+    required BuildContext context,
+    required String text,
+    required String name,
+    required DateTime date,
+    required String status,
+    required String role,
+    VoidCallback? onDelete,
+    VoidCallback? onConfirm,
+  }) {
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: const BorderSide(color: Colors.black, width: 1),
+      ),
+      color: Colors.white,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              text,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              name,
+              style: const TextStyle(fontSize: 14, color: Colors.black87),
+            ),
+            Text(
+              '${date.day}-${date.month}-${date.year}',
+              style: const TextStyle(fontSize: 14, color: Colors.black87),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  status == 'Confirmed' ? 'Confermato' : 'In attesa',
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: status == 'Confirmed' ? Colors.green : Colors.orange,
+                  ),
+                ),
+                if (role.toLowerCase() == 'staff')
+                  Row(
+                    children: [
+                      if (onConfirm != null)
+                        IconButton(
+                          icon: const Icon(Icons.check, color: Colors.green),
+                          onPressed: onConfirm,
+                        ),
+                      if (onDelete != null)
+                        IconButton(
+                          icon: const Icon(Icons.delete, color: Colors.red),
+                          onPressed: onDelete,
+                        ),
+                    ],
+                  ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showDeleteConfirmation(BuildContext context, DocumentSnapshot doc) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Conferma Eliminazione'),
+          content: const Text('Sei sicuro di voler eliminare questa scadenza?'),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(context).pop(),
+              child: const Text('Annulla'),
+            ),
+            TextButton(
+              onPressed: () async {
+                await doc.reference.delete();
+                Navigator.of(context).pop();
+              },
+              child: const Text('Elimina'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _confirmDeadline(BuildContext context, DocumentSnapshot doc) async {
+    await doc.reference.update({'status': 'Confirmed'});
   }
 }
 
