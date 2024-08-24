@@ -476,7 +476,6 @@ class _AddProductDialogState extends State<AddProductDialog> {
 
   Future<void> _addProduct() async {
     if (_formKey.currentState!.validate()) {
-      // Aggiunta del prodotto a Firestore
       await FirebaseFirestore.instance.collection('products').add({
         'title': _title,
         'description': _description,
@@ -499,6 +498,7 @@ class _AddProductDialogState extends State<AddProductDialog> {
           key: _formKey,
           child: Column(
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: <Widget>[
               TextFormField(
                 decoration: const InputDecoration(labelText: 'Titolo'),
@@ -532,11 +532,13 @@ class _AddProductDialogState extends State<AddProductDialog> {
                   }
                   return null;
                 },
-                //onSaved: (value) => _price = double.parse(value!),
                 onSaved: (value) => _price = double.parse(value!).toDouble(),
               ),
+              const SizedBox(height: 16),
+              const Text('Categoria'),
               DropdownButtonFormField<String>(
                 value: _category,
+                isExpanded: true,
                 items: <String>[
                   'Abbigliamento e Equipaggiamento di Base',
                   'Armi',
@@ -548,7 +550,10 @@ class _AddProductDialogState extends State<AddProductDialog> {
                 ].map<DropdownMenuItem<String>>((String value) {
                   return DropdownMenuItem<String>(
                     value: value,
-                    child: Text(value),
+                    child: Text(
+                      value,
+                      overflow: TextOverflow.ellipsis,
+                    ),
                   );
                 }).toList(),
                 onChanged: (String? newValue) {
