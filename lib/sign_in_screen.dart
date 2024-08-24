@@ -1,3 +1,5 @@
+// sign_in_screen.dart
+
 // ignore_for_file: library_private_types_in_public_api, sort_child_properties_last, use_build_context_synchronously
 
 import 'package:flutter/material.dart';
@@ -6,6 +8,7 @@ import 'auth_service.dart';
 import 'register_screen.dart';
 import 'profile_screen.dart';
 import 'google_sign_in.dart';
+
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
@@ -21,9 +24,18 @@ class _SignInScreenState extends State<SignInScreen> {
   String? _emailError;
   String? _passwordError;
   bool _showGoogleOptions = false;
+  late PageController _tutorialPageController;
+  int _currentTutorialPage = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    _tutorialPageController = PageController();
+  }
 
   @override
   void dispose() {
+    _tutorialPageController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     super.dispose();
@@ -45,6 +57,134 @@ class _SignInScreenState extends State<SignInScreen> {
           ),
         );
       },
+    );
+  }
+
+  void _showTutorialPopup() {
+    // Reset the tutorial state
+    _currentTutorialPage = 0;
+    _tutorialPageController = PageController();
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            return AlertDialog(
+              content: SizedBox(
+                width: MediaQuery.of(context).size.width * 0.8,
+                height: MediaQuery.of(context).size.height * 0.6,
+                child: Column(
+                  children: [
+                    Expanded(
+                      child: PageView(
+                        controller: _tutorialPageController,
+                        onPageChanged: (index) {
+                          setState(() {
+                            _currentTutorialPage = index;
+                          });
+                        },
+                        children: [
+                          _buildTutorialPage(
+                            Icons.sports,
+                            'Benvenuto in Fencing!',
+                            'Scopri le funzionalità dedicate al mondo della scherma.',
+                          ),
+                          _buildTutorialPage(
+                            Icons.notifications_active,
+                            'Rimani aggiornato',
+                            'Accedi per non perderti eventi, news e messaggi.',
+                          ),
+                          _buildTutorialPage(
+                            Icons.fitness_center,
+                            'Gestisci i tuoi allenamenti',
+                            'Monitora i tuoi allenamenti e scala le classifiche.',
+                          ),
+                          _buildTutorialPage(
+                            Icons.explore,
+                            'Pronto per iniziare?',
+                            'Inizia ad esplorare l\'app!',
+                          ),
+                        ],
+                      ),
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(context).pop();
+                          },
+                          child: const Text('Chiudi', style: TextStyle(color: Colors.black)),
+                        ),
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: List.generate(4, (index) => _buildPageIndicator(index)),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            if (_currentTutorialPage < 3) {
+                              _tutorialPageController.nextPage(
+                                duration: const Duration(milliseconds: 300),
+                                curve: Curves.ease,
+                              );
+                            } else {
+                              Navigator.of(context).pop();
+                            }
+                          },
+                          child: Text(
+                            _currentTutorialPage < 3 ? 'Avanti' : 'Fine',
+                            style: const TextStyle(color: Colors.black),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      },
+    ).then((_) {
+      // Reset the tutorial state when the dialog is closed
+      setState(() {
+        _currentTutorialPage = 0;
+        _tutorialPageController = PageController();
+      });
+    });
+  }
+  
+  Widget _buildTutorialPage(IconData icon, String title, String description) {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(icon, size: 80, color: Colors.black),
+        const SizedBox(height: 20),
+        Text(
+          title,
+          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: Colors.black),
+          textAlign: TextAlign.center,
+        ),
+        const SizedBox(height: 10),
+        Text(
+          description,
+          style: const TextStyle(fontSize: 16, color: Colors.black),
+          textAlign: TextAlign.center,
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPageIndicator(int index) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 2),
+      height: 8,
+      width: _currentTutorialPage == index ? 16 : 8,
+      decoration: BoxDecoration(
+        color: _currentTutorialPage == index ? Colors.black : Colors.grey,
+        borderRadius: BorderRadius.circular(4),
+      ),
     );
   }
 
@@ -96,16 +236,6 @@ class _SignInScreenState extends State<SignInScreen> {
       ),
       body: Stack(
         children: [
-          // // Immagine di sfondo
-          // Container(
-          //   decoration: const BoxDecoration(
-          //     image: DecorationImage(
-          //       image: AssetImage('assets/logo.png'), 
-          //       fit: BoxFit.cover,
-          //     ),
-          //   ),
-          // ),
-          // Contenuto della schermata
           Center(
             child: SingleChildScrollView(
               child: Padding(
@@ -189,8 +319,8 @@ class _SignInScreenState extends State<SignInScreen> {
                             child: const Text('Google', style: TextStyle(color: Colors.white)),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.black,
-                              minimumSize: const Size(0, 50),  // Altezza fissa, larghezza adattiva
-                              padding: EdgeInsets.zero,  // Rimuove il padding interno
+                              minimumSize: const Size(0, 50),
+                              padding: EdgeInsets.zero,
                             ),
                             onPressed: () {
                               setState(() {
@@ -205,8 +335,8 @@ class _SignInScreenState extends State<SignInScreen> {
                             child: const Text('Registrati', style: TextStyle(color: Colors.white)),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: Colors.black,
-                              minimumSize: const Size(0, 50),  // Altezza fissa, larghezza adattiva
-                              padding: EdgeInsets.zero,  // Rimuove il padding interno
+                              minimumSize: const Size(0, 50),
+                              padding: EdgeInsets.zero,
                             ),
                             onPressed: () {
                               Navigator.of(context).push(
@@ -256,6 +386,23 @@ class _SignInScreenState extends State<SignInScreen> {
                         },
                       ),
                     ],
+                    const SizedBox(height: 20),
+                    // Pulsante Tutorial modificato
+                    Align(
+                      alignment: Alignment.bottomRight,
+                      child: OutlinedButton(
+                        onPressed: _showTutorialPopup,  // Cambiato qui
+                        style: OutlinedButton.styleFrom(
+                          side: const BorderSide(color: Colors.black),
+                          backgroundColor: Colors.white,
+                          minimumSize: const Size(120, 40),
+                        ),
+                        child: const Text(
+                          'Tutorial',
+                          style: TextStyle(color: Colors.black),
+                        ),
+                      ),
+                    ),
                   ],
                 ),
               ),
