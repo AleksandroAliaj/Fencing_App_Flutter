@@ -295,16 +295,68 @@ class MyRequestsScreen extends StatelessWidget {
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
             return const Center(child: Text('Nessuna richiesta trovata'));
           }
-          return ListView(
-            children: snapshot.data!.docs.map((doc) {
-              return ListTile(
-                title: Text(doc['repair']),
-                subtitle: Text(doc['description']),
-                trailing: Text(doc['status']),
+          return ListView.builder(
+            itemCount: snapshot.data!.docs.length,
+            itemBuilder: (context, index) {
+              final doc = snapshot.data!.docs[index];
+              return _buildRequestCard(
+                repair: doc['repair'],
+                description: doc['description'],
+                status: doc['status'],
               );
-            }).toList(),
+            },
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildRequestCard({
+    required String repair,
+    required String description,
+    required String status,
+  }) {
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: const BorderSide(color: Colors.black, width: 1),
+      ),
+      color: Colors.white,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              repair,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              description,
+              style: const TextStyle(fontSize: 14, color: Colors.black87),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  status,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: status == 'Riparato' ? Colors.green : Colors.orange,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -364,19 +416,42 @@ class RequestListScreen extends StatelessWidget {
                 return const Center(child: Text('Nessuna richiesta trovata'));
               }
 
-              return ListView(
-                children: snapshot.data!.docs.map((doc) {
+              return ListView.builder(
+                itemCount: snapshot.data!.docs.length,
+                itemBuilder: (context, index) {
+                  final doc = snapshot.data!.docs[index];
                   return FutureBuilder<DocumentSnapshot>(
                     future: FirebaseFirestore.instance.collection('users').doc(doc['userId']).get(),
                     builder: (context, userSnapshot) {
                       if (userSnapshot.connectionState == ConnectionState.waiting) {
-                        return const ListTile(title: Text('Loading...'));
+                        return _buildRequestCard(
+                          title: 'Loading...',
+                          subtitle: '',
+                          status: '',
+                          role: role,
+                          onRepaired: null,
+                          onDelete: null,
+                        );
                       }
                       if (userSnapshot.hasError) {
-                        return ListTile(title: Text('Error: ${userSnapshot.error}'));
+                        return _buildRequestCard(
+                          title: 'Error: ${userSnapshot.error}',
+                          subtitle: '',
+                          status: '',
+                          role: role,
+                          onRepaired: null,
+                          onDelete: null,
+                        );
                       }
                       if (!userSnapshot.hasData || !userSnapshot.data!.exists) {
-                        return const ListTile(title: Text('User not found'));
+                        return _buildRequestCard(
+                          title: 'User not found',
+                          subtitle: '',
+                          status: '',
+                          role: role,
+                          onRepaired: null,
+                          onDelete: null,
+                        );
                       }
 
                       final userData = userSnapshot.data!;
@@ -384,62 +459,117 @@ class RequestListScreen extends StatelessWidget {
                       final lastName = userData['lastName'];
                       final status = doc['status'];
 
-                      return ListTile(
-                        title: Text(doc['repair']),
-                        subtitle: Text('${doc['description']}\n$firstName $lastName'),
-                        trailing: role.toLowerCase() == 'staff'
-                            ? status == 'Riparato'
-                                ? Row(
-                                    mainAxisSize: MainAxisSize.min,
-                                    children: [
-                                      const Text(
-                                        'Riparato',
-                                        style: TextStyle(color: Colors.green),
+                      return _buildRequestCard(
+                        title: doc['repair'],
+                        subtitle: '${doc['description']}\n$firstName $lastName',
+                        status: status,
+                        role: role,
+                        onRepaired: role.toLowerCase() == 'staff' && status != 'Riparato'
+                            ? () async {
+                                await doc.reference.update({'status': 'Riparato'});
+                              }
+                            : null,
+                        onDelete: role.toLowerCase() == 'staff' && status == 'Riparato'
+                            ? () async {
+                                final shouldDelete = await showDialog<bool>(
+                                  context: context,
+                                  builder: (context) => AlertDialog(
+                                    title: const Text('Conferma Eliminazione'),
+                                    content: const Text('Sei sicuro di voler eliminare questa richiesta?'),
+                                    actions: [
+                                      TextButton(
+                                        onPressed: () => Navigator.of(context).pop(false),
+                                        child: const Text('Annulla'),
                                       ),
-                                      IconButton(
-                                        icon: const Icon(Icons.delete, color: Colors.red),
-                                        onPressed: () async {
-                                          final shouldDelete = await showDialog<bool>(
-                                            context: context,
-                                            builder: (context) => AlertDialog(
-                                              title: const Text('Conferma Eliminazione'),
-                                              content: const Text('Sei sicuro di voler eliminare questa richiesta?'),
-                                              actions: [
-                                                TextButton(
-                                                  onPressed: () => Navigator.of(context).pop(false),
-                                                  child: const Text('Annulla'),
-                                                ),
-                                                TextButton(
-                                                  onPressed: () => Navigator.of(context).pop(true),
-                                                  child: const Text('Elimina'),
-                                                ),
-                                              ],
-                                            ),
-                                          );
-
-                                          if (shouldDelete == true) {
-                                            await doc.reference.delete();
-                                          }
-                                        },
+                                      TextButton(
+                                        onPressed: () => Navigator.of(context).pop(true),
+                                        child: const Text('Elimina'),
                                       ),
                                     ],
-                                  )
-                                : ElevatedButton(
-                                    onPressed: () async {
-                                      await doc.reference.update({'status': 'Riparato'});
-                                    },
-                                    child: const Text('Riparato'),
-                                  )
-                            : Text(status),
+                                  ),
+                                );
+
+                                if (shouldDelete == true) {
+                                  await doc.reference.delete();
+                                }
+                              }
+                            : null,
                       );
                     },
                   );
-                }).toList(),
+                },
               );
             },
           ),
         );
       },
+    );
+  }
+
+  Widget _buildRequestCard({
+    required String title,
+    required String subtitle,
+    required String status,
+    required String role,
+    required VoidCallback? onRepaired,
+    required VoidCallback? onDelete,
+  }) {
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: const BorderSide(color: Colors.black, width: 1),
+      ),
+      color: Colors.white,
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                color: Colors.black,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              subtitle,
+              style: const TextStyle(fontSize: 14, color: Colors.black87),
+            ),
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  status,
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w500,
+                    color: status == 'Riparato' ? Colors.green : Colors.orange,
+                  ),
+                ),
+                if (role.toLowerCase() == 'staff')
+                  status == 'Riparato'
+                      ? IconButton(
+                          icon: const Icon(Icons.delete, color: Colors.red),
+                          onPressed: onDelete,
+                        )
+                      : ElevatedButton(
+                          onPressed: onRepaired,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.blue,
+                            foregroundColor: Colors.white,
+                          ),
+                          child: const Text('Riparato'),
+                        ),
+              ],
+            ),
+          ],
+        ),
+      ),
     );
   }
 }
