@@ -14,7 +14,7 @@ class FacilityCodeScreen extends StatelessWidget {
       backgroundColor: Colors.white,
       appBar: AppBar(
         title: const Text(
-          'Questo è il codice struttura che dovrai comunicare al personale e agli atleti',
+          'Comunica il tuo codice!',
           style: TextStyle(color: Colors.black),
         ),
         backgroundColor: Colors.white,

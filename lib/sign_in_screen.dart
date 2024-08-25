@@ -243,6 +243,13 @@ class _SignInScreenState extends State<SignInScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
+                    // Add the logo here
+                    Image.asset(
+                      'assets/logo.png',
+                      width: MediaQuery.of(context).size.width * 0.23, // Adjust size as needed
+                      height: MediaQuery.of(context).size.width * 0.23 * (850 / 828), // Maintain aspect ratio
+                    ),
+                    const SizedBox(height: 30), // Add some space after the logo
                     TextField(
                       controller: _emailController,
                       decoration: InputDecoration(
@@ -398,7 +405,7 @@ class _SignInScreenState extends State<SignInScreen> {
                           minimumSize: const Size(120, 40),
                         ),
                         child: const Text(
-                          'Tutorial',
+                          'Allez',
                           style: TextStyle(color: Colors.black),
                         ),
                       ),

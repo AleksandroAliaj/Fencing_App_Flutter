@@ -2,7 +2,8 @@
     <application
         android:label="Fencing"
         android:name="${applicationName}"
-        android:icon="@mipmap/logo">
+        android:icon="@mipmap/logo"
+        android:roundIcon="@mipmap/logo">
         <activity
             android:name=".MainActivity"
             android:exported="true"

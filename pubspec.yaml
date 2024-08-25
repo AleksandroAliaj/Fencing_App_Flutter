@@ -78,6 +78,7 @@ flutter:
   assets:
     - assets/fioretto_f.csv
     - assets/fioretto_m.csv
+    - assets/logo.png
     - assets/sciabola_f.csv
     - assets/sciabola_m.csv
     - assets/spada_f.csv

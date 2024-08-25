@@ -16,6 +16,24 @@ class UserListScreen extends StatefulWidget {
 
 class _UserListScreenState extends State<UserListScreen> {
   String _searchQuery = '';
+  String? _currentUserFacilityCode;
+
+  @override
+  void initState() {
+    super.initState();
+    _getCurrentUserFacilityCode();
+  }
+
+  Future<void> _getCurrentUserFacilityCode() async {
+    final authService = Provider.of<AuthService>(context, listen: false);
+    final user = authService.currentUser;
+    if (user != null) {
+      final userData = await FirebaseFirestore.instance.collection('users').doc(user.uid).get();
+      setState(() {
+        _currentUserFacilityCode = userData['facilityCode'];
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -23,9 +41,7 @@ class _UserListScreenState extends State<UserListScreen> {
     final user = authService.currentUser;
 
     return Scaffold(
-      appBar: AppBar(
-        //title: const Text('Users'),
-      ),
+      appBar: AppBar(),
       body: Column(
         children: [
           Padding(
@@ -46,70 +62,68 @@ class _UserListScreenState extends State<UserListScreen> {
             ),
           ),
           Expanded(
-            child: StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance.collection('users').snapshots(),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
+            child: _currentUserFacilityCode == null
+                ? Center(child: CircularProgressIndicator())
+                : StreamBuilder<QuerySnapshot>(
+                    stream: FirebaseFirestore.instance
+                        .collection('users')
+                        .where('facilityCode', isEqualTo: _currentUserFacilityCode)
+                        .snapshots(),
+                    builder: (context, snapshot) {
+                      if (snapshot.connectionState == ConnectionState.waiting) {
+                        return const Center(child: CircularProgressIndicator());
+                      }
 
-                if (snapshot.hasError) {
-                  return Center(child: Text('Error loading users: ${snapshot.error}'));
-                }
+                      if (snapshot.hasError) {
+                        return Center(child: Text('Error loading users: ${snapshot.error}'));
+                      }
 
-                if (!snapshot.hasData || snapshot.data == null) {
-                  return const Center(child: Text('No users found'));
-                }
+                      if (!snapshot.hasData || snapshot.data == null) {
+                        return const Center(child: Text('No users found'));
+                      }
 
-                final users = snapshot.data!.docs;
+                      final users = snapshot.data!.docs;
 
-                final filteredUsers = users.where((doc) {
-                  final userData = doc.data() as Map<String, dynamic>;
-                  final userName = '${userData['firstName']} ${userData['lastName']}'.toLowerCase();
-                  final userEmail = userData['email'].toLowerCase();
-                  return userName.contains(_searchQuery) || userEmail.contains(_searchQuery);
-                }).toList();
+                      final filteredUsers = users.where((doc) {
+                        final userData = doc.data() as Map<String, dynamic>;
+                        final userName = '${userData['firstName']} ${userData['lastName']}'.toLowerCase();
+                        final userEmail = userData['email'].toLowerCase();
+                        return userName.contains(_searchQuery) || userEmail.contains(_searchQuery);
+                      }).toList();
 
-                return ListView.builder(
-                  itemCount: filteredUsers.length,
-                  itemBuilder: (context, index) {
-                    final userData = filteredUsers[index].data() as Map<String, dynamic>;
-                    final userId = filteredUsers[index].id;
-                    final userName = '${userData['firstName']} ${userData['lastName']}';
-                    final userEmail = userData['email'];
+                      return ListView.builder(
+                        itemCount: filteredUsers.length,
+                        itemBuilder: (context, index) {
+                          final userData = filteredUsers[index].data() as Map<String, dynamic>;
+                          final userId = filteredUsers[index].id;
+                          final userName = '${userData['firstName']} ${userData['lastName']}';
+                          final userEmail = userData['email'];
 
-                    if (userId == user?.uid) {
-                      return SizedBox.shrink();
-                    }
+                          if (userId == user?.uid) {
+                            return SizedBox.shrink();
+                          }
 
-                    return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-                      child: Card(
-                        elevation: 2,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(10),
-                          side: BorderSide(color: Colors.black, width: 1),
-                        ),
-                        child: ListTile(
-                          title: Text(userName, style: TextStyle(color: Colors.black)),
-                          subtitle: Text(userEmail, style: TextStyle(color: Colors.black54)),
-                          onTap: () => _startChat(context, userId, userEmail),
-                          trailing: Icon(Icons.chat, color: Colors.black54),
-                        ),
-                      ),
-                    );
-                  },
-                );
-              },
-            ),
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+                            child: Card(
+                              elevation: 2,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(10),
+                                side: BorderSide(color: Colors.black, width: 1),
+                              ),
+                              child: ListTile(
+                                title: Text(userName, style: TextStyle(color: Colors.black)),
+                                subtitle: Text(userEmail, style: TextStyle(color: Colors.black54)),
+                                onTap: () => _startChat(context, userId, userEmail),
+                                trailing: Icon(Icons.chat, color: Colors.black54),
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  ),
           ),
-          // Padding(
-          //   padding: const EdgeInsets.all(8.0),
-          //   child: Text(
-          //     'Tap on a user to start a chat',
-          //     style: TextStyle(fontStyle: FontStyle.italic, color: Colors.black54),
-          //   ),
-          // ),
         ],
       ),
     );
