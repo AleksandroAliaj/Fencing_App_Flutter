@@ -98,6 +98,7 @@ class _UserListScreenState extends State<UserListScreen> {
                           final userId = filteredUsers[index].id;
                           final userName = '${userData['firstName']} ${userData['lastName']}';
                           final userEmail = userData['email'];
+                          final userRole = userData['role'] ?? 'Ruolo non specificato';
 
                           if (userId == user?.uid) {
                             return SizedBox.shrink();
@@ -113,7 +114,13 @@ class _UserListScreenState extends State<UserListScreen> {
                               ),
                               child: ListTile(
                                 title: Text(userName, style: TextStyle(color: Colors.black)),
-                                subtitle: Text(userEmail, style: TextStyle(color: Colors.black54)),
+                                subtitle: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(userEmail, style: TextStyle(color: Colors.black54)),
+                                    Text('$userRole', style: TextStyle(color: Colors.black54, fontWeight: FontWeight.bold)),
+                                  ],
+                                ),
                                 onTap: () => _startChat(context, userId, userEmail),
                                 trailing: Icon(Icons.chat, color: Colors.black54),
                               ),
