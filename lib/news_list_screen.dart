@@ -259,34 +259,48 @@ class AllNewsScreen extends StatelessWidget {
 
               return ListView(
                 children: snapshot.data!.docs.map((doc) {
-                  return ListTile(
-                    title: Text(doc['title']),
-                    subtitle: Text(doc['description']),
-                    trailing: IconButton(
-                      icon: const Icon(Icons.delete, color: Colors.red),
-                      onPressed: () async {
-                        final shouldDelete = await showDialog<bool>(
-                          context: context,
-                          builder: (context) => AlertDialog(
-                            title: const Text('Conferma Eliminazione'),
-                            content: const Text('Sei sicuro di voler eliminare questa news?'),
-                            actions: [
-                              TextButton(
-                                onPressed: () => Navigator.of(context).pop(false),
-                                child: const Text('Annulla'),
-                              ),
-                              TextButton(
-                                onPressed: () => Navigator.of(context).pop(true),
-                                child: const Text('Elimina'),
-                              ),
-                            ],
-                          ),
-                        );
+                  return Container(
+                    margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      border: Border.all(color: Colors.black, width: 1),
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                    child: ListTile(
+                      title: Text(
+                        doc['title'],
+                        style: const TextStyle(color: Colors.black),
+                      ),
+                      subtitle: Text(
+                        doc['description'],
+                        style: const TextStyle(color: Colors.black),
+                      ),
+                      trailing: IconButton(
+                        icon: const Icon(Icons.delete, color: Colors.red),
+                        onPressed: () async {
+                          final shouldDelete = await showDialog<bool>(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: const Text('Conferma Eliminazione'),
+                              content: const Text('Sei sicuro di voler eliminare questa news?'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.of(context).pop(false),
+                                  child: const Text('Annulla'),
+                                ),
+                                TextButton(
+                                  onPressed: () => Navigator.of(context).pop(true),
+                                  child: const Text('Elimina'),
+                                ),
+                              ],
+                            ),
+                          );
 
-                        if (shouldDelete == true) {
-                          await doc.reference.delete();
-                        }
-                      },
+                          if (shouldDelete == true) {
+                            await doc.reference.delete();
+                          }
+                        },
+                      ),
                     ),
                   );
                 }).toList(),
