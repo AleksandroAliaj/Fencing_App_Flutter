@@ -9,8 +9,8 @@ class ArmeriaScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final bool isLandscape = MediaQuery.of(context).orientation == Orientation.landscape;
     final double buttonSize = isLandscape
-        ? MediaQuery.of(context).size.width * 0.25  // Riduci la dimensione in landscape
-        : MediaQuery.of(context).size.width * 0.35; // Dimensione normale in portrait
+        ? MediaQuery.of(context).size.width * 0.25  
+        : MediaQuery.of(context).size.width * 0.35; 
 
     return Scaffold(
       appBar: AppBar(
@@ -37,7 +37,7 @@ class ArmeriaScreen extends StatelessWidget {
                       );
                     },
                   ),
-                  const SizedBox(width: 20), // Spazio tra i due bottoni
+                  const SizedBox(width: 20), 
                   _buildSquareButton(
                     context: context,
                     buttonSize: buttonSize,
@@ -71,10 +71,10 @@ class ArmeriaScreen extends StatelessWidget {
       height: buttonSize,
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.white, // Colore di sfondo bianco
-          side: const BorderSide(color: Colors.black, width: 2), // Bordo nero
+          backgroundColor: Colors.white, 
+          side: const BorderSide(color: Colors.black, width: 2), 
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8), // Angoli leggermente arrotondati
+            borderRadius: BorderRadius.circular(8), 
           ),
         ),
         onPressed: onPressed,
@@ -82,8 +82,8 @@ class ArmeriaScreen extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: Colors.black, size: 40), // Icona nera
-            const SizedBox(height: 10), // Spazio tra l'icona e il testo
+            Icon(icon, color: Colors.black, size: 40), 
+            const SizedBox(height: 10), 
             Text(
               label,
               style: const TextStyle(color: Colors.black),
