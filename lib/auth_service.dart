@@ -39,7 +39,7 @@ Future<String> registerWithGoogle(String role, {String? facilityCode, required S
   UserCredential result = await signInWithGoogle();
   User? user = result.user;
   if (user != null) {
-    String userFacilityCode = facilityCode ?? _generateFacilityCode();
+    String userFacilityCode = facilityCode ?? generateFacilityCode();
 
     if (facilityCode != null) {
       bool codeExists = await checkFacilityCodeExists(facilityCode);
@@ -64,7 +64,7 @@ Future<String> registerWithGoogle(String role, {String? facilityCode, required S
     UserCredential result = await _auth.createUserWithEmailAndPassword(email: email, password: password);
     User? user = result.user;
     if (user != null) {
-      String userFacilityCode = facilityCode ?? _generateFacilityCode();
+      String userFacilityCode = facilityCode ?? generateFacilityCode();
       
       if (facilityCode != null) {
         bool codeExists = await checkFacilityCodeExists(facilityCode);
@@ -85,7 +85,7 @@ Future<String> registerWithGoogle(String role, {String? facilityCode, required S
     throw Exception('Failed to register user');
   }
 
-  String _generateFacilityCode() {
+  String generateFacilityCode() {
     const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
     Random rnd = Random();
     return String.fromCharCodes(Iterable.generate(
