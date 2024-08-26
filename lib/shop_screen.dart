@@ -389,70 +389,75 @@ class ProductDetailScreen extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Dettaglio Prodotto'),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              category,
-              style: Theme.of(context).textTheme.titleLarge!.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.grey[700],
-                  ),
+      body: LayoutBuilder(
+        builder: (context, constraints) {
+          return SingleChildScrollView(
+            child: ConstrainedBox(
+              constraints: BoxConstraints(
+                minHeight: constraints.maxHeight,
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      category,
+                      style: Theme.of(context).textTheme.titleLarge!.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey[700],
+                          ),
+                    ),
+                    const SizedBox(height: 16),
+                    Text(
+                      title,
+                      style: Theme.of(context).textTheme.headlineSmall!.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.black,
+                          ),
+                    ),
+                    const Divider(height: 32, thickness: 2),
+                    Text(
+                      'Descrizione:',
+                      style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey[800],
+                          ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      description,
+                      style: Theme.of(context).textTheme.bodyLarge!.copyWith(
+                            color: Colors.black87,
+                            height: 1.5,
+                          ),
+                    ),
+                    const Divider(height: 32, thickness: 2),
+                    Text(
+                      'Prezzo:',
+                      style: Theme.of(context).textTheme.titleMedium!.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.grey[800],
+                          ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      '$price €',
+                      style: Theme.of(context).textTheme.headlineSmall!.copyWith(
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green[700],
+                          ),
+                    ),
+                    const SizedBox(height: 16),
+                    const Center(
+                      child: Text('Prodotto disponibile in struttura'),
+                    ),
+                  ],
+                ),
+              ),
             ),
-            const SizedBox(height: 16),
-            Text(
-              title,
-              style: Theme.of(context).textTheme.headlineSmall!.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
-            ),
-            const Divider(height: 32, thickness: 2),
-            Text(
-              'Descrizione:',
-              style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.grey[800],
-                  ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              description,
-              style: Theme.of(context).textTheme.bodyLarge!.copyWith(
-                    color: Colors.black87,
-                    height: 1.5,
-                  ),
-            ),
-            const Divider(height: 32, thickness: 2),
-            Text(
-              'Prezzo:',
-              style: Theme.of(context).textTheme.titleMedium!.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.grey[800],
-                  ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              '$price €',
-              style: Theme.of(context).textTheme.headlineSmall!.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: Colors.green[700],
-                  ),
-            ),
-            const SizedBox(height: 16),
-            const Center(
-              child: const Text('Prodotto disponibile in struttura'),
-              // child: ElevatedButton(
-              //   onPressed: () {
-              //     // Logica per l'acquisto del prodotto
-              //   },
-              //   child: const Text('Compra Ora'),
-              // ),
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
