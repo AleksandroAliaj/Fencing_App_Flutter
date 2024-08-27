@@ -8,9 +8,15 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:platform/platform.dart';
 import 'package:mockito/mockito.dart';
 import 'package:provider/provider.dart';
-import 'package:fencing/main.dart'; 
-import 'package:fencing/auth_service.dart'; 
-import 'package:fencing/chat_selection_screen.dart'; 
+import 'package:fencing/main.dart';
+
+import 'package:fencing/auth_service.dart';
+import 'package:fencing/chat_selection_screen.dart';
+import 'package:fencing/training_screen.dart';
+import 'package:fencing/ranking_screen.dart';
+import 'package:fencing/armeria_screen.dart';
+import 'package:fencing/calendar_screen.dart';
+import 'package:fencing/sign_in_screen.dart';
 
 void main() {
   final platform = LocalPlatform();
@@ -18,7 +24,7 @@ void main() {
   if (platform.isAndroid) {
     setUpAll(() async {
       WidgetsFlutterBinding.ensureInitialized();
-      // Inizializza dotenv e Firebase
+      // Initialize dotenv and Firebase
       try {
         await dotenv.load(fileName: ".env");
       } catch (e) {
@@ -41,14 +47,10 @@ void main() {
       }
     });
 
-    testWidgets('Test della navigazione alla schermata Chat', (WidgetTester tester) async {
-      // Crea una istanza mock di AuthService
+    testWidgets('Test navigation to Training screen', (WidgetTester tester) async {
       final authService = AuthService();
-
-      // Simula un utente autenticato
       when(authService.user).thenAnswer((_) => Stream.value(MockUser()));
 
-      // Costruisci la widget tree con MultiProvider
       await tester.pumpWidget(
         MultiProvider(
           providers: [
@@ -58,32 +60,107 @@ void main() {
         ),
       );
 
-      // Attendi che la schermata iniziale sia caricata
       await tester.pumpAndSettle();
-
-      // Verifica se la schermata HomeScreen è stata caricata
       expect(find.byType(HomeScreen), findsOneWidget);
 
-      // Simula il tap sull'icona "Chat" nella BottomNavigationBar
-      await tester.tap(find.byIcon(Icons.chat));
-
-      // Attendi che il frame si stabilizzi
+      await tester.tap(find.byIcon(Icons.fitness_center));
       await tester.pumpAndSettle();
 
-      // Verifica se la schermata ChatSelectionScreen è stata mostrata
-      expect(find.byType(ChatSelectionScreen), findsOneWidget);
+      expect(find.byType(TrainingScreen), findsOneWidget);
     });
+
+    testWidgets('Test navigation to Ranking screen', (WidgetTester tester) async {
+      final authService = AuthService();
+      when(authService.user).thenAnswer((_) => Stream.value(MockUser()));
+
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            Provider<AuthService>.value(value: authService),
+          ],
+          child: const FencingApp(),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+      expect(find.byType(HomeScreen), findsOneWidget);
+
+      await tester.tap(find.byIcon(Icons.star));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(RankingScreen), findsOneWidget);
+    });
+
+    testWidgets('Test navigation to Armeria screen', (WidgetTester tester) async {
+      final authService = AuthService();
+      when(authService.user).thenAnswer((_) => Stream.value(MockUser()));
+
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            Provider<AuthService>.value(value: authService),
+          ],
+          child: const FencingApp(),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+      expect(find.byType(HomeScreen), findsOneWidget);
+
+      await tester.tap(find.byIcon(Icons.build));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(ArmeriaScreen), findsOneWidget);
+    });
+
+    testWidgets('Test navigation to Calendar screen', (WidgetTester tester) async {
+      final authService = AuthService();
+      when(authService.user).thenAnswer((_) => Stream.value(MockUser()));
+
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            Provider<AuthService>.value(value: authService),
+          ],
+          child: const FencingApp(),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+      expect(find.byType(HomeScreen), findsOneWidget);
+
+      await tester.tap(find.byIcon(Icons.calendar_today));
+      await tester.pumpAndSettle();
+
+      expect(find.byType(CalendarScreen), findsOneWidget);
+    });
+
+    testWidgets('Test unauthenticated user sees SignInScreen', (WidgetTester tester) async {
+      final authService = AuthService();
+      when(authService.user).thenAnswer((_) => Stream.value(null));
+
+      await tester.pumpWidget(
+        MultiProvider(
+          providers: [
+            Provider<AuthService>.value(value: authService),
+          ],
+          child: const FencingApp(),
+        ),
+      );
+
+      await tester.pumpAndSettle();
+      expect(find.byType(SignInScreen), findsOneWidget);
+    });
+
   } else {
-    // Ignora i test su piattaforme diverse da Android
-    testWidgets('Test della navigazione alla schermata Chat', (WidgetTester tester) async {
-      // Test non eseguito su piattaforme non Android
-      print('Test skipped on non-Android platform.');
+    // Skip tests on non-Android platforms
+    testWidgets('Skip tests on non-Android platform', (WidgetTester tester) async {
+      print('Tests skipped on non-Android platform.');
     });
   }
-  
 }
 
-// Mock della classe User per il test
+// Mock User class for testing
 class MockUser extends Mock implements User {
   @override
   String get uid => 'test-uid';
