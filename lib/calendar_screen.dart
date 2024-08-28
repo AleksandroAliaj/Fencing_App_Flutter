@@ -68,9 +68,9 @@ class CalendarScreen extends StatelessWidget {
     if (role.toLowerCase() == 'staff') {
       return Center(
         child: Wrap(
-          spacing: 20.0, // Spazio tra i bottoni
-          runSpacing: 20.0, // Spazio tra le righe dei bottoni
-          alignment: WrapAlignment.center, // Allineamento orizzontale
+          spacing: 20.0, 
+          runSpacing: 20.0, 
+          alignment: WrapAlignment.center, 
           children: [
             _buildActionButton(
               context,
@@ -98,9 +98,9 @@ class CalendarScreen extends StatelessWidget {
     if (role.toLowerCase() == 'staff') {
       return Center(
         child: Wrap(
-          spacing: 20.0, // Spazio tra i bottoni
-          runSpacing: 20.0, // Spazio tra le righe dei bottoni
-          alignment: WrapAlignment.center, // Allineamento orizzontale
+          spacing: 20.0, 
+          runSpacing: 20.0, 
+          alignment: WrapAlignment.center, 
           children: [
             _buildActionButton(
               context,
@@ -130,25 +130,25 @@ class CalendarScreen extends StatelessWidget {
     IconData icon,
     VoidCallback onPressed,
   ) {
-    final double buttonSize = MediaQuery.of(context).size.width * 0.35; // Imposta la dimensione del bottone al 40% della larghezza dello schermo
+    final double buttonSize = MediaQuery.of(context).size.width * 0.35; 
 
     return SizedBox(
       width: buttonSize,
       height: buttonSize,
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.white, // Colore di sfondo bianco
-          side: const BorderSide(color: Colors.black, width: 2), // Bordo nero
+          backgroundColor: Colors.white, 
+          side: const BorderSide(color: Colors.black, width: 2), 
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8), // Angoli leggermente arrotondati
+            borderRadius: BorderRadius.circular(8), 
           ),
         ),
         onPressed: onPressed,
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Icon(icon, color: Colors.black, size: 40.0), // Icona nera
-            const SizedBox(height: 8.0), // Spazio tra l'icona e il testo
+            Icon(icon, color: Colors.black, size: 40.0), 
+            const SizedBox(height: 8.0), 
             Text(
               title,
               textAlign: TextAlign.center,
@@ -263,7 +263,7 @@ class _AddEventScreenState extends State<AddEventScreen> {
       });
       Navigator.pop(context);
     } else {
-      // Show an error message if date, time, or other fields are not filled
+      
       showDialog(
         context: context,
         builder: (BuildContext context) {
@@ -368,26 +368,26 @@ class EventList extends StatelessWidget {
               return const Center(child: Text('Nessun evento trovato'));
             }
 
-            // Filtra e rimuove gli eventi scaduti
+            
             final now = DateTime.now();
             final eventDocuments = snapshot.data!.docs;
 
             for (final doc in eventDocuments) {
               final date = (doc['date'] as Timestamp).toDate();
               if (date.add(const Duration(days: 1)).isBefore(now)) {
-                // Elimina l'evento scaduto
+                
                 doc.reference.delete();
               }
             }
 
-            // Filtra gli eventi non scaduti per la visualizzazione
+            
             final validEventDocuments = eventDocuments.where((doc) {
               final date = (doc['date'] as Timestamp).toDate();
               return date.add(const Duration(days: 1)).isAfter(now);
             }).toList();
 
             return Padding(
-              padding: const EdgeInsets.only(top: 16.0),  // Aggiunge spazio in alto
+              padding: const EdgeInsets.only(top: 16.0),  
               child: ListView.builder(
                 itemCount: validEventDocuments.length,
                 itemBuilder: (context, index) {
@@ -401,8 +401,7 @@ class EventList extends StatelessWidget {
                       title: doc['description'],
                       subtitle: '${date.day}-${date.month}-${date.year} @ ${date.hour}:${date.minute}\n${doc['location']}',
                       onPressed: () {
-                        // Azione quando si preme il bottone dell'evento
-                        // Potresti voler navigare a una schermata di dettaglio dell'evento
+                        
                       },
                       onDelete: role.toLowerCase() == 'staff'
                           ? () => _showDeleteConfirmation(context, doc)
@@ -626,7 +625,7 @@ class _AddDeadlineScreenState extends State<AddDeadlineScreen> {
         'text': _deadlineController.text,
         'status': 'Pending',
         'facilityCode': _facilityCode,
-        'deadlineDate': Timestamp.fromDate(_selectedDate!),  // Aggiungi la data di scadenza come Timestamp
+        'deadlineDate': Timestamp.fromDate(_selectedDate!),  
       });
       Navigator.pop(context);
     }
@@ -929,11 +928,11 @@ class DeadlineList extends StatelessWidget {
             final now = DateTime.now();
             final twelveMonthsAgo = now.subtract(const Duration(days: 200));
 
-            // Rimuovi scadenze più vecchie 
+            
             final validDeadlines = snapshot.data!.docs.where((doc) {
               final deadlineDate = (doc['deadlineDate'] as Timestamp).toDate();
               if (deadlineDate.isBefore(twelveMonthsAgo)) {
-                // Elimina la scadenza scaduta
+                
                 doc.reference.delete();
                 return false;
               }
@@ -956,8 +955,7 @@ class DeadlineList extends StatelessWidget {
                       subtitle: '${doc['firstName']} ${doc['lastName']}\n${deadlineDate.day}-${deadlineDate.month}-${deadlineDate.year}',
                       status: doc['status'],
                       onPressed: () {
-                        // Azione quando si preme il bottone della scadenza
-                        // Potresti voler navigare a una schermata di dettaglio della scadenza
+                        
                       },
                       onDelete: role.toLowerCase() == 'staff'
                           ? () => _showDeleteConfirmation(context, doc)
@@ -1099,14 +1097,14 @@ class _AgendaTabState extends State<AgendaTab> {
       final facilityCode = userData['facilityCode'];
 
       setState(() {
-        _userRole = role; // Store the user's role
+        _userRole = role; 
       });
 
       if (role.toLowerCase() == 'staff') {
-        // Load all events for the facility
+        
         await _loadFacilityEvents(facilityCode);
       } else {
-        // Load personal events for non-staff users
+        
         await _loadPersonalEvents(firstName, lastName, fullName);
       }
 
@@ -1117,19 +1115,19 @@ class _AgendaTabState extends State<AgendaTab> {
   }
 
   Future<void> _loadFacilityEvents(String facilityCode) async {
-    // Load private lessons for the facility
+    
     final lessonsSnapshot = await FirebaseFirestore.instance
         .collection('private_lessons')
         .where('facilityCode', isEqualTo: facilityCode)
         .get();
 
-    // Load combattimenti for the facility
+   
     final combattimentiSnapshot = await FirebaseFirestore.instance
         .collection('combattimenti')
         .where('facilityCode', isEqualTo: facilityCode)
         .get();
 
-    // Load events for the facility
+   
     final eventsSnapshot = await FirebaseFirestore.instance
         .collection('events')
         .where('facilityCode', isEqualTo: facilityCode)
@@ -1141,7 +1139,7 @@ class _AgendaTabState extends State<AgendaTab> {
   }
 
   Future<void> _loadPersonalEvents(String firstName, String lastName, String fullName) async {
-    // Load private lessons (as athlete or coach)
+    
     final lessonsSnapshot = await FirebaseFirestore.instance
         .collection('private_lessons')
         .where('athleteName', isEqualTo: firstName)
@@ -1154,7 +1152,7 @@ class _AgendaTabState extends State<AgendaTab> {
         .where('coachSurname', isEqualTo: lastName)
         .get();
 
-    // Load combattimenti (as athlete or coach)
+    
     final combattimentiSnapshot = await FirebaseFirestore.instance
         .collection('combattimenti')
         .where('athletes', arrayContains: fullName)

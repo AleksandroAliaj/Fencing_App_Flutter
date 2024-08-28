@@ -1,4 +1,3 @@
-// user_list_screen.dart
 
 // ignore_for_file: use_super_parameters, library_private_types_in_public_api, prefer_const_constructors, use_build_context_synchronously
 
@@ -146,7 +145,7 @@ class _UserListScreenState extends State<UserListScreen> {
   }
 
   void _createPrivateChat(BuildContext context, String currentUserId, String otherUserId, String otherUserEmail) async {
-    // Controlla se una chat privata esiste già
+    
     final existingChat = await FirebaseFirestore.instance
         .collection('chats')
         .where('participants', arrayContains: currentUserId)
@@ -162,11 +161,11 @@ class _UserListScreenState extends State<UserListScreen> {
       return;
     }
 
-    // Ottieni l'email dell'utente corrente
+    
     final currentUserData = await FirebaseFirestore.instance.collection('users').doc(currentUserId).get();
     final currentUserEmail = currentUserData['email'];
 
-    // Crea una nuova chat
+    
     await FirebaseFirestore.instance.collection('chats').add({
       'participants': [currentUserId, otherUserId],
       'participantEmails': {

@@ -1,4 +1,3 @@
-// sign_in_screen.dart
 
 // ignore_for_file: library_private_types_in_public_api, sort_child_properties_last, use_build_context_synchronously
 
@@ -61,7 +60,7 @@ class _SignInScreenState extends State<SignInScreen> {
   }
 
   void _showTutorialPopup() {
-    // Reset the tutorial state
+    
     _currentTutorialPage = 0;
     _tutorialPageController = PageController();
 
@@ -147,7 +146,7 @@ class _SignInScreenState extends State<SignInScreen> {
         );
       },
     ).then((_) {
-      // Reset the tutorial state when the dialog is closed
+      
       setState(() {
         _currentTutorialPage = 0;
         _tutorialPageController = PageController();
@@ -243,13 +242,13 @@ class _SignInScreenState extends State<SignInScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: <Widget>[
-                    // Add the logo here
+                    
                     Image.asset(
                       'assets/logo.png',
-                      width: MediaQuery.of(context).size.width * 0.23, // Adjust size as needed
-                      height: MediaQuery.of(context).size.width * 0.23 * (850 / 828), // Maintain aspect ratio
+                      width: MediaQuery.of(context).size.width * 0.23, 
+                      height: MediaQuery.of(context).size.width * 0.23 * (850 / 828), 
                     ),
-                    const SizedBox(height: 30), // Add some space after the logo
+                    const SizedBox(height: 30), 
                     TextField(
                       controller: _emailController,
                       decoration: InputDecoration(
@@ -303,12 +302,12 @@ class _SignInScreenState extends State<SignInScreen> {
                           _showLoadingDialog();
                           try {
                             await Provider.of<AuthService>(context, listen: false).signInWithEmailAndPassword(email, password);
-                            Navigator.of(context).pop(); // Chiude il dialog di caricamento
+                            Navigator.of(context).pop(); 
                             Navigator.of(context).pushReplacement(
                               MaterialPageRoute(builder: (context) => const ProfileScreen()),
                             );
                           } catch (e) {
-                            Navigator.of(context).pop(); // Chiude il dialog di caricamento
+                            Navigator.of(context).pop(); 
                             _showErrorDialog('Autenticazione fallita: ${e.toString()}');
                           } finally {
                             setState(() => _isLoading = false);
@@ -380,12 +379,12 @@ class _SignInScreenState extends State<SignInScreen> {
                           _showLoadingDialog();
                           try {
                             await Provider.of<AuthService>(context, listen: false).signInWithGoogle();
-                            Navigator.of(context).pop(); // Chiude il dialog di caricamento
+                            Navigator.of(context).pop(); 
                             Navigator.of(context).pushReplacement(
                               MaterialPageRoute(builder: (context) => const ProfileScreen()),
                             );
                           } catch (e) {
-                            Navigator.of(context).pop(); // Chiude il dialog di caricamento
+                            Navigator.of(context).pop(); 
                             _showErrorDialog('Google Sign-In failed: ${e.toString()}');
                           } finally {
                             setState(() => _isLoading = false);
@@ -394,11 +393,11 @@ class _SignInScreenState extends State<SignInScreen> {
                       ),
                     ],
                     const SizedBox(height: 20),
-                    // Pulsante Tutorial modificato
+                    
                     Align(
                       alignment: Alignment.bottomRight,
                       child: OutlinedButton(
-                        onPressed: _showTutorialPopup,  // Cambiato qui
+                        onPressed: _showTutorialPopup,  
                         style: OutlinedButton.styleFrom(
                           side: const BorderSide(color: Colors.black),
                           backgroundColor: Colors.white,

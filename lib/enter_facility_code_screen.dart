@@ -136,17 +136,17 @@ class _EnterFacilityCodeScreenState extends State<EnterFacilityCodeScreen> {
                           widget.lastName,
                           facilityCode: facilityCode
                         );
-                    Navigator.of(context).pop(); // Chiude il dialog di caricamento
+                    Navigator.of(context).pop(); 
                     Navigator.pushReplacement(
                       context,
                       MaterialPageRoute(builder: (context) => const ProfileScreen()),
                     );
                   } else {
-                    Navigator.of(context).pop(); // Chiude il dialog di caricamento
+                    Navigator.of(context).pop(); 
                     _showErrorDialog('Codice struttura non valido');
                   }
                 } catch (e) {
-                  Navigator.of(context).pop(); // Chiude il dialog di caricamento
+                  Navigator.of(context).pop(); 
                   _showErrorDialog('Registrazione fallita: ${e.toString()}');
                 } finally {
                   setState(() {

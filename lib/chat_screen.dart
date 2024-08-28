@@ -1,4 +1,3 @@
-// chat_screen.dart
 
 // ignore_for_file: library_private_types_in_public_api, use_build_context_synchronously
 
@@ -114,7 +113,7 @@ class _ChatScreenState extends State<ChatScreen> {
               onPressed: () async {
                 await FirebaseFirestore.instance.collection('chats').doc(widget.chatId).delete();
                 Navigator.of(context).pop();
-                Navigator.of(context).pop(); // Return to chat selection screen
+                Navigator.of(context).pop(); 
                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Chat eliminata con successo')));
               },
             ),
@@ -148,20 +147,20 @@ class _ChatScreenState extends State<ChatScreen> {
     if (widget.chatType == 'private') {
       final chatRef = FirebaseFirestore.instance.collection('chats').doc(widget.chatId);
 
-      // Aggiungi il messaggio
+      
       await chatRef.collection('messages').add({
         'text': messageText,
         'sender': senderEmail,
         'timestamp': FieldValue.serverTimestamp(),
       });
 
-      // Aggiorna l'ultimo messaggio e il timestamp
+      
       await chatRef.update({
         'lastMessage': messageText,
         'lastMessageTimestamp': FieldValue.serverTimestamp(),
       });
 
-      // Mantieni solo gli ultimi 100 messaggi
+      
       final messageDocs = (await chatRef.collection('messages')
         .orderBy('timestamp')
         .get()).docs;
@@ -175,7 +174,7 @@ class _ChatScreenState extends State<ChatScreen> {
     } else {
       final collectionRef = FirebaseFirestore.instance.collection('messages');
       
-      // Aggiungi il messaggio
+      
       await collectionRef.add({
         'text': messageText,
         'sender': senderEmail,
@@ -185,7 +184,7 @@ class _ChatScreenState extends State<ChatScreen> {
         'senderRole': _userRole,
       });
 
-      // Mantieni solo gli ultimi 100 messaggi
+      
       final messageQuerySnapshot = await collectionRef
         .where('facilityCode', isEqualTo: _facilityCode)
         .where('chatType', isEqualTo: widget.chatType)
@@ -255,7 +254,7 @@ class PrivateMessagesStream extends StatelessWidget {
 }
 
         
-        // Limita il numero di messaggi a 100
+        
         if (messages.length > 100) {
           final messagesToDelete = messages.skip(100);
           for (var doc in messagesToDelete) {
@@ -312,7 +311,7 @@ class MessagesStream extends StatelessWidget {
           messageBubbles.add(messageBubble);
         }
         
-        // Limita il numero di messaggi a 100
+        
         if (messages.length > 100) {
           final messagesToDelete = messages.skip(100);
           for (var doc in messagesToDelete) {
@@ -370,7 +369,7 @@ class MessageBubble extends StatelessWidget {
             color: isMe ? const Color.fromARGB(255, 250, 232, 167) : Colors.white,
             child: Container(
               decoration: BoxDecoration(
-                border: Border.all(color: Colors.black), // Contorno nero
+                border: Border.all(color: Colors.black), 
                 borderRadius: BorderRadius.only(
               topLeft: const Radius.circular(10.0),
               topRight: const Radius.circular(10.0),
@@ -384,7 +383,7 @@ class MessageBubble extends StatelessWidget {
                   text,
                   style: TextStyle(
                     fontSize: 15.0,
-                    color: isMe ? Colors.black : Colors.black, // Testo bianco per i propri messaggi
+                    color: isMe ? Colors.black : Colors.black, 
                   ),
                 ),
               ),

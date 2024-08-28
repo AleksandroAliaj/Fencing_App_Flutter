@@ -65,7 +65,7 @@ class FencingApp extends StatelessWidget {
             backgroundColor: Colors.white,
             iconTheme: IconThemeData(color: Colors.black),
             titleTextStyle: TextStyle(color: Colors.black, fontSize: 20),
-            elevation: 0, // Rimuove l'ombra sotto l'AppBar
+            elevation: 0, 
           ),
           bottomNavigationBarTheme: const BottomNavigationBarThemeData(
             backgroundColor: Colors.white,
@@ -94,9 +94,9 @@ class AuthWrapper extends StatelessWidget {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         } else if (snapshot.hasData) {
-          return const HomeScreen(); // Utente autenticato
+          return const HomeScreen(); 
         } else {
-          return const SignInScreen(); // Utente non autenticato
+          return const SignInScreen(); 
         }
       },
     );
@@ -211,7 +211,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 );
               },
             ),
-            const Divider(color: Colors.black), // Separatore
+            const Divider(color: Colors.black), 
             ListTile(
               leading: const Icon(Icons.logout, color: Colors.black),
               title:
@@ -253,8 +253,8 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
         currentIndex: _selectedIndex,
-        selectedItemColor: Colors.black, // Colore icona selezionata
-        unselectedItemColor: Colors.grey, // Colore icona non selezionata
+        selectedItemColor: Colors.black, 
+        unselectedItemColor: Colors.grey, 
         onTap: _onItemTapped,
       ),
     );

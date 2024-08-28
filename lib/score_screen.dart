@@ -15,7 +15,7 @@ class _ScoreScreenState extends State<ScoreScreen> {
   final TextEditingController _player2Controller = TextEditingController();
   int _player1Score = 0;
   int _player2Score = 0;
-  int _remainingSeconds = 180; // 3 minutes
+  int _remainingSeconds = 180; 
   Timer? _timer;
   bool _isGameOver = false;
   bool _isTimerRunning = false;

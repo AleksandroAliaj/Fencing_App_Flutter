@@ -56,7 +56,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         title: const Text('Profilo', style: TextStyle(color: Colors.black)),
         backgroundColor: Colors.white,
         iconTheme: const IconThemeData(color: Colors.black),
-        elevation: 0, // Rimuove l'ombra sotto l'AppBar
+        elevation: 0, 
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
@@ -113,7 +113,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     'Codice struttura: $_facilityCode',
                     style: const TextStyle(
                       fontSize: 18,
-                      color: Colors.black, // Colore blu per suggerire che è cliccabile
+                      color: Colors.black, 
                       //decoration: TextDecoration.underline, // Sottolinea il testo
                     ),
                     textAlign: TextAlign.center,

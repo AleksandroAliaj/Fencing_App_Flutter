@@ -213,7 +213,7 @@ class AllNewsScreen extends StatelessWidget {
     final user = authService.currentUser;
 
     return FutureBuilder<DocumentSnapshot>(
-      future: authService.getUserData(user!.uid), // Recupera i dati dell'utente
+      future: authService.getUserData(user!.uid), 
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
@@ -234,7 +234,7 @@ class AllNewsScreen extends StatelessWidget {
         }
 
         final userData = snapshot.data!.data() as Map<String, dynamic>;
-        final facilityCode = userData['facilityCode']; // Recupera il facilityCode dell'utente
+        final facilityCode = userData['facilityCode']; 
 
         return Scaffold(
           appBar: AppBar(
@@ -243,7 +243,7 @@ class AllNewsScreen extends StatelessWidget {
           body: StreamBuilder<QuerySnapshot>(
             stream: FirebaseFirestore.instance
                 .collection('news')
-                .where('facilityCode', isEqualTo: facilityCode) // Filtra per facilityCode
+                .where('facilityCode', isEqualTo: facilityCode) 
                 .orderBy('timestamp', descending: true)
                 .snapshots(),
             builder: (context, snapshot) {
@@ -417,7 +417,7 @@ class NewsList extends StatelessWidget {
         padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
       ),
       onPressed: () {
-        // Azione quando si preme il bottone della news
+        
       },
       child: Row(
         children: [

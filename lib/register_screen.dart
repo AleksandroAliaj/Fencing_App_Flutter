@@ -165,7 +165,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 ],
               ),
               if (!_generateNewCode) ...[
-                const SizedBox(height: 20),  // Aggiunto spazio extra qui
+                const SizedBox(height: 20),  
                 _buildTextField(_facilityCodeController, 'Codice Struttura esistente'),
               ],
             ],
@@ -193,7 +193,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       String? facilityCode = _generateNewCode ? null : _facilityCodeController.text.trim();
                       String registeredFacilityCode = await Provider.of<AuthService>(context, listen: false)
                           .registerWithEmailAndPassword(email, password, _role, firstName, lastName, facilityCode: facilityCode);
-                      Navigator.of(context).pop(); // Close the loading dialog
+                      Navigator.of(context).pop(); 
                       Navigator.pushReplacement(
                         context,
                         MaterialPageRoute(
@@ -201,7 +201,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         ),
                       );
                     } else {
-                      Navigator.of(context).pop(); // Close the loading dialog
+                      Navigator.of(context).pop(); 
                       Navigator.push(
                         context,
                         MaterialPageRoute(
@@ -216,7 +216,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       );
                     }
                   } catch (e) {
-                    Navigator.of(context).pop(); // Close the loading dialog
+                    Navigator.of(context).pop(); 
                     _showErrorDialog('Registrazione fallita: ${e.toString()}');
                   } finally {
                     setState(() {

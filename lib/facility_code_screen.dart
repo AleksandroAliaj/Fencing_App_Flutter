@@ -43,7 +43,7 @@ class FacilityCodeScreen extends StatelessWidget {
               child: const Text('Vai al profilo', style: TextStyle(color: Colors.white)),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.black,
-                minimumSize: const Size(200, 50), // Specifica la larghezza del bottone
+                minimumSize: const Size(200, 50), 
                 padding: const EdgeInsets.symmetric(horizontal: 30),
               ),
               onPressed: () {

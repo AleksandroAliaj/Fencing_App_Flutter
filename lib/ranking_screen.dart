@@ -1,7 +1,7 @@
 // ignore_for_file: use_super_parameters
 
 import 'package:flutter/material.dart';
-import 'search_screen.dart'; // Importa la nuova schermata
+import 'search_screen.dart'; 
 
 class RankingScreen extends StatelessWidget {
   const RankingScreen({Key? key}) : super(key: key);
@@ -11,7 +11,7 @@ class RankingScreen extends StatelessWidget {
     return GridView.count(
       crossAxisCount: 2,
       padding: const EdgeInsets.all(16.0),
-      childAspectRatio: 1, // Mantiene i bottoni quadrati
+      childAspectRatio: 1, 
       children: <Widget>[
         _buildCategoryButton(context, 'Fioretto Femminile', Icons.woman),
         _buildCategoryButton(context, 'Fioretto Maschile', Icons.man),
@@ -24,7 +24,7 @@ class RankingScreen extends StatelessWidget {
   }
 
   Widget _buildCategoryButton(BuildContext context, String title, IconData icon) {
-    final double buttonSize = MediaQuery.of(context).size.width * 0.30; // Imposta la dimensione del bottone al 30% della larghezza dello schermo
+    final double buttonSize = MediaQuery.of(context).size.width * 0.30; 
 
     return Container(
       margin: const EdgeInsets.all(8.0),
@@ -32,10 +32,10 @@ class RankingScreen extends StatelessWidget {
       height: buttonSize,
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.white, // Colore di sfondo bianco
-          side: const BorderSide(color: Colors.black, width: 2), // Bordo nero
+          backgroundColor: Colors.white, 
+          side: const BorderSide(color: Colors.black, width: 2), 
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8), // Angoli leggermente arrotondati
+            borderRadius: BorderRadius.circular(8), 
           ),
         ),
         onPressed: () {
@@ -49,8 +49,8 @@ class RankingScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: <Widget>[
-            Icon(icon, color: Colors.black, size: 35.0), // Icona nera
-            const SizedBox(height: 6.0), // Spazio tra l'icona e il testo
+            Icon(icon, color: Colors.black, size: 35.0), 
+            const SizedBox(height: 6.0), 
             Text(
               title,
               textAlign: TextAlign.center,

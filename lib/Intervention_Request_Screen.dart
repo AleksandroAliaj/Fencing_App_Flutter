@@ -1,4 +1,3 @@
-// intervention_request_screen.dart
 
 // ignore_for_file: file_names, use_super_parameters, avoid_print, use_build_context_synchronously, library_private_types_in_public_api
 
@@ -179,7 +178,7 @@ class _NewRequestScreenState extends State<NewRequestScreen> {
   }
 
   Future<void> _loadUsers() async {
-    final userId = widget.userId; // Ottieni l'userId dall'oggetto widget
+    final userId = widget.userId; 
     final userDoc = await FirebaseFirestore.instance.collection('users').doc(userId).get();
   
     if (userDoc.exists) {

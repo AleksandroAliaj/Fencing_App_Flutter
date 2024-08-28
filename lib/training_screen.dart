@@ -76,7 +76,7 @@ class AthleticPreparationTab extends StatelessWidget {
                     );
                   },
                 ),
-                const SizedBox(width: 20), // Spazio tra i due bottoni
+                const SizedBox(width: 20), 
                 _buildSquareButton(
                   context: context,
                   icon: Icons.list,
@@ -113,10 +113,10 @@ class AthleticPreparationTab extends StatelessWidget {
       height: buttonSize,
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.white, // Colore di sfondo bianco
-          side: const BorderSide(color: Colors.black, width: 2), // Bordo nero
+          backgroundColor: Colors.white, 
+          side: const BorderSide(color: Colors.black, width: 2),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8), // Angoli arrotondati
+            borderRadius: BorderRadius.circular(8),
           ),
         ),
         onPressed: onPressed,
@@ -124,7 +124,7 @@ class AthleticPreparationTab extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: Colors.black, size: 40), // Icona nera
+            Icon(icon, color: Colors.black, size: 40), 
             const SizedBox(height: 10),
             Text(
               label,
@@ -337,7 +337,7 @@ class PreparationListScreen extends StatelessWidget {
               }
 
               return Padding(
-                padding: const EdgeInsets.all(8.0), // Spazio attorno al ListView
+                padding: const EdgeInsets.all(8.0), 
                 child: ListView.builder(
                   itemCount: validPreparations.length,
                   itemBuilder: (context, index) {
@@ -346,13 +346,13 @@ class PreparationListScreen extends StatelessWidget {
                     final dueDate = (data['dueDate'] as Timestamp).toDate();
 
                     return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8.0), // Spazio verticale tra le card
+                      padding: const EdgeInsets.symmetric(vertical: 8.0), 
                       child: Card(
                         shape: RoundedRectangleBorder(
-                          side: BorderSide(color: Colors.black, width: 1), // Bordo nero
-                          borderRadius: BorderRadius.circular(8), // Angoli arrotondati
+                          side: BorderSide(color: Colors.black, width: 1), 
+                          borderRadius: BorderRadius.circular(8), 
                         ),
-                        color: Colors.white, // Sfondo bianco
+                        color: Colors.white, 
                         elevation: 3,
                         child: Padding(
                           padding: const EdgeInsets.all(16.0),
@@ -459,7 +459,7 @@ class AthletePreparationView extends StatelessWidget {
             }
 
             return Padding(
-              padding: const EdgeInsets.all(8.0), // Spazio attorno al ListView
+              padding: const EdgeInsets.all(8.0), 
               child: ListView.builder(
                 itemCount: validPreparations.length,
                 itemBuilder: (context, index) {
@@ -468,13 +468,13 @@ class AthletePreparationView extends StatelessWidget {
                   final dueDate = (data['dueDate'] as Timestamp).toDate();
 
                   return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0), // Spazio verticale tra le card
+                    padding: const EdgeInsets.symmetric(vertical: 8.0), 
                     child: Card(
                       shape: RoundedRectangleBorder(
-                        side: BorderSide(color: Colors.black, width: 1), // Bordo nero
-                        borderRadius: BorderRadius.circular(8), // Angoli arrotondati
+                        side: BorderSide(color: Colors.black, width: 1), 
+                        borderRadius: BorderRadius.circular(8), 
                       ),
-                      color: Colors.white, // Sfondo bianco
+                      color: Colors.white, 
                       elevation: 3,
                       child: Padding(
                         padding: const EdgeInsets.all(16.0),
@@ -578,7 +578,7 @@ class CoachAssaltiView extends StatelessWidget {
               );
             },
           ),
-          const SizedBox(width: 20), // Spazio tra i due bottoni
+          const SizedBox(width: 20), 
           _buildSquareButton(
             context: context,
             icon: Icons.list_alt,
@@ -608,10 +608,10 @@ class CoachAssaltiView extends StatelessWidget {
       height: buttonSize,
       child: ElevatedButton(
         style: ElevatedButton.styleFrom(
-          backgroundColor: Colors.white, // Colore di sfondo bianco
-          side: const BorderSide(color: Colors.black, width: 2), // Bordo nero
+          backgroundColor: Colors.white, 
+          side: const BorderSide(color: Colors.black, width: 2), 
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8), // Angoli arrotondati
+            borderRadius: BorderRadius.circular(8), 
           ),
         ),
         onPressed: onPressed,
@@ -619,7 +619,7 @@ class CoachAssaltiView extends StatelessWidget {
           mainAxisSize: MainAxisSize.min,
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: Colors.black, size: 40), // Icona nera
+            Icon(icon, color: Colors.black, size: 40), 
             const SizedBox(height: 10),
             Text(
               label,
@@ -1008,7 +1008,7 @@ class _CreateTeamCombattimentoScreenState extends State<CreateTeamCombattimentoS
       final user = authService.currentUser;
       final userData = await authService.getUserData(user!.uid);
 
-      // Flatten all team members into a single list
+      
       List<String> athletes = _teams
           .expand((team) => team['teamMembers']!)
           .toList();
@@ -1518,7 +1518,7 @@ class CombattimentiList extends StatelessWidget {
           final isExpired = now.isAfter(combattimentoDate.add(const Duration(days: 1)));
 
           if (isExpired) {
-            // Elimina il combattimento scaduto
+            
             doc.reference.delete();
           }
 
@@ -1529,11 +1529,11 @@ class CombattimentiList extends StatelessWidget {
           return const Center(child: Text('Nessun combattimento programmato'));
         }
 
-        // Raggruppa i combattimenti per data
+        
         final groupedCombattimenti = groupCombattimentiByDate(validCombattimenti);
 
         return Padding(
-          padding: const EdgeInsets.all(8.0), // Spazio attorno al ListView
+          padding: const EdgeInsets.all(8.0), 
           child: ListView.builder(
             itemCount: groupedCombattimenti.length,
             itemBuilder: (context, index) {
@@ -1541,7 +1541,7 @@ class CombattimentiList extends StatelessWidget {
               final combattimenti = groupedCombattimenti[date]!;
 
               return Padding(
-                padding: const EdgeInsets.symmetric(vertical: 8.0), // Spazio verticale tra le card
+                padding: const EdgeInsets.symmetric(vertical: 8.0), 
                 child: ExpansionTile(
                   title: Text(formatDate(date)),
                   children: combattimenti.map((doc) {
@@ -1553,10 +1553,10 @@ class CombattimentiList extends StatelessWidget {
                       padding: const EdgeInsets.symmetric(vertical: 8.0),
                       child: Card(
                         shape: RoundedRectangleBorder(
-                          side: BorderSide(color: Colors.black, width: 1), // Bordo nero
-                          borderRadius: BorderRadius.circular(8), // Angoli arrotondati
+                          side: BorderSide(color: Colors.black, width: 1), 
+                          borderRadius: BorderRadius.circular(8), 
                         ),
-                        color: Colors.white, // Sfondo bianco
+                        color: Colors.white, 
                         elevation: 3,
                         child: Padding(
                           padding: const EdgeInsets.all(16.0),
@@ -1790,7 +1790,7 @@ class _PrivateLessonTabState extends State<PrivateLessonTab> {
                   });
                 },
               ),
-              const SizedBox(width: 20), // Spazio tra i due bottoni
+              const SizedBox(width: 20), 
               _buildSquareButton(
                 context: context,
                 icon: Icons.list,
@@ -1830,10 +1830,10 @@ Widget _buildSquareButton({
     height: buttonSize,
     child: ElevatedButton(
       style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.white, // Colore di sfondo bianco
-        side: const BorderSide(color: Colors.black, width: 2), // Bordo nero
+        backgroundColor: Colors.white, 
+        side: const BorderSide(color: Colors.black, width: 2), 
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8), // Angoli arrotondati
+          borderRadius: BorderRadius.circular(8), 
         ),
       ),
       onPressed: onPressed,
@@ -1841,7 +1841,7 @@ Widget _buildSquareButton({
         mainAxisSize: MainAxisSize.min,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Icon(icon, color: Colors.black, size: 40), // Icona nera
+          Icon(icon, color: Colors.black, size: 40), 
           const SizedBox(height: 10),
           Text(
             label,
@@ -2053,7 +2053,7 @@ class CoachLessonsScreen extends StatelessWidget {
                 final isExpired = now.isAfter(lessonDate.add(const Duration(days: 1)));
 
                 if (isExpired) {
-                  // Elimina la lezione scaduta
+                  
                   doc.reference.delete();
                 }
 
@@ -2067,7 +2067,7 @@ class CoachLessonsScreen extends StatelessWidget {
               final groupedLessons = _groupLessonsByDate(validLessons);
 
               return Padding(
-                padding: const EdgeInsets.all(8.0), // Spazio attorno al ListView
+                padding: const EdgeInsets.all(8.0), 
                 child: ListView.builder(
                   itemCount: groupedLessons.length,
                   itemBuilder: (context, index) {
@@ -2075,7 +2075,7 @@ class CoachLessonsScreen extends StatelessWidget {
                     final lessons = groupedLessons[date]!;
 
                     return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8.0), // Spazio verticale tra le card
+                      padding: const EdgeInsets.symmetric(vertical: 8.0), 
                       child: ExpansionTile(
                         title: Text(_formatDate(date)),
                         children: lessons.map((doc) {
@@ -2084,10 +2084,10 @@ class CoachLessonsScreen extends StatelessWidget {
                             padding: const EdgeInsets.symmetric(vertical: 8.0),
                             child: Card(
                               shape: RoundedRectangleBorder(
-                                side: BorderSide(color: Colors.black, width: 1), // Bordo nero
-                                borderRadius: BorderRadius.circular(8), // Angoli arrotondati
+                                side: BorderSide(color: Colors.black, width: 1), 
+                                borderRadius: BorderRadius.circular(8), 
                               ),
-                              color: Colors.white, // Sfondo bianco
+                              color: Colors.white, 
                               elevation: 3,
                               child: Padding(
                                 padding: const EdgeInsets.all(16.0),
@@ -2193,7 +2193,7 @@ class AthleteLesson extends StatelessWidget {
               final isExpired = now.isAfter(lessonDate.add(const Duration(days: 1)));
 
               if (isExpired) {
-                // Elimina la lezione scaduta
+                
                 doc.reference.delete();
               }
 
@@ -2207,7 +2207,7 @@ class AthleteLesson extends StatelessWidget {
             final groupedLessons = _groupLessonsByDate(validLessons);
 
             return Padding(
-              padding: const EdgeInsets.all(8.0), // Spazio attorno al ListView
+              padding: const EdgeInsets.all(8.0), 
               child: ListView.builder(
                 itemCount: groupedLessons.length,
                 itemBuilder: (context, index) {
@@ -2215,7 +2215,7 @@ class AthleteLesson extends StatelessWidget {
                   final lessons = groupedLessons[date]!;
 
                   return Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 8.0), // Spazio verticale tra le card
+                    padding: const EdgeInsets.symmetric(vertical: 8.0), 
                     child: ExpansionTile(
                       title: Text(_formatDate(date)),
                       children: lessons.map((doc) {
@@ -2224,10 +2224,10 @@ class AthleteLesson extends StatelessWidget {
                           padding: const EdgeInsets.symmetric(vertical: 8.0),
                           child: Card(
                             shape: RoundedRectangleBorder(
-                              side: BorderSide(color: Colors.black, width: 1), // Bordo nero
-                              borderRadius: BorderRadius.circular(8), // Angoli arrotondati
+                              side: BorderSide(color: Colors.black, width: 1), 
+                              borderRadius: BorderRadius.circular(8), 
                             ),
-                            color: Colors.white, // Sfondo bianco
+                            color: Colors.white, 
                             elevation: 3,
                             child: Padding(
                               padding: const EdgeInsets.all(16.0),
@@ -2330,7 +2330,7 @@ class StaffLessonView extends StatelessWidget {
               final groupedLessons = _groupLessonsByDate(snapshot.data!.docs);
 
               return Padding(
-                padding: const EdgeInsets.all(8.0), // Spazio attorno al ListView
+                padding: const EdgeInsets.all(8.0), 
                 child: ListView.builder(
                   itemCount: groupedLessons.length,
                   itemBuilder: (context, index) {
@@ -2338,7 +2338,7 @@ class StaffLessonView extends StatelessWidget {
                     final lessons = groupedLessons[date]!;
 
                     return Padding(
-                      padding: const EdgeInsets.symmetric(vertical: 8.0), // Spazio verticale tra le card
+                      padding: const EdgeInsets.symmetric(vertical: 8.0), 
                       child: ExpansionTile(
                         title: Text(_formatDate(date)),
                         children: lessons.map((doc) {
@@ -2347,10 +2347,10 @@ class StaffLessonView extends StatelessWidget {
                             padding: const EdgeInsets.symmetric(vertical: 8.0),
                             child: Card(
                               shape: RoundedRectangleBorder(
-                                side: BorderSide(color: Colors.black, width: 1), // Bordo nero
-                                borderRadius: BorderRadius.circular(8), // Angoli arrotondati
+                                side: BorderSide(color: Colors.black, width: 1), 
+                                borderRadius: BorderRadius.circular(8), 
                               ),
-                              color: Colors.white, // Sfondo bianco
+                              color: Colors.white, 
                               elevation: 3,
                               child: Padding(
                                 padding: const EdgeInsets.all(16.0),

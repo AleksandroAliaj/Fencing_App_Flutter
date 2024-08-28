@@ -1,4 +1,3 @@
-// chat_selection_screen.dart
 
 // ignore_for_file: unnecessary_null_comparison, use_super_parameters, avoid_print, use_build_context_synchronously, library_private_types_in_public_api, unused_element
 
@@ -152,7 +151,7 @@ class _ChatSelectionScreenState extends State<ChatSelectionScreen> {
 
   void _toggleEditMode() {
     setState(() {
-      _isEditMode = !_isEditMode; // Cambia lo stato di modifica
+      _isEditMode = !_isEditMode; 
     });
   }
 
@@ -237,7 +236,7 @@ class _ChatSelectionScreenState extends State<ChatSelectionScreen> {
       final currentUserName = userData['firstName'];
       final currentUserSurname = userData['lastName'];
 
-      // Controlla se l'altro utente è lo stesso utente corrente
+      
       if (otherFirstName == currentUserName && otherLastName == currentUserSurname) {
         ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
           content: Text('Non puoi creare una chat con te stesso, digita il nome e cognome di un\'altra persona.'),
@@ -245,7 +244,7 @@ class _ChatSelectionScreenState extends State<ChatSelectionScreen> {
         return;
       }
 
-      // Controlla se l'altro utente esiste
+      
       final otherUserQuery = await FirebaseFirestore.instance
           .collection('users')
           .where('firstName', isEqualTo: otherFirstName)
@@ -260,7 +259,7 @@ class _ChatSelectionScreenState extends State<ChatSelectionScreen> {
       final otherUserDoc = otherUserQuery.docs.first;
       final otherUserId = otherUserDoc.id;
 
-      // Controlla se una chat privata esiste già
+      
       final existingChat = await FirebaseFirestore.instance
           .collection('chats')
           .where('participants', arrayContains: currentUser.uid)
@@ -276,7 +275,7 @@ class _ChatSelectionScreenState extends State<ChatSelectionScreen> {
         return;
       }
 
-      // Crea una nuova chat
+      
       await FirebaseFirestore.instance.collection('chats').add({
         'participants': [currentUser.uid, otherUserId],
         'participantEmails': {
