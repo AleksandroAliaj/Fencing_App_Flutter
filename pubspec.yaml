@@ -52,6 +52,9 @@ dependencies:
   mockito: ^5.4.4
   build_runner: ^2.0.0
   platform: ^3.1.5
+  integration_test:
+    sdk: flutter
+
 
 dev_dependencies:
   flutter_test:

@@ -102,6 +102,7 @@ Future<String> registerWithGoogle(String role, {String? facilityCode, required S
 
   Future<void> signInWithEmailAndPassword(String email, String password) async {
     await _auth.signInWithEmailAndPassword(email: email, password: password);
+    
   }
 
   Future<void> signOut() async {
