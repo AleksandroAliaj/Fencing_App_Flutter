@@ -8,7 +8,7 @@ import 'package:fencing/auth_service.dart';
 import 'package:fencing/sign_in_screen.dart';
 
 
-// Mocking FirebaseAuth and AuthService
+
 class MockAuthService extends Mock implements AuthService {
   final Stream<User?> userStream;
 
@@ -28,10 +28,10 @@ class MockUser extends Mock implements User {}
 void main() {
   group('FencingApp Widget Tests', () {
     testWidgets('Displays SignInScreen when not authenticated', (WidgetTester tester) async {
-      // Arrange
+      
       final mockAuthService = MockAuthService(userStream: Stream.value(null));
 
-      // Act
+      
       await tester.pumpWidget(
         MultiProvider(
           providers: [
@@ -41,10 +41,10 @@ void main() {
         ),
       );
 
-      // Permetti al widget tree di stabilizzarsi
+      
       await tester.pumpAndSettle();
 
-      // Assert
+     
       expect(find.byType(SignInScreen), findsOneWidget);
     });
     
