@@ -1,5 +1,6 @@
 {
   "projects": {
-    "scherma": "scherma-f2d5e"
+    "scherma": "scherma-f2d5e",
+    "default": "scherma-f2d5e"
   }
 }
