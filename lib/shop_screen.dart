@@ -1,9 +1,14 @@
 // ignore_for_file: use_super_parameters, avoid_print, use_build_context_synchronously, library_private_types_in_public_api, unnecessary_const
 
+import 'dart:convert';
+import 'dart:developer';
+
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:provider/provider.dart';
 import 'auth_service.dart';
+import 'package:http/http.dart' as http;
 
 class ShopScreen extends StatelessWidget {
   const ShopScreen({Key? key}) : super(key: key);
@@ -24,7 +29,8 @@ class ShopScreen extends StatelessWidget {
 
         if (snapshot.hasError) {
           return Scaffold(
-            body: Center(child: Text('Error loading user role: ${snapshot.error}')),
+            body: Center(
+                child: Text('Error loading user role: ${snapshot.error}')),
           );
         }
 
@@ -51,7 +57,8 @@ class ShopScreen extends StatelessWidget {
                 context: context,
                 icon: Icons.checkroom,
                 label: 'Abbigliamento e Equipaggiamento di Base',
-                onPressed: () => _navigateToCategory(context, 'Abbigliamento e Equipaggiamento di Base'),
+                onPressed: () => _navigateToCategory(
+                    context, 'Abbigliamento e Equipaggiamento di Base'),
               ),
               _buildCategoryButton(
                 context: context,
@@ -63,25 +70,29 @@ class ShopScreen extends StatelessWidget {
                 context: context,
                 icon: Icons.build,
                 label: 'Accessori per le Armi',
-                onPressed: () => _navigateToCategory(context, 'Accessori per le Armi'),
+                onPressed: () =>
+                    _navigateToCategory(context, 'Accessori per le Armi'),
               ),
               _buildCategoryButton(
                 context: context,
                 icon: Icons.shield,
                 label: 'Protezioni e Accessori di Sicurezza',
-                onPressed: () => _navigateToCategory(context, 'Protezioni e Accessori di Sicurezza'),
+                onPressed: () => _navigateToCategory(
+                    context, 'Protezioni e Accessori di Sicurezza'),
               ),
               _buildCategoryButton(
                 context: context,
                 icon: Icons.work,
                 label: 'Borse e Custodie',
-                onPressed: () => _navigateToCategory(context, 'Borse e Custodie'),
+                onPressed: () =>
+                    _navigateToCategory(context, 'Borse e Custodie'),
               ),
               _buildCategoryButton(
                 context: context,
                 icon: Icons.cleaning_services,
                 label: 'Prodotti per la Cura e la Manutenzione',
-                onPressed: () => _navigateToCategory(context, 'Prodotti per la Cura e la Manutenzione'),
+                onPressed: () => _navigateToCategory(
+                    context, 'Prodotti per la Cura e la Manutenzione'),
               ),
               _buildCategoryButton(
                 context: context,
@@ -141,7 +152,7 @@ class ShopScreen extends StatelessWidget {
       final userData = await authService.getUserData(user.uid);
       final facilityCode = userData['facilityCode'];
       final userRole = userData['role'];
-      
+
       Navigator.push(
         context,
         MaterialPageRoute(
@@ -154,7 +165,9 @@ class ShopScreen extends StatelessWidget {
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Impossibile caricare la categoria. Riprova più tardi.')),
+        const SnackBar(
+            content:
+                Text('Impossibile caricare la categoria. Riprova più tardi.')),
       );
     }
   }
@@ -165,7 +178,7 @@ class ShopScreen extends StatelessWidget {
     if (user != null) {
       final userData = await authService.getUserData(user.uid);
       final facilityCode = userData['facilityCode'];
-      
+
       showDialog(
         context: context,
         builder: (BuildContext context) {
@@ -174,7 +187,9 @@ class ShopScreen extends StatelessWidget {
       );
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Impossibile aggiungere il prodotto. Riprova più tardi.')),
+        const SnackBar(
+            content:
+                Text('Impossibile aggiungere il prodotto. Riprova più tardi.')),
       );
     }
   }
@@ -214,14 +229,16 @@ class ProductCategoryScreen extends StatelessWidget {
           }
 
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return const Center(child: Text('Non ci sono prodotti disponibili in struttura'));
+            return const Center(
+                child: Text('Non ci sono prodotti disponibili in struttura'));
           }
 
           return ListView.builder(
             itemCount: snapshot.data!.docs.length,
             itemBuilder: (context, index) {
               DocumentSnapshot document = snapshot.data!.docs[index];
-              Map<String, dynamic> data = document.data() as Map<String, dynamic>;
+              Map<String, dynamic> data =
+                  document.data() as Map<String, dynamic>;
 
               return ListTile(
                 title: Text(data['title'] ?? 'No title'),
@@ -277,13 +294,17 @@ class ProductCategoryScreen extends StatelessWidget {
 
   void _deleteProduct(BuildContext context, String productId) async {
     try {
-      await FirebaseFirestore.instance.collection('products').doc(productId).delete();
+      await FirebaseFirestore.instance
+          .collection('products')
+          .doc(productId)
+          .delete();
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Prodotto eliminato con successo')),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Errore durante l\'eliminazione del prodotto: $e')),
+        SnackBar(
+            content: Text('Errore durante l\'eliminazione del prodotto: $e')),
       );
     }
   }
@@ -334,14 +355,17 @@ class _EditProductsScreenState extends State<EditProductsScreen> {
           }
 
           if (!snapshot.hasData || snapshot.data!.docs.isEmpty) {
-            return const Center(child: Text('Non ci sono prodotti disponibili in questa categoria'));
+            return const Center(
+                child: Text(
+                    'Non ci sono prodotti disponibili in questa categoria'));
           }
 
           return ListView.builder(
             itemCount: snapshot.data!.docs.length,
             itemBuilder: (context, index) {
               DocumentSnapshot document = snapshot.data!.docs[index];
-              Map<String, dynamic> data = document.data() as Map<String, dynamic>;
+              Map<String, dynamic> data =
+                  document.data() as Map<String, dynamic>;
               String productId = document.id;
 
               return CheckboxListTile(
@@ -366,7 +390,6 @@ class _EditProductsScreenState extends State<EditProductsScreen> {
       ),
     );
   }
-
 }
 
 class ProductDetailScreen extends StatelessWidget {
@@ -411,10 +434,11 @@ class ProductDetailScreen extends StatelessWidget {
                     const SizedBox(height: 16),
                     Text(
                       title,
-                      style: Theme.of(context).textTheme.headlineSmall!.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.black,
-                          ),
+                      style:
+                          Theme.of(context).textTheme.headlineSmall!.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black,
+                              ),
                     ),
                     const Divider(height: 32, thickness: 2),
                     Text(
@@ -443,15 +467,18 @@ class ProductDetailScreen extends StatelessWidget {
                     const SizedBox(height: 8),
                     Text(
                       '$price €',
-                      style: Theme.of(context).textTheme.headlineSmall!.copyWith(
-                            fontWeight: FontWeight.bold,
-                            color: Colors.green[700],
-                          ),
+                      style:
+                          Theme.of(context).textTheme.headlineSmall!.copyWith(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.green[700],
+                              ),
                     ),
+                    const SizedBox(height: 16),
                     const SizedBox(height: 16),
                     const Center(
                       child: Text('Prodotto disponibile in struttura'),
                     ),
+                    const PaymentDemo(),
                   ],
                 ),
               ),
@@ -466,7 +493,8 @@ class ProductDetailScreen extends StatelessWidget {
 class AddProductDialog extends StatefulWidget {
   final String facilityCode;
 
-  const AddProductDialog({Key? key, required this.facilityCode}) : super(key: key);
+  const AddProductDialog({Key? key, required this.facilityCode})
+      : super(key: key);
 
   @override
   _AddProductDialogState createState() => _AddProductDialogState();
@@ -586,6 +614,83 @@ class _AddProductDialogState extends State<AddProductDialog> {
           },
         ),
       ],
+    );
+  }
+}
+
+class PaymentDemo extends StatelessWidget {
+  const PaymentDemo({Key? key}) : super(key: key);
+
+  Future<void> initPayment({
+    required String email,
+    required double amount,
+    required BuildContext context,
+  }) async {
+    try {
+      // 1. Create a payment intent on the server
+      final response = await http.post(
+          Uri.parse(
+              'https://us-central1-scherma-f2d5e.cloudfunctions.net/stripePaymentIntentRequest'),
+          body: {
+            'email': email,
+            'amount': amount.toString(),
+          });
+
+      final jsonResponse = jsonDecode(response.body);
+      log(jsonResponse.toString());
+      // 2. Initialize the payment sheet
+      await Stripe.instance.initPaymentSheet(
+        paymentSheetParameters: SetupPaymentSheetParameters(
+          paymentIntentClientSecret: jsonResponse['paymentIntent'],
+          merchantDisplayName: 'Grocery Flutter course',
+          customerId: jsonResponse['customer'],
+          customerEphemeralKeySecret: jsonResponse['ephemeralKey'],
+          applePay: const PaymentSheetApplePay(
+            merchantCountryCode: 'US',
+          ),
+          googlePay: const PaymentSheetGooglePay(
+            merchantCountryCode: 'US',
+            testEnv: true,
+          ),
+        ),
+      );
+      await Stripe.instance.presentPaymentSheet();
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Payment is successful'),
+        ),
+      );
+    } catch (errorr) {
+      if (errorr is StripeException) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content:
+                Text('An error occurred: ${errorr.error.localizedMessage}'),
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('An error occurred: $errorr'),
+          ),
+        );
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+      child: ElevatedButton(
+        child: const Text('Pay 20\$'),
+        onPressed: () async {
+          await initPayment(
+            amount: 50.0,
+            context: context,
+            email: 'email@test.com',
+          );
+        },
+      ),
     );
   }
 }

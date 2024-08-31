@@ -4,6 +4,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_stripe/flutter_stripe.dart';
 import 'package:provider/provider.dart';
 import 'armeria_screen.dart';
 import 'auth_service.dart';
@@ -25,7 +26,9 @@ void main() async {
   } catch (e) {
     print('Error loading .env file: $e');
   }
-  print(dotenv.env['API_KEY']);
+
+  Stripe.publishableKey = dotenv.env['STRIPE_PUBLISHABLE_KEY'] ?? '';
+  Stripe.instance.applySettings();
   if (Firebase.apps.isEmpty) {
     await Firebase.initializeApp(
       name: 'scherma',
@@ -65,7 +68,7 @@ class FencingApp extends StatelessWidget {
             backgroundColor: Colors.white,
             iconTheme: IconThemeData(color: Colors.black),
             titleTextStyle: TextStyle(color: Colors.black, fontSize: 20),
-            elevation: 0, 
+            elevation: 0,
           ),
           bottomNavigationBarTheme: const BottomNavigationBarThemeData(
             backgroundColor: Colors.white,
@@ -94,9 +97,9 @@ class AuthWrapper extends StatelessWidget {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
         } else if (snapshot.hasData) {
-          return const HomeScreen(); 
+          return const HomeScreen();
         } else {
-          return const SignInScreen(); 
+          return const SignInScreen();
         }
       },
     );
@@ -163,7 +166,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ),
-
             ListTile(
               leading: const Icon(Icons.person, color: Colors.black),
               title:
@@ -211,7 +213,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 );
               },
             ),
-            const Divider(color: Colors.black), 
+            const Divider(color: Colors.black),
             ListTile(
               leading: const Icon(Icons.logout, color: Colors.black),
               title:
@@ -253,8 +255,8 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
         ],
         currentIndex: _selectedIndex,
-        selectedItemColor: Colors.black, 
-        unselectedItemColor: Colors.grey, 
+        selectedItemColor: Colors.black,
+        unselectedItemColor: Colors.grey,
         onTap: _onItemTapped,
       ),
     );
