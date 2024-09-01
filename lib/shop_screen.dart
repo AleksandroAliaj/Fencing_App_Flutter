@@ -475,7 +475,7 @@ class ProductDetailScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 16),
                     const Center(
-                      child: Text('Prodotto disponibile in struttura'),
+                      child: Text('\nDopo l\'acquisto potrai ritirare il prodotto in struttura\n\n'),
                     ),
                     PaymentDemo(price: price), // Pass the price here
                   ],
@@ -663,13 +663,13 @@ class PaymentDemo extends StatelessWidget {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content:
-                Text('An error occurred: ${errorr.error.localizedMessage}'),
+                Text('${errorr.error.localizedMessage}'),
           ),
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text('An error occurred: $errorr'),
+            content: Text('$errorr'),
           ),
         );
       }
