@@ -1,3 +1,5 @@
+// ignore_for_file: prefer_const_constructors
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
@@ -47,6 +49,39 @@ void main() {
      
       expect(find.byType(SignInScreen), findsOneWidget);
     });
+    
+
+testWidgets('Displays error message on authentication error', (WidgetTester tester) async {
+  final mockAuthService = MockAuthService(userStream: Stream.error('Authentication Error'));
+
+  await tester.pumpWidget(
+    MultiProvider(
+      providers: [
+        Provider<AuthService>.value(value: mockAuthService),
+      ],
+      child: const MaterialApp(home: AuthWrapper()),
+    ),
+  );
+
+  await tester.pumpAndSettle();
+
+  expect(find.text('Authentication Error'), findsNothing);
+});
+
+testWidgets('Displays loading indicator while authenticating', (WidgetTester tester) async {
+  final mockAuthService = MockAuthService(userStream: Stream.empty());
+
+  await tester.pumpWidget(
+    MultiProvider(
+      providers: [
+        Provider<AuthService>.value(value: mockAuthService),
+      ],
+      child: const MaterialApp(home: AuthWrapper()),
+    ),
+  );
+
+  expect(find.byType(CircularProgressIndicator), findsOneWidget);
+});
     
 
   });

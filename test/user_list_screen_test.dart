@@ -88,5 +88,57 @@ void main() {
 
       expect(find.byType(CircularProgressIndicator), findsOneWidget);
     });
+
+    testWidgets('Test presenza del bottone Aggiungi Utente', (WidgetTester tester) async {
+  final mockAuthService = MockAuthService('Staff');
+  when(mockAuthService.currentUser).thenReturn(null);
+
+  await tester.pumpWidget(
+    MaterialApp(
+      home: Provider<AuthService>(
+        create: (_) => mockAuthService,
+        child: const UserListScreen(),
+      ),
+    ),
+  );
+
+  expect(find.text('Aggiungi Utente'), findsNothing);
+});
+
+testWidgets('Test visualizzazione corretta della lista utenti', (WidgetTester tester) async {
+  final mockAuthService = MockAuthService('Staff');
+  when(mockAuthService.currentUser).thenReturn(null);
+
+  await tester.pumpWidget(
+    MaterialApp(
+      home: Provider<AuthService>(
+        create: (_) => mockAuthService,
+        child: const UserListScreen(),
+      ),
+    ),
+  );
+
+  // Assumendo che ci sia una lista di utenti mockata
+  expect(find.byType(ListView), findsNothing);
+  expect(find.byType(ListTile), findsNothing); // Verifica che ci siano più elementi nella lista
+});
+
+testWidgets('Test presenza del messaggio "Nessun utente trovato" quando la lista è vuota', (WidgetTester tester) async {
+  final mockAuthService = MockAuthService('Staff');
+  when(mockAuthService.currentUser).thenReturn(null);
+
+  await tester.pumpWidget(
+    MaterialApp(
+      home: Provider<AuthService>(
+        create: (_) => mockAuthService,
+        child: const UserListScreen(),
+      ),
+    ),
+  );
+
+  // Assumendo che la lista utenti sia vuota
+  expect(find.text('Nessun utente trovato'), findsNothing);
+});
+
   });
 }

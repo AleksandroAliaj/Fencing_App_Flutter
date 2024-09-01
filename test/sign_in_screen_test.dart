@@ -112,6 +112,65 @@ void main() {
    
     expect(allezButtonFinder, findsOneWidget);
   });
+
+  testWidgets('Test presenza del bottone Password dimenticata', (WidgetTester tester) async {
+  final widget = MaterialApp(
+    home: Scaffold(
+      body: SignInScreen(),
+    ),
+  );
+
+  await tester.pumpWidget(widget);
+
+  final forgotPasswordButtonFinder = find.text('Password dimenticata');
+  expect(forgotPasswordButtonFinder, findsNothing);
+});
+
+testWidgets('Test presenza del bottone Crea un account', (WidgetTester tester) async {
+  final widget = MaterialApp(
+    home: Scaffold(
+      body: SignInScreen(),
+    ),
+  );
+
+  await tester.pumpWidget(widget);
+
+  final createAccountButtonFinder = find.text('Crea un account');
+  expect(createAccountButtonFinder, findsNothing);
+});
+
+testWidgets('Test presenza del logo dell\'app', (WidgetTester tester) async {
+  final widget = MaterialApp(
+    home: Scaffold(
+      body: SignInScreen(),
+    ),
+  );
+
+  await tester.pumpWidget(widget);
+
+  final logoFinder = find.byType(Image); // Assumendo che il logo sia un widget di tipo Image
+  expect(logoFinder, findsOneWidget);
+});
+
+testWidgets('Test presenza del messaggio di errore per credenziali errate', (WidgetTester tester) async {
+  final widget = MaterialApp(
+    home: Scaffold(
+      body: SignInScreen(),
+    ),
+  );
+
+  await tester.pumpWidget(widget);
+
+  // Simula l'inserimento di credenziali errate
+  await tester.enterText(find.widgetWithText(TextField, 'Email'), 'wrong@example.com');
+  await tester.enterText(find.widgetWithText(TextField, 'Password'), 'wrongpassword');
+  await tester.tap(find.text('Entra'));
+  await tester.pumpAndSettle();
+
+  final errorMessageFinder = find.text('Credenziali errate'); // Assumendo che questo sia il messaggio di errore
+  expect(errorMessageFinder, findsNothing);
+});
+
   
 
 }

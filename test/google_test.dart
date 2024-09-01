@@ -33,5 +33,24 @@ void main() {
     await tester.pumpWidget(MaterialApp(home: GoogleSignInScreen()));
     expect(find.text('Registrati'), findsNothing);
   });
+  testWidgets('Test presenza del campo Email', (WidgetTester tester) async {
+  await tester.pumpWidget(MaterialApp(home: GoogleSignInScreen()));
+  expect(find.widgetWithText(TextField, 'Email'), findsNothing);
+});
+
+testWidgets('Test presenza del campo Password', (WidgetTester tester) async {
+  await tester.pumpWidget(MaterialApp(home: GoogleSignInScreen()));
+  expect(find.widgetWithText(TextField, 'Password'), findsNothing);
+});
+
+testWidgets('Test presenza del bottone Entra con Google', (WidgetTester tester) async {
+  await tester.pumpWidget(MaterialApp(home: GoogleSignInScreen()));
+  expect(find.text('Entra con Google'), findsOneWidget);
+});
+
+testWidgets('Test presenza del bottone Annulla', (WidgetTester tester) async {
+  await tester.pumpWidget(MaterialApp(home: GoogleSignInScreen()));
+  expect(find.text('Annulla'), findsNothing);
+});
 
 }

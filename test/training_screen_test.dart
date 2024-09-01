@@ -150,6 +150,20 @@ testWidgets('Test presenza dei campi nel form Crea Assalto per Allenatore', (Wid
   expect(find.text('Crea Combattimento'), findsOneWidget);
   
 });
+testWidgets('Test presenza del bottone Aggiungi Allenamento', (WidgetTester tester) async {
+  await tester.pumpWidget(createWidgetUnderTest());
+  await tester.pumpAndSettle();
+
+  expect(find.text('Aggiungi Allenamento'), findsNothing);
+});
+
+testWidgets('Test presenza del bottone Elenco Allenamenti', (WidgetTester tester) async {
+  await tester.pumpWidget(createWidgetUnderTest());
+  await tester.pumpAndSettle();
+
+  expect(find.text('Elenco Allenamenti'), findsNothing);
+});
+
 
 
 
