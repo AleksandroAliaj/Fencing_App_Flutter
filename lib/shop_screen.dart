@@ -477,7 +477,7 @@ class ProductDetailScreen extends StatelessWidget {
                     const Center(
                       child: Text('\nDopo l\'acquisto potrai ritirare il prodotto in struttura\n\n'),
                     ),
-                    PaymentDemo(price: price), // Pass the price here
+                    PaymentDemo(price: price), 
                   ],
                 ),
               ),
@@ -618,7 +618,7 @@ class _AddProductDialogState extends State<AddProductDialog> {
 }
 
 class PaymentDemo extends StatelessWidget {
-  final double price; // Add price as a parameter
+  final double price; 
 
   const PaymentDemo({Key? key, required this.price}) : super(key: key);
 
@@ -628,7 +628,7 @@ class PaymentDemo extends StatelessWidget {
     required BuildContext context,
   }) async {
     try {
-      // 1. Create a payment intent on the server
+      
       final response = await http.post(
           Uri.parse(
               'https://us-central1-scherma-f2d5e.cloudfunctions.net/stripePaymentIntentRequest'),
@@ -639,7 +639,7 @@ class PaymentDemo extends StatelessWidget {
 
       final jsonResponse = jsonDecode(response.body);
       log(jsonResponse.toString());
-      // 2. Initialize the payment sheet
+      
       await Stripe.instance.initPaymentSheet(
         paymentSheetParameters: SetupPaymentSheetParameters(
           paymentIntentClientSecret: jsonResponse['paymentIntent'],
@@ -680,10 +680,10 @@ class PaymentDemo extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: ElevatedButton(
-        child: Text('Pay ${price.toStringAsFixed(2)} €'), // Show dynamic price
+        child: Text('Pay ${price.toStringAsFixed(2)} €'), 
         onPressed: () async {
           await initPayment(
-            amount: price * 100.0, // Use the dynamic price here
+            amount: price * 100.0, 
             context: context,
             email: 'email@test.com',
           );
