@@ -1,16 +1,40 @@
-# scherma
+# Fencing App
 
-A new Flutter project.
+## Description
 
-## Getting Started
+Fencing App is a mobile application dedicated to the world of fencing. Designed for athletes, coaches, and staff, this app offers a comprehensive platform to manage training sessions, events, communications, and much more within the context of a fencing club.
 
-This project is a starting point for a Flutter application.
+## Key Features
 
-A few resources to get you started if this is your first Flutter project:
+- Calendar for events and training sessions
+- Chat system for internal communications
+- User profile management
+- Armory section for equipment management
+- Integrated shop for purchasing fencing equipment
+- Notification system for important events
+- Management of technical intervention requests
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+## Technologies Used
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+- Flutter for cross-platform development
+- Firebase for authentication and real-time database
+- Provider for application state management
+
+## Testing
+
+The application includes a comprehensive test suite to ensure code quality and reliability. The tests cover various aspects of the app, including:
+
+- Widget tests for the user interface
+- Integration tests for core functionalities
+- Unit tests for business logic
+
+## Authors
+
+This application was developed by:
+
+- Federico Albertini
+- Aleksandro Aliaj
+
+## License
+
+This project is protected by copyright. All rights reserved to the authors.
