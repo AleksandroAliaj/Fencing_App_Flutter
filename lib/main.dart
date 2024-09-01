@@ -27,7 +27,7 @@ void main() async {
     print('Error loading .env file: $e');
   }
 
-  Stripe.publishableKey = dotenv.env['STRIPE_PUBLISHABLE_KEY'] ?? '';
+  Stripe.publishableKey = dotenv.env['STRIPE_PUBLIC_KEY'] ?? '';
   Stripe.instance.applySettings();
   if (Firebase.apps.isEmpty) {
     await Firebase.initializeApp(

@@ -474,11 +474,10 @@ class ProductDetailScreen extends StatelessWidget {
                               ),
                     ),
                     const SizedBox(height: 16),
-                    const SizedBox(height: 16),
                     const Center(
                       child: Text('Prodotto disponibile in struttura'),
                     ),
-                    const PaymentDemo(),
+                    PaymentDemo(price: price), // Pass the price here
                   ],
                 ),
               ),
@@ -619,7 +618,9 @@ class _AddProductDialogState extends State<AddProductDialog> {
 }
 
 class PaymentDemo extends StatelessWidget {
-  const PaymentDemo({Key? key}) : super(key: key);
+  final double price; // Add price as a parameter
+
+  const PaymentDemo({Key? key, required this.price}) : super(key: key);
 
   Future<void> initPayment({
     required String email,
@@ -642,14 +643,11 @@ class PaymentDemo extends StatelessWidget {
       await Stripe.instance.initPaymentSheet(
         paymentSheetParameters: SetupPaymentSheetParameters(
           paymentIntentClientSecret: jsonResponse['paymentIntent'],
-          merchantDisplayName: 'Grocery Flutter course',
+          merchantDisplayName: 'Palestra di Scherma',
           customerId: jsonResponse['customer'],
           customerEphemeralKeySecret: jsonResponse['ephemeralKey'],
-          applePay: const PaymentSheetApplePay(
-            merchantCountryCode: 'US',
-          ),
           googlePay: const PaymentSheetGooglePay(
-            merchantCountryCode: 'US',
+            merchantCountryCode: 'IT',
             testEnv: true,
           ),
         ),
@@ -682,10 +680,10 @@ class PaymentDemo extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: ElevatedButton(
-        child: const Text('Pay 20\$'),
+        child: Text('Pay ${price.toStringAsFixed(2)} €'), // Show dynamic price
         onPressed: () async {
           await initPayment(
-            amount: 50.0,
+            amount: price * 100.0, // Use the dynamic price here
             context: context,
             email: 'email@test.com',
           );
