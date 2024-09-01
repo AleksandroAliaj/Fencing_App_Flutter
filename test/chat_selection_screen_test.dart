@@ -1,10 +1,8 @@
-// ignore_for_file: prefer_const_constructors
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:fencing/auth_service.dart';
-import 'package:fencing/chat_screen.dart';
+import 'package:fencing/chat_selection_screen.dart';
 import 'package:mockito/mockito.dart';
 
 class MockAuthService extends Mock implements AuthService {
@@ -19,8 +17,8 @@ class MockAuthService extends Mock implements AuthService {
 }
 
 void main() {
-  group('ChatScreen Tests', () {
-    testWidgets('Test presenza del titolo Chat', (WidgetTester tester) async {
+  group('ChatSelectionScreen Tests', () {
+    testWidgets('Test presenza del titolo Seleziona Chat', (WidgetTester tester) async {
       final mockAuthService = MockAuthService('Staff');
       when(mockAuthService.currentUser).thenReturn(null);
 
@@ -28,17 +26,15 @@ void main() {
         MaterialApp(
           home: Provider<AuthService>(
             create: (_) => mockAuthService,
-            child: const ChatScreen(chatType: 'athletes_coaches'),
+            child: const ChatSelectionScreen(),
           ),
         ),
       );
 
-      await tester.pump(Duration(seconds: 1)); // Attendi un secondo per la costruzione del widget
-
-      expect(find.text('Chat'), findsNothing);
+      expect(find.text('Seleziona Chat'), findsNothing);
     });
 
-    testWidgets('Test presenza del campo di input messaggio', (WidgetTester tester) async {
+    testWidgets('Test presenza del titolo Chat di Gruppo', (WidgetTester tester) async {
       final mockAuthService = MockAuthService('Staff');
       when(mockAuthService.currentUser).thenReturn(null);
 
@@ -46,36 +42,31 @@ void main() {
         MaterialApp(
           home: Provider<AuthService>(
             create: (_) => mockAuthService,
-            child: const ChatScreen(chatType: 'athletes_coaches'),
+            child: const ChatSelectionScreen(),
           ),
         ),
       );
 
-      await tester.pump(Duration(seconds: 1)); // Attendi un secondo per la costruzione del widget
-
-      expect(find.byType(TextField), findsNothing);
-      expect(find.text('Scrivi un messaggio...'), findsNothing);
+      expect(find.text('Chat di Gruppo'), findsNothing);
     });
 
-    testWidgets('Test presenza del bottone Invia', (WidgetTester tester) async {
-      final mockAuthService = MockAuthService('Staff');
+    testWidgets('Test presenza del titolo Chat Privata', (WidgetTester tester) async {
+      final mockAuthService = MockAuthService('Atleta');
       when(mockAuthService.currentUser).thenReturn(null);
 
       await tester.pumpWidget(
         MaterialApp(
           home: Provider<AuthService>(
             create: (_) => mockAuthService,
-            child: const ChatScreen(chatType: 'athletes_coaches'),
+            child: const ChatSelectionScreen(),
           ),
         ),
       );
 
-      await tester.pump(Duration(seconds: 1)); // Attendi un secondo per la costruzione del widget
-
-      expect(find.text('Invia'), findsNothing);
+      expect(find.text('Chat Privata'), findsNothing);
     });
 
-    testWidgets('Test presenza del titolo Messaggi Recenti', (WidgetTester tester) async {
+    testWidgets('Test presenza del titolo Nuova Chat', (WidgetTester tester) async {
       final mockAuthService = MockAuthService('Staff');
       when(mockAuthService.currentUser).thenReturn(null);
 
@@ -83,14 +74,28 @@ void main() {
         MaterialApp(
           home: Provider<AuthService>(
             create: (_) => mockAuthService,
-            child: const ChatScreen(chatType: 'athletes_coaches'),
+            child: const ChatSelectionScreen(),
           ),
         ),
       );
 
-      await tester.pump(Duration(seconds: 1)); // Attendi un secondo per la costruzione del widget
+      expect(find.text('Nuova Chat'), findsNothing);
+    });
 
-      expect(find.text('Messaggi Recenti'), findsNothing);
+    testWidgets('Test presenza del titolo Chat Esistente', (WidgetTester tester) async {
+      final mockAuthService = MockAuthService('Staff');
+      when(mockAuthService.currentUser).thenReturn(null);
+
+      await tester.pumpWidget(
+        MaterialApp(
+          home: Provider<AuthService>(
+            create: (_) => mockAuthService,
+            child: const ChatSelectionScreen(),
+          ),
+        ),
+      );
+
+      expect(find.text('Chat Esistente'), findsNothing);
     });
   });
 }
