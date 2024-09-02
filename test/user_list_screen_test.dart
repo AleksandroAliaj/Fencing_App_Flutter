@@ -118,9 +118,9 @@ testWidgets('Test visualizzazione corretta della lista utenti', (WidgetTester te
     ),
   );
 
-  // Assumendo che ci sia una lista di utenti mockata
+ 
   expect(find.byType(ListView), findsNothing);
-  expect(find.byType(ListTile), findsNothing); // Verifica che ci siano più elementi nella lista
+  expect(find.byType(ListTile), findsNothing); 
 });
 
 testWidgets('Test presenza del messaggio "Nessun utente trovato" quando la lista è vuota', (WidgetTester tester) async {
@@ -136,7 +136,7 @@ testWidgets('Test presenza del messaggio "Nessun utente trovato" quando la lista
     ),
   );
 
-  // Assumendo che la lista utenti sia vuota
+  
   expect(find.text('Nessun utente trovato'), findsNothing);
 });
 

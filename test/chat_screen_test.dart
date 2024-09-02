@@ -18,6 +18,7 @@ class MockAuthService extends Mock implements AuthService {
   }
 }
 
+
 void main() {
   group('ChatScreen Tests', () {
     testWidgets('Test presenza del titolo Chat', (WidgetTester tester) async {
@@ -33,7 +34,7 @@ void main() {
         ),
       );
 
-      await tester.pump(Duration(seconds: 1)); // Attendi un secondo per la costruzione del widget
+      await tester.pump(Duration(seconds: 1)); 
 
       expect(find.text('Chat'), findsNothing);
     });
@@ -51,7 +52,7 @@ void main() {
         ),
       );
 
-      await tester.pump(Duration(seconds: 1)); // Attendi un secondo per la costruzione del widget
+      await tester.pump(Duration(seconds: 1)); 
 
       expect(find.byType(TextField), findsNothing);
       expect(find.text('Scrivi un messaggio...'), findsNothing);
@@ -70,7 +71,7 @@ void main() {
         ),
       );
 
-      await tester.pump(Duration(seconds: 1)); // Attendi un secondo per la costruzione del widget
+      await tester.pump(Duration(seconds: 1)); 
 
       expect(find.text('Invia'), findsNothing);
     });
@@ -88,9 +89,11 @@ void main() {
         ),
       );
 
-      await tester.pump(Duration(seconds: 1)); // Attendi un secondo per la costruzione del widget
+      await tester.pump(Duration(seconds: 1)); 
 
       expect(find.text('Messaggi Recenti'), findsNothing);
     });
   });
+
+  
 }

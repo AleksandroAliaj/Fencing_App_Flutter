@@ -680,7 +680,7 @@ class PaymentDemo extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: ElevatedButton(
-        child: Text('Pay ${price.toStringAsFixed(2)} €'), 
+        child: Text('Acquista ${price.toStringAsFixed(2)} €'), 
         onPressed: () async {
           await initPayment(
             amount: price * 100.0, 

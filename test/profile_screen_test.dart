@@ -48,7 +48,7 @@ void main() {
         ),
       );
 
-      await tester.pumpAndSettle(); // Assicurati che tutti i widget siano completamente costruiti
+      await tester.pumpAndSettle(); 
 
       expect(find.text('Nome'), findsNothing);
     });

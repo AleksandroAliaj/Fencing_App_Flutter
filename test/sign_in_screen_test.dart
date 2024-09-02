@@ -148,7 +148,7 @@ testWidgets('Test presenza del logo dell\'app', (WidgetTester tester) async {
 
   await tester.pumpWidget(widget);
 
-  final logoFinder = find.byType(Image); // Assumendo che il logo sia un widget di tipo Image
+  final logoFinder = find.byType(Image); 
   expect(logoFinder, findsOneWidget);
 });
 
@@ -161,13 +161,13 @@ testWidgets('Test presenza del messaggio di errore per credenziali errate', (Wid
 
   await tester.pumpWidget(widget);
 
-  // Simula l'inserimento di credenziali errate
+  
   await tester.enterText(find.widgetWithText(TextField, 'Email'), 'wrong@example.com');
   await tester.enterText(find.widgetWithText(TextField, 'Password'), 'wrongpassword');
   await tester.tap(find.text('Entra'));
   await tester.pumpAndSettle();
 
-  final errorMessageFinder = find.text('Credenziali errate'); // Assumendo che questo sia il messaggio di errore
+  final errorMessageFinder = find.text('Credenziali errate'); 
   expect(errorMessageFinder, findsNothing);
 });
 

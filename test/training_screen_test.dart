@@ -55,7 +55,7 @@ void main() {
   await tester.tap(find.text('Lezione privata'));
   await tester.pumpAndSettle();
 
-  // Clicca sul bottone "Aggiungi Lezione"
+  
   await tester.tap(find.text('Aggiungi Lezione'));
   await tester.pumpAndSettle();
 
@@ -71,10 +71,10 @@ testWidgets('Test presenza e funzionamento del bottone "Le Mie Lezioni"', (Widge
   await tester.tap(find.text('Lezione privata'));
   await tester.pumpAndSettle();
 
-  // Verifica la presenza del bottone "Le Mie Lezioni"
+  
   expect(find.text('Le Mie Lezioni'), findsOneWidget);
 
-  // Tap sul bottone "Le Mie Lezioni"
+  
   
 });
 
@@ -104,7 +104,6 @@ testWidgets('Test presenza dei bottoni per Allenatore nella tab Assalti', (Widge
   await tester.tap(find.text('Assalti'));
   await tester.pumpAndSettle();
 
-  //await tester.pumpWidget(WidgetCoach());
 
   expect(find.text('Crea \nAssalto'), findsOneWidget);
   expect(find.text('Elenco \nAssalti'), findsOneWidget);

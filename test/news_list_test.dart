@@ -106,7 +106,7 @@ void main() {
         ),
       );
 
-      await tester.pumpAndSettle(); // Assicurati che tutti i widget siano completamente costruiti
+      await tester.pumpAndSettle(); 
 
       expect(find.text('Aggiungi News'), findsOneWidget);
     });
@@ -124,7 +124,7 @@ void main() {
         ),
       );
 
-      await tester.pumpAndSettle(); // Assicurati che tutti i widget siano completamente costruiti
+      await tester.pumpAndSettle(); 
 
       expect(find.text('Tutte le News'), findsOneWidget);
     });

@@ -32,7 +32,7 @@ void main() {
         ),
       );
 
-      await tester.pumpAndSettle(); // Assicurati che tutti i widget siano completamente costruiti
+      await tester.pumpAndSettle(); 
 
       expect(find.text('Shop'), findsOneWidget);
     });
@@ -50,7 +50,7 @@ void main() {
         ),
       );
 
-      await tester.pumpAndSettle(); // Assicurati che tutti i widget siano completamente costruiti
+      await tester.pumpAndSettle(); 
 
       expect(find.text('Abbigliamento e Equipaggiamento di Base'), findsOneWidget);
     });
@@ -68,7 +68,7 @@ void main() {
         ),
       );
 
-      await tester.pumpAndSettle(); // Assicurati che tutti i widget siano completamente costruiti
+      await tester.pumpAndSettle(); 
 
       expect(find.text('Armi'), findsOneWidget);
     });
@@ -86,7 +86,7 @@ void main() {
         ),
       );
 
-      await tester.pumpAndSettle(); // Assicurati che tutti i widget siano completamente costruiti
+      await tester.pumpAndSettle(); 
 
       expect(find.text('Accessori'), findsNothing);
     });
@@ -104,7 +104,7 @@ void main() {
         ),
       );
 
-      await tester.pumpAndSettle(); // Assicurati che tutti i widget siano completamente costruiti
+      await tester.pumpAndSettle(); 
 
       expect(find.text('Attrezzatura Elettrica'), findsNothing);
     });
@@ -122,7 +122,7 @@ void main() {
         ),
       );
 
-      await tester.pumpAndSettle(); // Assicurati che tutti i widget siano completamente costruiti
+      await tester.pumpAndSettle(); 
 
       expect(find.byIcon(Icons.checkroom), findsOneWidget);
       expect(find.byIcon(Icons.security), findsOneWidget);
